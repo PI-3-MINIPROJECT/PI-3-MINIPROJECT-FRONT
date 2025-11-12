@@ -1,0 +1,102 @@
+/**
+ * SASS Mixins
+ * Reusable style patterns
+ */
+
+@use './variables' as *;
+
+/**
+ * Responsive breakpoint mixin
+ * @param $breakpoint - Breakpoint name (sm, md, lg, xl, 2xl)
+ */
+@mixin respond-to($breakpoint) {
+  @if $breakpoint == sm {
+    @media (min-width: $breakpoint-sm) {
+      @content;
+    }
+  } @else if $breakpoint == md {
+    @media (min-width: $breakpoint-md) {
+      @content;
+    }
+  } @else if $breakpoint == lg {
+    @media (min-width: $breakpoint-lg) {
+      @content;
+    }
+  } @else if $breakpoint == xl {
+    @media (min-width: $breakpoint-xl) {
+      @content;
+    }
+  } @else if $breakpoint == 2xl {
+    @media (min-width: $breakpoint-2xl) {
+      @content;
+    }
+  }
+}
+
+/**
+ * Flexbox center mixin
+ */
+@mixin flex-center {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/**
+ * Flexbox column mixin
+ */
+@mixin flex-column {
+  display: flex;
+  flex-direction: column;
+}
+
+/**
+ * Button reset mixin
+ */
+@mixin button-reset {
+  border: none;
+  background: none;
+  padding: 0;
+  margin: 0;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: inherit;
+}
+
+/**
+ * Visually hidden (for accessibility)
+ */
+@mixin visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
+}
+
+/**
+ * Focus visible (for accessibility)
+ */
+@mixin focus-visible {
+  outline: 2px solid $primary-color;
+  outline-offset: 2px;
+}
+
+/**
+ * Container mixin
+ */
+@mixin container {
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 $spacing-md;
+
+  @include respond-to(lg) {
+    padding: 0 $spacing-xl;
+  }
+}
+

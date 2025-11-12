@@ -1,0 +1,126 @@
+@use 'sass:color';
+@use '../../styles/variables' as *;
+@use '../../styles/mixins' as *;
+
+.header {
+  background-color: $surface-color;
+  box-shadow: $shadow-sm;
+  position: sticky;
+  top: 0;
+  z-index: $z-index-sticky;
+  border-bottom: 1px solid $border-color;
+
+  &__container {
+    @include container;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding-top: $spacing-md;
+    padding-bottom: $spacing-md;
+    gap: $spacing-lg;
+
+    @include respond-to(md) {
+      padding-top: $spacing-lg;
+      padding-bottom: $spacing-lg;
+    }
+  }
+
+  &__logo {
+    h1 {
+      font-size: $font-size-xl;
+      margin: 0;
+      color: $primary-color;
+
+      @include respond-to(md) {
+        font-size: $font-size-2xl;
+      }
+    }
+
+    &:hover {
+      opacity: 0.8;
+    }
+  }
+
+  &__nav {
+    flex: 1;
+    display: none;
+
+    @include respond-to(md) {
+      display: block;
+    }
+
+    &-list {
+      display: flex;
+      list-style: none;
+      gap: $spacing-lg;
+      margin: 0;
+      padding: 0;
+    }
+
+    &-link {
+      color: $text-primary;
+      font-weight: $font-weight-medium;
+      padding: $spacing-sm $spacing-md;
+      border-radius: $border-radius-md;
+      transition: background-color $transition-fast;
+
+      &:hover {
+        background-color: $background-color;
+        color: $primary-color;
+      }
+
+      &--active {
+        color: $primary-color;
+        background-color: rgba($primary-color, 0.1);
+      }
+
+      &:focus-visible {
+        @include focus-visible;
+      }
+    }
+  }
+
+  &__actions {
+    display: flex;
+    gap: $spacing-sm;
+    align-items: center;
+  }
+
+  &__button {
+    padding: $spacing-sm $spacing-md;
+    border-radius: $border-radius-md;
+    font-weight: $font-weight-medium;
+    transition: all $transition-fast;
+    display: inline-block;
+
+    @include respond-to(md) {
+      padding: $spacing-sm $spacing-lg;
+    }
+
+    &--primary {
+      background-color: $primary-color;
+      color: white;
+
+      &:hover {
+        background-color: color.adjust($primary-color, $lightness: -10%);
+        color: white;
+      }
+    }
+
+    &--secondary {
+      background-color: transparent;
+      color: $primary-color;
+      border: 1px solid $primary-color;
+
+      &:hover {
+        background-color: $primary-color;
+        color: white;
+      }
+    }
+
+    &:focus-visible {
+      @include focus-visible;
+    }
+  }
+}
+

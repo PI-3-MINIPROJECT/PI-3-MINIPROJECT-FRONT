@@ -1,0 +1,94 @@
+@use '../../styles/variables' as *;
+@use '../../styles/mixins' as *;
+
+.about {
+  min-height: calc(100vh - 200px);
+  padding: $spacing-2xl $spacing-md;
+
+  &__container {
+    @include container;
+    max-width: 900px;
+  }
+
+  &__hero {
+    text-align: center;
+    margin-bottom: $spacing-3xl;
+
+    h1 {
+      font-size: $font-size-4xl;
+      margin-bottom: $spacing-lg;
+    }
+  }
+
+  &__intro {
+    font-size: $font-size-lg;
+    color: $text-secondary;
+    line-height: $line-height-relaxed;
+    max-width: 700px;
+    margin: 0 auto;
+  }
+
+  &__section {
+    margin-bottom: $spacing-3xl;
+
+    h2 {
+      font-size: $font-size-2xl;
+      margin-bottom: $spacing-lg;
+      color: $primary-color;
+    }
+
+    p {
+      line-height: $line-height-relaxed;
+      margin-bottom: $spacing-md;
+    }
+  }
+
+  &__features-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+
+    li {
+      padding: $spacing-md;
+      margin-bottom: $spacing-sm;
+      background-color: $surface-color;
+      border-radius: $border-radius-md;
+      border-left: 4px solid $primary-color;
+
+      strong {
+        color: $text-primary;
+        display: block;
+        margin-bottom: $spacing-xs;
+      }
+    }
+  }
+
+  &__tech-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: $spacing-lg;
+
+    @include respond-to(md) {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+
+  &__tech-item {
+    background-color: $surface-color;
+    padding: $spacing-lg;
+    border-radius: $border-radius-lg;
+    box-shadow: $shadow-sm;
+
+    h3 {
+      font-size: $font-size-xl;
+      margin-bottom: $spacing-sm;
+      color: $primary-color;
+    }
+
+    p {
+      color: $text-secondary;
+      margin: 0;
+    }
+  }
+}
+
