@@ -28,9 +28,14 @@
   &--primary {
     background: linear-gradient(135deg, #2563EB 0%, #4B45AD 100%);
     color: white;
-    width: 233px;
-    height: 54px;
-    padding: 0;
+    min-width: 180px;
+    height: 48px;
+    padding: 0 calc($spacing-lg * 1.2);
+
+    @include respond-to(md) {
+      height: 54px;
+      min-width: 200px;
+    }
 
     &:hover:not(:disabled) {
       transform: translateY(-2px);
@@ -42,9 +47,14 @@
     background-color: white;
     color: $text-primary;
     border: 1px solid $border-color;
-    width: 233px;
-    height: 54px;
-    padding: 0;
+    min-width: 180px;
+    height: 48px;
+    padding: 0 calc($spacing-lg * 1.2);
+
+    @include respond-to(md) {
+      height: 54px;
+      min-width: 200px;
+    }
 
     &:hover:not(:disabled) {
       border-color: $primary-color;

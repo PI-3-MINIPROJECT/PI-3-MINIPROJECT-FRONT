@@ -11,36 +11,52 @@
   }
 
   &__hero {
-    padding: calc($spacing-3xl * 1.1) calc($spacing-md * 1.1);
+    padding: calc($spacing-sm) calc($spacing-md * 1.1) calc($spacing-2xl * 1.1);
     background-color: white;
+    min-height: calc(100vh - 80px);
+    display: flex;
+    align-items: center;
 
     @include respond-to(md) {
-      padding: calc($spacing-3xl * 1.5 * 1.1) calc($spacing-md * 1.1);
+      padding: calc($spacing-sm * 1.5) calc($spacing-md * 1.1) calc($spacing-3xl * 1.1);
+      min-height: calc(100vh - 90px);
+    }
+
+    @include respond-to(lg) {
+      padding: calc($spacing-md * 1.2) calc($spacing-md * 1.1) calc($spacing-3xl * 1.1);
+      min-height: calc(100vh - 100px);
     }
   }
 
   &__hero-content {
     display: grid;
     grid-template-columns: 1fr;
-    gap: calc($spacing-2xl * 1.1);
+    gap: calc($spacing-xl * 1.2);
     align-items: center;
+    width: 100%;
 
     @include respond-to(lg) {
       grid-template-columns: 1fr 1fr;
-      gap: calc($spacing-3xl * 1.1);
+      gap: calc($spacing-2xl * 1.2);
     }
   }
 
   &__hero-left {
     display: flex;
     flex-direction: column;
-    gap: calc($spacing-xl * 1.1);
+    gap: calc($spacing-lg * 1.2);
+    position: relative;
+    z-index: 2;
+
+    @include respond-to(md) {
+      gap: calc($spacing-xl * 1.1);
+    }
   }
 
   &__logo {
     display: flex;
     align-items: center;
-    margin-bottom: calc($spacing-md * 1.1);
+    margin-bottom: calc($spacing-sm);
   }
 
   &__logo-img {
@@ -56,7 +72,7 @@
 
   &__title {
     font-size: calc($font-size-3xl * 1.1);
-    margin-bottom: calc($spacing-lg * 1.1);
+    margin: 0;
     color: $text-primary;
     font-weight: $font-weight-bold;
     line-height: $line-height-tight;
@@ -76,7 +92,7 @@
 
   &__subtitle {
     font-size: calc($font-size-lg * 1.1);
-    margin-bottom: calc($spacing-xl * 1.1);
+    margin: 0;
     color: $text-secondary;
     line-height: $line-height-relaxed;
     max-width: 550px;
@@ -86,12 +102,15 @@
     display: flex;
     gap: calc($spacing-md * 1.1);
     flex-wrap: wrap;
+    align-items: center;
   }
 
   &__hero-right {
     display: flex;
     justify-content: center;
     align-items: center;
+    position: relative;
+    z-index: 1;
   }
 
   &__illustration {
@@ -112,10 +131,10 @@
     height: auto;
     max-width: 100%;
     object-fit: contain;
-    transform: scale(1.3);
+    transform: scale(1.1);
 
     @include respond-to(lg) {
-      transform: scale(1.4);
+      transform: scale(1.15);
     }
   }
 
@@ -133,5 +152,220 @@
     @include respond-to(md) {
       font-size: calc($font-size-4xl * 1.1);
     }
+  }
+
+  // Feature Sections
+  &__feature {
+    padding: calc($spacing-3xl * 2) calc($spacing-md * 1.1);
+    background-color: white;
+
+    @include respond-to(md) {
+      padding: calc($spacing-3xl * 2.5) calc($spacing-md * 1.1);
+    }
+
+    &--reverse {
+      background-color: $background-color;
+
+      .home__feature-content {
+        @include respond-to(lg) {
+          grid-template-columns: 1fr 1fr;
+        }
+      }
+
+      .home__feature-text {
+        @include respond-to(lg) {
+          order: 2;
+        }
+      }
+
+      .home__feature-image {
+        @include respond-to(lg) {
+          order: 1;
+        }
+      }
+    }
+  }
+
+  &__feature-content {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: calc($spacing-3xl * 1.5);
+    align-items: center;
+    max-width: 1200px;
+    margin: 0 auto;
+
+    @include respond-to(lg) {
+      grid-template-columns: 1fr 1fr;
+      gap: calc($spacing-3xl * 2);
+    }
+  }
+
+  &__feature-text {
+    display: flex;
+    flex-direction: column;
+    gap: calc($spacing-lg * 1.2);
+  }
+
+  &__feature-title {
+    font-size: calc($font-size-2xl * 1.2);
+    margin: 0;
+    color: $text-primary;
+    font-weight: $font-weight-bold;
+    line-height: 1.3;
+    letter-spacing: -0.01em;
+
+    @include respond-to(md) {
+      font-size: calc($font-size-3xl * 1.2);
+    }
+
+    @include respond-to(lg) {
+      font-size: 2.5rem;
+    }
+  }
+
+  &__feature-description {
+    font-size: calc($font-size-base * 1.1);
+    margin: 0;
+    color: $text-secondary;
+    line-height: 1.7;
+    max-width: 100%;
+
+    @include respond-to(md) {
+      font-size: calc($font-size-lg * 1.1);
+    }
+
+    @include respond-to(lg) {
+      font-size: 1.125rem;
+    }
+  }
+
+  &__feature-image {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+
+  &__feature-placeholder {
+    width: 100%;
+    height: 300px;
+    background: linear-gradient(135deg, rgba($primary-color, 0.1) 0%, rgba($secondary-color, 0.1) 100%);
+    border-radius: $border-radius-lg;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: $text-secondary;
+    font-size: $font-size-lg;
+    font-weight: $font-weight-medium;
+
+    @include respond-to(md) {
+      height: 400px;
+      font-size: $font-size-xl;
+    }
+
+    @include respond-to(lg) {
+      height: 450px;
+    }
+  }
+
+  // FAQ Section
+  &__faq {
+    padding: calc($spacing-3xl * 2.5) calc($spacing-md * 1.1);
+    background-color: white;
+  }
+
+  &__faq-title {
+    font-size: calc($font-size-2xl * 1.2);
+    margin: 0 0 calc($spacing-3xl * 1.5);
+    color: $text-primary;
+    font-weight: $font-weight-bold;
+    text-align: center;
+
+    @include respond-to(md) {
+      font-size: calc($font-size-3xl * 1.2);
+    }
+
+    @include respond-to(lg) {
+      font-size: 2.5rem;
+    }
+  }
+
+  &__faq-list {
+    display: flex;
+    flex-direction: column;
+    gap: calc($spacing-lg * 1.5);
+    max-width: 800px;
+    margin: 0 auto;
+  }
+
+  &__faq-item {
+    padding: calc($spacing-lg * 1.2);
+    background-color: $background-color;
+    border-radius: $border-radius-lg;
+    border-left: 4px solid $primary-color;
+  }
+
+  &__faq-question {
+    font-size: calc($font-size-lg * 1.1);
+    margin: 0 0 calc($spacing-md);
+    color: $text-primary;
+    font-weight: $font-weight-bold;
+  }
+
+  &__faq-answer {
+    font-size: calc($font-size-base * 1.05);
+    margin: 0;
+    color: $text-secondary;
+    line-height: 1.7;
+  }
+
+  // CTA Section
+  &__cta {
+    padding: calc($spacing-3xl * 2.5) calc($spacing-md * 1.1);
+    background-color: $background-color;
+    text-align: center;
+  }
+
+  &__cta-content {
+    max-width: 600px;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    gap: calc($spacing-lg * 1.2);
+    align-items: center;
+  }
+
+  &__cta-title {
+    font-size: calc($font-size-3xl * 1.2);
+    margin: 0;
+    color: $text-primary;
+    font-weight: $font-weight-bold;
+    line-height: 1.2;
+
+    @include respond-to(md) {
+      font-size: calc($font-size-4xl * 1.2);
+    }
+
+    @include respond-to(lg) {
+      font-size: 3rem;
+    }
+  }
+
+  &__cta-subtitle {
+    font-size: calc($font-size-lg * 1.1);
+    margin: 0;
+    color: $text-secondary;
+    line-height: 1.6;
+
+    @include respond-to(md) {
+      font-size: calc($font-size-xl * 1.1);
+    }
+  }
+
+  &__cta-actions {
+    display: flex;
+    gap: calc($spacing-md * 1.2);
+    flex-wrap: wrap;
+    justify-content: center;
+    margin-top: calc($spacing-md * 0.5);
   }
 }

@@ -4,7 +4,24 @@ import Footer from './components/Footer/Footer';
 import Home from './pages/Home/Home';
 import About from './pages/About/About';
 import Sitemap from './pages/Sitemap/Sitemap';
+import Login from './pages/Login/Login';
+import ForgotPassword from './pages/ForgotPassword/ForgotPassword';
 import './App.scss';
+
+/**
+ * Layout component that conditionally shows Header and Footer
+ */
+function Layout({ children }: { children: React.ReactNode }) {
+  return (
+    <div className="app">
+      <Header />
+      <div className="app__content">
+        {children}
+      </div>
+      <Footer />
+    </div>
+  );
+}
 
 /**
  * Main App component
@@ -12,17 +29,22 @@ import './App.scss';
  */
 function App() {
   return (
-    <div className="app">
-      <Header />
-      <div className="app__content">
-        <Routes>
-          <Route path="/" element={<Home />} />
-          <Route path="/about" element={<About />} />
-          <Route path="/sitemap" element={<Sitemap />} />
-        </Routes>
-      </div>
-      <Footer />
-    </div>
+    <Routes>
+      <Route path="/login" element={<Login />} />
+      <Route path="/forgot-password" element={<ForgotPassword />} />
+      <Route
+        path="/*"
+        element={
+          <Layout>
+            <Routes>
+              <Route path="/" element={<Home />} />
+              <Route path="/about" element={<About />} />
+              <Route path="/sitemap" element={<Sitemap />} />
+            </Routes>
+          </Layout>
+        }
+      />
+    </Routes>
   );
 }
 

@@ -103,6 +103,16 @@
       padding: $spacing-sm $spacing-lg;
     }
 
+    &--create {
+      background-color: transparent;
+      color: $text-primary;
+      border: none;
+
+      &:hover {
+        color: $primary-color;
+      }
+    }
+
     &--access {
       background-color: transparent;
       color: $text-primary;
@@ -111,6 +121,10 @@
       &:hover {
         color: $primary-color;
       }
+    }
+
+    &--active {
+      color: $primary-color;
     }
 
     &:focus-visible {

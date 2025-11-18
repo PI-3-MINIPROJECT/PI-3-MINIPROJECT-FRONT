@@ -51,19 +51,17 @@ export default function Header() {
                 Sobre nosotros
               </Link>
             </li>
-            <li>
-              <Link
-                to="/meetings/create"
-                className={`header__nav-link ${isActive('/meetings/create') ? 'header__nav-link--active' : ''}`}
-                aria-current={isActive('/meetings/create') ? 'page' : undefined}
-              >
-                Crear reunión
-              </Link>
-            </li>
           </ul>
         </nav>
 
         <div className="header__actions">
+          <Link
+            to="/meetings/create"
+            className={`header__button header__button--create ${isActive('/meetings/create') ? 'header__button--active' : ''}`}
+            aria-current={isActive('/meetings/create') ? 'page' : undefined}
+          >
+            Crear reunión
+          </Link>
           <Link to="/login" className="header__button header__button--access">
             Acceder
           </Link>
