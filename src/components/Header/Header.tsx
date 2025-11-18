@@ -19,7 +19,7 @@ export default function Header() {
     <header className="header" role="banner">
       <div className="header__container">
         <Link to="/" className="header__logo" aria-label="Home">
-          <h1>VideoConference Platform</h1>
+          <img src="/logo-menu.png" alt="konned logo" className="header__logo-img" />
         </Link>
 
         <nav className="header__nav" role="navigation" aria-label="Main navigation">
@@ -30,7 +30,16 @@ export default function Header() {
                 className={`header__nav-link ${isActive('/') ? 'header__nav-link--active' : ''}`}
                 aria-current={isActive('/') ? 'page' : undefined}
               >
-                Home
+                Inicio
+              </Link>
+            </li>
+            <li>
+              <Link
+                to="/explore"
+                className={`header__nav-link ${isActive('/explore') ? 'header__nav-link--active' : ''}`}
+                aria-current={isActive('/explore') ? 'page' : undefined}
+              >
+                Explorar
               </Link>
             </li>
             <li>
@@ -39,27 +48,24 @@ export default function Header() {
                 className={`header__nav-link ${isActive('/about') ? 'header__nav-link--active' : ''}`}
                 aria-current={isActive('/about') ? 'page' : undefined}
               >
-                About Us
+                Sobre nosotros
               </Link>
             </li>
             <li>
               <Link
-                to="/sitemap"
-                className={`header__nav-link ${isActive('/sitemap') ? 'header__nav-link--active' : ''}`}
-                aria-current={isActive('/sitemap') ? 'page' : undefined}
+                to="/meetings/create"
+                className={`header__nav-link ${isActive('/meetings/create') ? 'header__nav-link--active' : ''}`}
+                aria-current={isActive('/meetings/create') ? 'page' : undefined}
               >
-                Sitemap
+                Crear reunión
               </Link>
             </li>
           </ul>
         </nav>
 
         <div className="header__actions">
-          <Link to="/login" className="header__button header__button--secondary">
-            Login
-          </Link>
-          <Link to="/register" className="header__button header__button--primary">
-            Sign Up
+          <Link to="/login" className="header__button header__button--access">
+            Acceder
           </Link>
         </div>
       </div>

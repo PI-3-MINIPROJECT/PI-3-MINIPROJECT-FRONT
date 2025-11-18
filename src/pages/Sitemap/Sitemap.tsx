@@ -9,102 +9,95 @@ export default function Sitemap() {
   return (
     <main className="sitemap" role="main">
       <div className="sitemap__container">
-        <h1>Site Map</h1>
+        <h1>Mapa del Sitio</h1>
         <p className="sitemap__intro">
-          Navigate through all available pages and sections of the platform.
+          Navega por todas las páginas y secciones disponibles de la plataforma.
         </p>
 
         <section className="sitemap__section">
-          <h2>Public Pages</h2>
+          <h2>Páginas Públicas</h2>
           <ul className="sitemap__list">
             <li>
-              <Link to="/">Home</Link>
-              <span className="sitemap__description">Main landing page with features and call-to-action</span>
+              <Link to="/">Inicio</Link>
+              <span className="sitemap__description">Página principal con características y llamados a la acción</span>
             </li>
             <li>
-              <Link to="/about">About Us</Link>
-              <span className="sitemap__description">Information about the platform and project</span>
+              <Link to="/about">Sobre Nosotros</Link>
+              <span className="sitemap__description">Información sobre la plataforma y el proyecto</span>
             </li>
             <li>
-              <Link to="/sitemap">Sitemap</Link>
-              <span className="sitemap__description">This page - site structure overview</span>
+              <Link to="/sitemap">Mapa del Sitio</Link>
+              <span className="sitemap__description">Esta página - estructura general del sitio</span>
             </li>
           </ul>
         </section>
 
         <section className="sitemap__section">
-          <h2>Authentication</h2>
+          <h2>Autenticación</h2>
           <ul className="sitemap__list">
             <li>
-              <Link to="/login">Login</Link>
-              <span className="sitemap__description">User authentication page</span>
+              <Link to="/login">Iniciar sesión</Link>
+              <span className="sitemap__description">Página de autenticación de usuario</span>
             </li>
             <li>
-              <Link to="/register">Register</Link>
-              <span className="sitemap__description">New user registration</span>
+              <Link to="/register">Registro</Link>
+              <span className="sitemap__description">Registro de nuevo usuario</span>
             </li>
             <li>
-              <Link to="/forgot-password">Forgot Password</Link>
-              <span className="sitemap__description">Password recovery</span>
+              <Link to="/forgot-password">Recuperar contraseña</Link>
+              <span className="sitemap__description">Recuperación de contraseña</span>
             </li>
           </ul>
         </section>
 
         <section className="sitemap__section">
-          <h2>User Dashboard</h2>
+          <h2>Panel de Usuario</h2>
           <ul className="sitemap__list">
             <li>
               <Link to="/dashboard">Dashboard</Link>
-              <span className="sitemap__description">User profile and settings</span>
+              <span className="sitemap__description">Perfil de usuario y configuraciones</span>
             </li>
             <li>
-              <Link to="/meetings">My Meetings</Link>
-              <span className="sitemap__description">List of user's meetings</span>
+              <Link to="/meetings">Mis Reuniones</Link>
+              <span className="sitemap__description">Lista de reuniones del usuario</span>
             </li>
             <li>
-              <Link to="/meetings/create">Create Meeting</Link>
-              <span className="sitemap__description">Create a new meeting room</span>
-            </li>
-            <li>
-              <Link to="/meetings/:id">Meeting Room</Link>
-              <span className="sitemap__description">Active meeting with video/audio/chat</span>
+              <Link to="/meetings/create">Crear Reunión</Link>
+              <span className="sitemap__description">Crear una nueva sala de reunión</span>
             </li>
           </ul>
         </section>
 
         <section className="sitemap__section">
-          <h2>Site Structure</h2>
+          <h2>Estructura del Sitio</h2>
           <div className="sitemap__tree">
             <ul>
               <li>
-                <strong>/</strong> (Home)
+                <strong>/</strong> (Inicio)
                 <ul>
                   <li>
-                    <strong>/about</strong> (About Us)
+                    <strong>/about</strong> (Sobre Nosotros)
                   </li>
                   <li>
-                    <strong>/sitemap</strong> (Sitemap)
+                    <strong>/sitemap</strong> (Mapa del Sitio)
                   </li>
                   <li>
-                    <strong>/login</strong> (Login)
+                    <strong>/login</strong> (Iniciar sesión)
                   </li>
                   <li>
-                    <strong>/register</strong> (Register)
+                    <strong>/register</strong> (Registro)
                   </li>
                   <li>
-                    <strong>/forgot-password</strong> (Password Recovery)
+                    <strong>/forgot-password</strong> (Recuperar contraseña)
                   </li>
                   <li>
-                    <strong>/dashboard</strong> (User Dashboard)
+                    <strong>/dashboard</strong> (Panel de Usuario)
                     <ul>
                       <li>
-                        <strong>/meetings</strong> (My Meetings)
+                        <strong>/meetings</strong> (Mis Reuniones)
                       </li>
                       <li>
-                        <strong>/meetings/create</strong> (Create Meeting)
-                      </li>
-                      <li>
-                        <strong>/meetings/:id</strong> (Meeting Room)
+                        <strong>/meetings/create</strong> (Crear Reunión)
                       </li>
                     </ul>
                   </li>

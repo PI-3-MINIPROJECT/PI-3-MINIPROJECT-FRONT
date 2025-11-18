@@ -3,7 +3,7 @@
 @use '../../styles/mixins' as *;
 
 .header {
-  background-color: $surface-color;
+  background-color: white;
   box-shadow: $shadow-sm;
   position: sticky;
   top: 0;
@@ -26,18 +26,23 @@
   }
 
   &__logo {
-    h1 {
-      font-size: $font-size-xl;
-      margin: 0;
-      color: $primary-color;
-
-      @include respond-to(md) {
-        font-size: $font-size-2xl;
-      }
-    }
+    display: flex;
+    align-items: center;
+    text-decoration: none;
 
     &:hover {
       opacity: 0.8;
+    }
+  }
+
+  &__logo-img {
+    height: 40px;
+    width: auto;
+    object-fit: contain;
+    display: block;
+
+    @include respond-to(md) {
+      height: 50px;
     }
   }
 
@@ -92,29 +97,19 @@
     font-weight: $font-weight-medium;
     transition: all $transition-fast;
     display: inline-block;
+    text-decoration: none;
 
     @include respond-to(md) {
       padding: $spacing-sm $spacing-lg;
     }
 
-    &--primary {
-      background-color: $primary-color;
-      color: white;
-
-      &:hover {
-        background-color: color.adjust($primary-color, $lightness: -10%);
-        color: white;
-      }
-    }
-
-    &--secondary {
+    &--access {
       background-color: transparent;
-      color: $primary-color;
-      border: 1px solid $primary-color;
+      color: $text-primary;
+      border: none;
 
       &:hover {
-        background-color: $primary-color;
-        color: white;
+        color: $primary-color;
       }
     }
 

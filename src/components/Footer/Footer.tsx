@@ -3,7 +3,7 @@ import './Footer.scss';
 
 /**
  * Footer component
- * Site footer with links and copyright information
+ * Site footer with logo, links and copyright information
  */
 export default function Footer() {
   const currentYear = new Date().getFullYear();
@@ -12,62 +12,51 @@ export default function Footer() {
     <footer className="footer" role="contentinfo">
       <div className="footer__container">
         <div className="footer__content">
-          <div className="footer__section">
-            <h3 className="footer__title">VideoConference Platform</h3>
-            <p className="footer__description">
-              A modern platform for video conferencing with real-time communication.
+          <div className="footer__logo-section">
+            <div className="footer__logo">
+              <img src="/logo-menu.png" alt="konned logo" className="footer__logo-img" />
+            </div>
+            <p className="footer__tagline">
+              Conectando personas en tiempo real
             </p>
           </div>
 
-          <div className="footer__section">
-            <h4 className="footer__subtitle">Quick Links</h4>
+          <nav className="footer__nav">
             <ul className="footer__links">
               <li>
-                <Link to="/">Home</Link>
+                <Link to="/">Inicio</Link>
               </li>
               <li>
-                <Link to="/about">About Us</Link>
+                <Link to="/about">Sobre Nosotros</Link>
               </li>
               <li>
-                <Link to="/sitemap">Sitemap</Link>
+                <Link to="/sitemap">Mapa del Sitio</Link>
+              </li>
+              <li>
+                <Link to="/login">Iniciar sesión</Link>
+              </li>
+              <li>
+                <Link to="/register">Registro</Link>
+              </li>
+              <li>
+                <Link to="/forgot-password">Recuperar contraseña</Link>
+              </li>
+              <li>
+                <Link to="/dashboard">Dashboard</Link>
+              </li>
+              <li>
+                <Link to="/meetings">Mis Reuniones</Link>
+              </li>
+              <li>
+                <Link to="/meetings/create">Crear Reunión</Link>
               </li>
             </ul>
-          </div>
-
-          <div className="footer__section">
-            <h4 className="footer__subtitle">Resources</h4>
-            <ul className="footer__links">
-              <li>
-                <a href="#" target="_blank" rel="noopener noreferrer">
-                  Documentation
-                </a>
-              </li>
-              <li>
-                <a href="#" target="_blank" rel="noopener noreferrer">
-                  Support
-                </a>
-              </li>
-              <li>
-                <a href="#" target="_blank" rel="noopener noreferrer">
-                  Privacy Policy
-                </a>
-              </li>
-            </ul>
-          </div>
-
-          <div className="footer__section">
-            <h4 className="footer__subtitle">Contact</h4>
-            <ul className="footer__links">
-              <li>
-                <a href="mailto:support@videoconference.com">support@videoconference.com</a>
-              </li>
-            </ul>
-          </div>
+          </nav>
         </div>
 
         <div className="footer__bottom">
           <p className="footer__copyright">
-            &copy; {currentYear} VideoConference Platform. All rights reserved.
+            &copy; {currentYear} konned todos los derechos reservados
           </p>
         </div>
       </div>

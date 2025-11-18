@@ -4,150 +4,134 @@
 
 .home {
   min-height: calc(100vh - 200px);
+  background-color: $background-color;
 
   &__container {
     @include container;
   }
 
   &__hero {
-    background: linear-gradient(135deg, $primary-color 0%, color.adjust($primary-color, $lightness: -10%) 100%);
-    color: white;
-    padding: $spacing-3xl $spacing-md;
-    text-align: center;
+    padding: calc($spacing-3xl * 1.1) calc($spacing-md * 1.1);
+    background-color: white;
 
     @include respond-to(md) {
-      padding: $spacing-3xl * 1.5 $spacing-md;
+      padding: calc($spacing-3xl * 1.5 * 1.1) calc($spacing-md * 1.1);
+    }
+  }
+
+  &__hero-content {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: calc($spacing-2xl * 1.1);
+    align-items: center;
+
+    @include respond-to(lg) {
+      grid-template-columns: 1fr 1fr;
+      gap: calc($spacing-3xl * 1.1);
+    }
+  }
+
+  &__hero-left {
+    display: flex;
+    flex-direction: column;
+    gap: calc($spacing-xl * 1.1);
+  }
+
+  &__logo {
+    display: flex;
+    align-items: center;
+    margin-bottom: calc($spacing-md * 1.1);
+  }
+
+  &__logo-img {
+    height: 66px;
+    width: auto;
+    object-fit: contain;
+    display: block;
+
+    @include respond-to(md) {
+      height: 88px;
     }
   }
 
   &__title {
-    font-size: $font-size-3xl;
-    margin-bottom: $spacing-lg;
-    color: white;
+    font-size: calc($font-size-3xl * 1.1);
+    margin-bottom: calc($spacing-lg * 1.1);
+    color: $text-primary;
+    font-weight: $font-weight-bold;
+    line-height: $line-height-tight;
 
     @include respond-to(md) {
-      font-size: $font-size-4xl;
+      font-size: calc($font-size-4xl * 1.1);
+    }
+
+    @include respond-to(lg) {
+      font-size: 3.3rem;
     }
   }
 
+  &__title-highlight {
+    color: $primary-color;
+  }
+
   &__subtitle {
-    font-size: $font-size-lg;
-    margin-bottom: $spacing-2xl;
-    color: rgba(255, 255, 255, 0.9);
-    max-width: 700px;
-    margin-left: auto;
-    margin-right: auto;
+    font-size: calc($font-size-lg * 1.1);
+    margin-bottom: calc($spacing-xl * 1.1);
+    color: $text-secondary;
     line-height: $line-height-relaxed;
+    max-width: 550px;
   }
 
   &__actions {
     display: flex;
-    gap: $spacing-md;
-    justify-content: center;
+    gap: calc($spacing-md * 1.1);
     flex-wrap: wrap;
   }
 
-  &__button {
-    padding: $spacing-md $spacing-xl;
-    border-radius: $border-radius-lg;
-    font-weight: $font-weight-semibold;
-    font-size: $font-size-base;
-    transition: all $transition-fast;
-    display: inline-block;
-
-    &--primary {
-      background-color: white;
-      color: $primary-color;
-
-      &:hover {
-        background-color: $background-color;
-        color: $primary-color;
-        transform: translateY(-2px);
-        box-shadow: $shadow-lg;
-      }
-    }
-
-    &--secondary {
-      background-color: transparent;
-      color: white;
-      border: 2px solid white;
-
-      &:hover {
-        background-color: white;
-        color: $primary-color;
-      }
-    }
-
-    &:focus-visible {
-      @include focus-visible;
-    }
+  &__hero-right {
+    display: flex;
+    justify-content: center;
+    align-items: center;
   }
 
-  &__features {
-    padding: $spacing-3xl $spacing-md;
-    background-color: $surface-color;
-  }
-
-  &__section-title {
-    text-align: center;
-    margin-bottom: $spacing-2xl;
-    font-size: $font-size-3xl;
-  }
-
-  &__features-grid {
-    display: grid;
-    grid-template-columns: 1fr;
-    gap: $spacing-xl;
-
-    @include respond-to(md) {
-      grid-template-columns: repeat(2, 1fr);
-    }
+  &__illustration {
+    position: relative;
+    width: 100%;
+    max-width: 600px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
 
     @include respond-to(lg) {
-      grid-template-columns: repeat(3, 1fr);
+      max-width: 1000px;
     }
   }
 
-  &__feature-card {
-    background-color: $surface-color;
-    padding: $spacing-xl;
-    border-radius: $border-radius-lg;
-    box-shadow: $shadow-md;
-    text-align: center;
-    transition: transform $transition-base, box-shadow $transition-base;
+  &__illustration-img {
+    width: 100%;
+    height: auto;
+    max-width: 100%;
+    object-fit: contain;
+    transform: scale(1.3);
 
-    &:hover {
-      transform: translateY(-4px);
-      box-shadow: $shadow-lg;
-    }
-
-    h3 {
-      margin-top: $spacing-md;
-      margin-bottom: $spacing-sm;
-      font-size: $font-size-xl;
-    }
-
-    p {
-      color: $text-secondary;
-      line-height: $line-height-relaxed;
+    @include respond-to(lg) {
+      transform: scale(1.4);
     }
   }
 
-  &__feature-icon {
-    font-size: $font-size-4xl;
-    margin-bottom: $spacing-md;
-  }
-
-  &__cta {
-    padding: $spacing-3xl $spacing-md;
-    background-color: $background-color;
+  &__message {
+    padding: calc($spacing-3xl * 1.1) calc($spacing-md * 1.1);
+    background-color: white;
     text-align: center;
   }
 
-  &__cta-text {
-    font-size: $font-size-lg;
-    margin-bottom: $spacing-xl;
-    color: $text-secondary;
+  &__message-title {
+    font-size: calc($font-size-3xl * 1.1);
+    color: $text-primary;
+    font-weight: $font-weight-bold;
+
+    @include respond-to(md) {
+      font-size: calc($font-size-4xl * 1.1);
+    }
   }
 }
-
