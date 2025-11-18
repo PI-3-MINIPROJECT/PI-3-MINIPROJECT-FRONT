@@ -8,9 +8,6 @@ import Login from './pages/Login/Login';
 import ForgotPassword from './pages/ForgotPassword/ForgotPassword';
 import './App.scss';
 
-/**
- * Layout component that conditionally shows Header and Footer
- */
 function Layout({ children }: { children: React.ReactNode }) {
   return (
     <div className="app">
@@ -23,10 +20,6 @@ function Layout({ children }: { children: React.ReactNode }) {
   );
 }
 
-/**
- * Main App component
- * Sets up routing and layout structure
- */
 function App() {
   return (
     <Routes>

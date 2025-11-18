@@ -1,14 +1,5 @@
-/**
- * SASS Mixins
- * Reusable style patterns
- */
-
 @use './variables' as *;
 
-/**
- * Responsive breakpoint mixin
- * @param $breakpoint - Breakpoint name (sm, md, lg, xl, 2xl)
- */
 @mixin respond-to($breakpoint) {
   @if $breakpoint == sm {
     @media (min-width: $breakpoint-sm) {
@@ -33,26 +24,17 @@
   }
 }
 
-/**
- * Flexbox center mixin
- */
 @mixin flex-center {
   display: flex;
   align-items: center;
   justify-content: center;
 }
 
-/**
- * Flexbox column mixin
- */
 @mixin flex-column {
   display: flex;
   flex-direction: column;
 }
 
-/**
- * Button reset mixin
- */
 @mixin button-reset {
   border: none;
   background: none;
@@ -63,9 +45,6 @@
   font-size: inherit;
 }
 
-/**
- * Visually hidden (for accessibility)
- */
 @mixin visually-hidden {
   position: absolute;
   width: 1px;
@@ -78,17 +57,11 @@
   border-width: 0;
 }
 
-/**
- * Focus visible (for accessibility)
- */
 @mixin focus-visible {
   outline: 2px solid $primary-color;
   outline-offset: 2px;
 }
 
-/**
- * Container mixin
- */
 @mixin container {
   width: 100%;
   max-width: 1200px;

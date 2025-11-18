@@ -1,10 +1,6 @@
 import { Link } from 'react-router-dom';
 import './Sitemap.scss';
 
-/**
- * Sitemap page component
- * Site structure and navigation map
- */
 export default function Sitemap() {
   return (
     <main className="sitemap" role="main">

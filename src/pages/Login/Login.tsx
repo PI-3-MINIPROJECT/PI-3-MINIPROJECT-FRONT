@@ -4,10 +4,6 @@ import Input from '../../components/Input/Input';
 import Button from '../../components/Button/Button';
 import './Login.scss';
 
-/**
- * Login page component
- * User authentication page with form and illustration
- */
 export default function Login() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -49,9 +45,7 @@ export default function Login() {
 
     setIsSubmitting(true);
     try {
-      // TODO: Implement login logic
       console.log('Login:', { email, password, rememberMe });
-      // Simular llamada a API
       await new Promise(resolve => setTimeout(resolve, 1000));
     } catch (error) {
       console.error('Error en login:', error);

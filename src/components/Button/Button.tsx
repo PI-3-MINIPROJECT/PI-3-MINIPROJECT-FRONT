@@ -12,10 +12,6 @@ interface ButtonProps {
   className?: string;
 }
 
-/**
- * Reusable Button component
- * Supports both Link (React Router) and anchor tags, or regular button
- */
 export default function Button({
   variant = 'primary',
   to,
@@ -28,7 +24,6 @@ export default function Button({
 }: ButtonProps) {
   const baseClassName = `button button--${variant} ${className}`.trim();
 
-  // If 'to' prop is provided, render as React Router Link
   if (to) {
     return (
       <Link to={to} className={baseClassName} onClick={onClick}>
@@ -37,7 +32,6 @@ export default function Button({
     );
   }
 
-  // If 'href' prop is provided, render as anchor tag
   if (href) {
     return (
       <a href={href} className={baseClassName} onClick={onClick}>
@@ -46,7 +40,6 @@ export default function Button({
     );
   }
 
-  // Otherwise, render as button
   return (
     <button
       type={type}

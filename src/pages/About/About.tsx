@@ -1,9 +1,5 @@
 import './About.scss';
 
-/**
- * About page component
- * Information about the platform and team
- */
 export default function About() {
   return (
     <main className="about" role="main">

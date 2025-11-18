@@ -1,10 +1,3 @@
-/**
- * Type definitions for the application
- */
-
-/**
- * User interface
- */
 export interface User {
   id: string;
   email: string;
@@ -14,9 +7,6 @@ export interface User {
   updatedAt: Date;
 }
 
-/**
- * Meeting interface
- */
 export interface Meeting {
   id: string;
   hostId: string;
@@ -26,9 +16,6 @@ export interface Meeting {
   status: 'active' | 'ended';
 }
 
-/**
- * API Response wrapper
- */
 export interface ApiResponse<T> {
   success: boolean;
   data?: T;

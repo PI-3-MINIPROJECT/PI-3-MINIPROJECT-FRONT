@@ -154,7 +154,6 @@
     }
   }
 
-  // Feature Sections
   &__feature {
     padding: calc($spacing-3xl * 2) calc($spacing-md * 1.1);
     background-color: white;
@@ -267,7 +266,6 @@
     }
   }
 
-  // FAQ Section
   &__faq {
     padding: calc($spacing-3xl * 2.5) calc($spacing-md * 1.1);
     background-color: white;
@@ -318,7 +316,6 @@
     line-height: 1.7;
   }
 
-  // CTA Section
   &__cta {
     padding: calc($spacing-3xl * 2.5) calc($spacing-md * 1.1);
     background-color: $background-color;

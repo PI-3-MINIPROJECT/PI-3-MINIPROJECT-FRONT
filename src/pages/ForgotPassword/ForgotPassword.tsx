@@ -4,10 +4,6 @@ import Input from '../../components/Input/Input';
 import Button from '../../components/Button/Button';
 import './ForgotPassword.scss';
 
-/**
- * Forgot Password page component
- * Password recovery page with form and illustration
- */
 export default function ForgotPassword() {
   const [email, setEmail] = useState('');
   const [errors, setErrors] = useState<{ email?: string }>({});
@@ -41,9 +37,7 @@ export default function ForgotPassword() {
 
     setIsSubmitting(true);
     try {
-      // TODO: Implement password recovery logic
       console.log('Password recovery requested for:', email);
-      // Simular llamada a API
       await new Promise(resolve => setTimeout(resolve, 1000));
       setIsSubmitted(true);
     } catch (error) {

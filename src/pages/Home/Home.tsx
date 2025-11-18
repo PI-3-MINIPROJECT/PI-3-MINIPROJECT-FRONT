@@ -1,10 +1,6 @@
 import Button from '../../components/Button/Button';
 import './Home.scss';
 
-/**
- * Home page component
- * Landing page with main features and call-to-action
- */
 export default function Home() {
   return (
     <main className="home" role="main">
@@ -55,7 +51,6 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Sección de Colaboración Mejorada */}
       <section className="home__feature">
         <div className="home__container">
           <div className="home__feature-content">
@@ -78,7 +73,6 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Sección de Conexión Multiplataforma */}
       <section className="home__feature home__feature--reverse">
         <div className="home__container">
           <div className="home__feature-content">
@@ -100,7 +94,6 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Sección de Calidad */}
       <section className="home__feature">
         <div className="home__container">
           <div className="home__feature-content">
@@ -123,7 +116,6 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Sección de Trabajo en Equipo */}
       <section className="home__feature home__feature--reverse">
         <div className="home__container">
           <div className="home__feature-content">
@@ -146,7 +138,6 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Sección de Seguridad */}
       <section className="home__feature">
         <div className="home__container">
           <div className="home__feature-content">
@@ -169,7 +160,6 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Sección FAQ */}
       <section className="home__faq">
         <div className="home__container">
           <h2 className="home__faq-title">Preguntas frecuentes</h2>
@@ -199,7 +189,6 @@ export default function Home() {
         </div>
       </section>
 
-      {/* CTA Final */}
       <section className="home__cta">
         <div className="home__container">
           <div className="home__cta-content">

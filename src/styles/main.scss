@@ -1,15 +1,7 @@
-/**
- * Main SASS file
- * Imports all stylesheets
- */
-
 @use 'sass:color';
 @use './variables' as *;
 @use './mixins' as *;
 
-/**
- * Global reset and base styles
- */
 * {
   margin: 0;
   padding: 0;
@@ -32,9 +24,6 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
-/**
- * Typography
- */
 h1,
 h2,
 h3,
@@ -90,9 +79,6 @@ a {
   }
 }
 
-/**
- * Buttons
- */
 button {
   font-family: inherit;
   font-size: inherit;
@@ -113,9 +99,6 @@ button {
   }
 }
 
-/**
- * Form elements
- */
 input,
 textarea,
 select {
@@ -136,18 +119,12 @@ select {
   }
 }
 
-/**
- * Images
- */
 img {
   max-width: 100%;
   height: auto;
   display: block;
 }
 
-/**
- * Utility classes
- */
 .container {
   @include container;
 }

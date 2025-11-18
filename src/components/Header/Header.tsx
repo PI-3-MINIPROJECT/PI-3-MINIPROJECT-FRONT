@@ -1,16 +1,9 @@
 import { Link, useLocation } from 'react-router-dom';
 import './Header.scss';
 
-/**
- * Header component
- * Main navigation header with menu items
- */
 export default function Header() {
   const location = useLocation();
 
-  /**
-   * Check if a route is active
-   */
   const isActive = (path: string): boolean => {
     return location.pathname === path;
   };

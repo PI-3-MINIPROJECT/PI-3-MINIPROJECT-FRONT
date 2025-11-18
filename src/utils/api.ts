@@ -1,17 +1,7 @@
 import type { ApiResponse } from '../types';
 
-/**
- * API utility functions for making HTTP requests
- */
-
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
 
-/**
- * Generic fetch wrapper with error handling
- * @param endpoint - API endpoint
- * @param options - Fetch options
- * @returns Promise with typed response
- */
 export async function apiRequest<T>(
   endpoint: string,
   options: RequestInit = {}
@@ -47,16 +37,10 @@ export async function apiRequest<T>(
   }
 }
 
-/**
- * GET request helper
- */
 export async function get<T>(endpoint: string): Promise<ApiResponse<T>> {
   return apiRequest<T>(endpoint, { method: 'GET' });
 }
 
-/**
- * POST request helper
- */
 export async function post<T>(
   endpoint: string,
   body: unknown
@@ -67,9 +51,6 @@ export async function post<T>(
   });
 }
 
-/**
- * PUT request helper
- */
 export async function put<T>(
   endpoint: string,
   body: unknown
@@ -80,9 +61,6 @@ export async function put<T>(
   });
 }
 
-/**
- * DELETE request helper
- */
 export async function del<T>(endpoint: string): Promise<ApiResponse<T>> {
   return apiRequest<T>(endpoint, { method: 'DELETE' });
 }
