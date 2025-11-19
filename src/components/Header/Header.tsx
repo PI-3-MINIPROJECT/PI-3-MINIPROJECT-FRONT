@@ -55,9 +55,15 @@ export default function Header() {
           >
             Crear reunión
           </Link>
-          <Link to="/login" className="header__button header__button--access">
-            Acceder
-          </Link>
+          {isActive('/explore') ? (
+            <Link to="/account" className="header__button header__button--access">
+              Mi cuenta
+            </Link>
+          ) : (
+            <Link to="/login" className="header__button header__button--access">
+              Acceder
+            </Link>
+          )}
         </div>
       </div>
     </header>

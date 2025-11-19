@@ -4,91 +4,212 @@
 .about {
   min-height: calc(100vh - 200px);
   padding: $spacing-2xl $spacing-md;
+  background-color: white;
+
+  @include respond-to(md) {
+    padding: $spacing-3xl $spacing-md;
+  }
 
   &__container {
     @include container;
-    max-width: 900px;
+    max-width: 1200px;
   }
 
   &__hero {
     text-align: center;
     margin-bottom: $spacing-3xl;
 
-    h1 {
+    @include respond-to(md) {
+      margin-bottom: $spacing-3xl * 1.5;
+    }
+  }
+
+  &__title {
+    font-size: $font-size-3xl;
+    font-weight: $font-weight-bold;
+    color: $text-primary;
+    margin: 0 0 $spacing-lg 0;
+
+    @include respond-to(md) {
       font-size: $font-size-4xl;
-      margin-bottom: $spacing-lg;
+    }
+
+    &-highlight {
+      color: $secondary-color;
     }
   }
 
   &__intro {
-    font-size: $font-size-lg;
-    color: $text-secondary;
+    font-size: $font-size-base;
+    color: $text-primary;
     line-height: $line-height-relaxed;
-    max-width: 700px;
+    max-width: 800px;
     margin: 0 auto;
-  }
 
-  &__section {
-    margin-bottom: $spacing-3xl;
-
-    h2 {
-      font-size: $font-size-2xl;
-      margin-bottom: $spacing-lg;
-      color: $primary-color;
-    }
-
-    p {
-      line-height: $line-height-relaxed;
-      margin-bottom: $spacing-md;
+    @include respond-to(md) {
+      font-size: $font-size-lg;
     }
   }
 
-  &__features-list {
-    list-style: none;
-    padding: 0;
+  &__mission {
+    margin-bottom: $spacing-3xl * 1.5;
+
+    @include respond-to(md) {
+      margin-bottom: $spacing-3xl * 2;
+    }
+  }
+
+  &__mission-content {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: $spacing-2xl;
+    align-items: center;
+
+    @include respond-to(lg) {
+      grid-template-columns: 1fr 1fr;
+      gap: $spacing-3xl;
+    }
+  }
+
+  &__mission-text {
+    order: 2;
+
+    @include respond-to(lg) {
+      order: 1;
+    }
+  }
+
+  &__mission-title {
+    font-size: $font-size-2xl;
+    font-weight: $font-weight-semibold;
+    color: $text-primary;
+    margin: 0 0 $spacing-lg 0;
+
+    @include respond-to(md) {
+      font-size: $font-size-3xl;
+    }
+  }
+
+  &__mission-description {
+    font-size: $font-size-base;
+    color: $text-primary;
+    line-height: $line-height-relaxed;
     margin: 0;
 
-    li {
-      padding: $spacing-md;
-      margin-bottom: $spacing-sm;
-      background-color: $surface-color;
-      border-radius: $border-radius-md;
-      border-left: 4px solid $primary-color;
-
-      strong {
-        color: $text-primary;
-        display: block;
-        margin-bottom: $spacing-xs;
-      }
+    @include respond-to(md) {
+      font-size: $font-size-lg;
     }
   }
 
-  &__tech-grid {
+  &__mission-illustration {
+    order: 1;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+    @include respond-to(lg) {
+      order: 2;
+    }
+  }
+
+  &__mission-image {
+    width: 100%;
+    max-width: 500px;
+    height: auto;
+    object-fit: contain;
+  }
+
+  &__features {
+    margin-bottom: $spacing-3xl;
+  }
+
+  &__features-title {
+    font-size: $font-size-2xl;
+    font-weight: $font-weight-semibold;
+    color: $text-primary;
+    text-align: center;
+    margin: 0 0 $spacing-2xl 0;
+
+    @include respond-to(md) {
+      font-size: $font-size-3xl;
+      margin-bottom: $spacing-3xl;
+    }
+  }
+
+  &__features-grid {
     display: grid;
     grid-template-columns: 1fr;
     gap: $spacing-lg;
 
     @include respond-to(md) {
       grid-template-columns: repeat(2, 1fr);
+      gap: $spacing-xl;
+    }
+
+    @include respond-to(lg) {
+      grid-template-columns: repeat(4, 1fr);
+      gap: $spacing-xl;
     }
   }
 
-  &__tech-item {
-    background-color: $surface-color;
-    padding: $spacing-lg;
+  &__feature-card {
+    background: $secondary-color;
     border-radius: $border-radius-lg;
-    box-shadow: $shadow-sm;
+    padding: $spacing-md $spacing-lg $spacing-lg $spacing-lg;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: flex-start;
+    text-align: left;
+    height: 172px;
+    transition: transform $transition-fast, box-shadow $transition-fast;
 
-    h3 {
-      font-size: $font-size-xl;
-      margin-bottom: $spacing-sm;
-      color: $primary-color;
+    @include respond-to(md) {
+      padding: $spacing-md $spacing-lg $spacing-lg $spacing-lg;
+      height: 186px;
     }
 
-    p {
-      color: $text-secondary;
-      margin: 0;
+    @include respond-to(lg) {
+      height: 200px;
+    }
+
+    &:hover {
+      transform: translateY(-4px);
+      box-shadow: $shadow-lg;
+    }
+  }
+
+  &__feature-icon {
+    margin-bottom: $spacing-md;
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    flex-shrink: 0;
+  }
+
+  &__feature-title {
+    font-size: $font-size-base;
+    font-weight: $font-weight-semibold;
+    color: white;
+    margin: 0 0 $spacing-sm 0;
+    flex-shrink: 0;
+
+    @include respond-to(md) {
+      font-size: $font-size-lg;
+    }
+  }
+
+  &__feature-description {
+    font-size: $font-size-sm;
+    color: white;
+    line-height: $line-height-normal;
+    margin: 0;
+    opacity: 0.95;
+    flex: 1;
+    text-align: justify;
+
+    @include respond-to(md) {
+      font-size: $font-size-sm;
     }
   }
 }
-

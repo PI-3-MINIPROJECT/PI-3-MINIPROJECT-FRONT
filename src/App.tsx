@@ -6,6 +6,8 @@ import About from './pages/About/About';
 import Sitemap from './pages/Sitemap/Sitemap';
 import Login from './pages/Login/Login';
 import ForgotPassword from './pages/ForgotPassword/ForgotPassword';
+import Dashboard from './pages/Dashboard/Dashboard';
+import CreateMeeting from './pages/CreateMeeting/CreateMeeting';
 import './App.scss';
 
 function Layout({ children }: { children: React.ReactNode }) {
@@ -33,6 +35,8 @@ function App() {
               <Route path="/" element={<Home />} />
               <Route path="/about" element={<About />} />
               <Route path="/sitemap" element={<Sitemap />} />
+              <Route path="/explore" element={<Dashboard />} />
+              <Route path="/meetings/create" element={<CreateMeeting />} />
             </Routes>
           </Layout>
         }

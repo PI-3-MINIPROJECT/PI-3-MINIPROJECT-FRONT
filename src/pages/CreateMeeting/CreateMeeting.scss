@@ -1,0 +1,154 @@
+@use '../../styles/variables' as *;
+@use '../../styles/mixins' as *;
+
+.create-meeting {
+  min-height: calc(100vh - 200px);
+  padding: $spacing-2xl $spacing-md;
+  background-color: $background-color;
+
+  @include respond-to(md) {
+    padding: $spacing-3xl $spacing-md;
+  }
+
+  &__container {
+    @include container;
+    max-width: 800px;
+    margin: 0 auto;
+
+    @include respond-to(lg) {
+      max-width: 900px;
+    }
+  }
+
+  &__header {
+    text-align: center;
+    margin-bottom: $spacing-2xl;
+
+    @include respond-to(md) {
+      margin-bottom: $spacing-3xl;
+    }
+  }
+
+  &__title {
+    font-size: $font-size-3xl;
+    font-weight: $font-weight-bold;
+    color: $text-primary;
+    margin: 0 0 $spacing-md 0;
+
+    @include respond-to(md) {
+      font-size: $font-size-4xl;
+    }
+
+    &-highlight {
+      color: $secondary-color;
+    }
+  }
+
+  &__subtitle {
+    font-size: $font-size-base;
+    color: $text-secondary;
+    margin: 0;
+
+    @include respond-to(md) {
+      font-size: $font-size-lg;
+    }
+  }
+
+  &__form {
+    background-color: white;
+    border-radius: $border-radius-lg;
+    padding: $spacing-2xl;
+    box-shadow: $shadow-md;
+
+    @include respond-to(md) {
+      padding: $spacing-3xl;
+    }
+  }
+
+  &__form-group {
+    margin-bottom: $spacing-xl;
+  }
+
+  &__form-row {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: $spacing-lg;
+
+    @include respond-to(md) {
+      grid-template-columns: 1fr 1fr;
+    }
+  }
+
+  &__label {
+    display: block;
+    font-size: calc($font-size-sm * 1.05);
+    font-weight: $font-weight-medium;
+    color: $text-primary;
+    margin-bottom: calc($spacing-xs * 0.5);
+  }
+
+  &__textarea {
+    width: 100%;
+    padding: calc($spacing-sm * 1.2) calc($spacing-md * 1.2);
+    border: 1px solid $border-color;
+    border-radius: $border-radius-lg;
+    font-size: calc($font-size-base * 1.05);
+    font-family: $font-family-primary;
+    color: $text-primary;
+    background-color: white;
+    transition: all $transition-fast;
+    resize: vertical;
+    min-height: 100px;
+
+    @include respond-to(md) {
+      padding: calc($spacing-md * 1.1) calc($spacing-lg * 1.1);
+    }
+
+    &:focus {
+      outline: none;
+      border-color: $primary-color;
+      box-shadow: 0 0 0 3px rgba($primary-color, 0.1);
+    }
+
+    &::placeholder {
+      color: $text-secondary;
+      opacity: 0.6;
+    }
+  }
+
+  &__select {
+    width: 100%;
+    padding: calc($spacing-sm * 1.2) calc($spacing-md * 1.2);
+    border: 1px solid $border-color;
+    border-radius: $border-radius-lg;
+    font-size: calc($font-size-base * 1.05);
+    font-family: $font-family-primary;
+    color: $text-primary;
+    background-color: white;
+    transition: all $transition-fast;
+    cursor: pointer;
+
+    @include respond-to(md) {
+      padding: calc($spacing-md * 1.1) calc($spacing-lg * 1.1);
+    }
+
+    &:focus {
+      outline: none;
+      border-color: $primary-color;
+      box-shadow: 0 0 0 3px rgba($primary-color, 0.1);
+    }
+  }
+
+  &__actions {
+    display: flex;
+    flex-direction: column;
+    gap: $spacing-md;
+    margin-top: $spacing-2xl;
+    align-items: stretch;
+  }
+
+  &__submit-button {
+    width: 100%;
+  }
+}
+

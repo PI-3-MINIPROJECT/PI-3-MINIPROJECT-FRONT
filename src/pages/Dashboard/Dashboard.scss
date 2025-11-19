@@ -1,0 +1,195 @@
+@use '../../styles/variables' as *;
+@use '../../styles/mixins' as *;
+
+.dashboard {
+  min-height: calc(100vh - 200px);
+  background-color: $background-color;
+  padding: $spacing-xl 0;
+
+  @include respond-to(md) {
+    padding: $spacing-2xl 0;
+  }
+
+  &__container {
+    @include container;
+    max-width: 800px;
+    margin: 0 auto;
+  }
+
+  &__greeting {
+    text-align: center;
+    margin-bottom: $spacing-2xl;
+
+    @include respond-to(md) {
+      margin-bottom: $spacing-3xl;
+    }
+  }
+
+  &__title {
+    font-size: $font-size-3xl;
+    font-weight: $font-weight-bold;
+    color: $text-primary;
+    margin: 0 0 $spacing-md 0;
+
+    @include respond-to(md) {
+      font-size: $font-size-4xl;
+    }
+  }
+
+  &__subtitle {
+    font-size: $font-size-lg;
+    color: $text-primary;
+    margin: 0;
+
+    @include respond-to(md) {
+      font-size: $font-size-xl;
+    }
+  }
+
+  &__actions {
+    display: flex;
+    flex-direction: column;
+    gap: $spacing-md;
+    margin-bottom: $spacing-2xl;
+    align-items: center;
+
+    @include respond-to(md) {
+      flex-direction: row;
+      gap: $spacing-lg;
+      justify-content: center;
+    }
+  }
+
+  &__button {
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    gap: $spacing-md;
+    padding: $spacing-lg $spacing-xl;
+    border-radius: $border-radius-md;
+    font-weight: $font-weight-semibold;
+    font-size: $font-size-base;
+    text-decoration: none;
+    transition: all $transition-fast;
+    min-height: 60px;
+    width: 100%;
+
+    @include respond-to(md) {
+      font-size: $font-size-lg;
+      padding: $spacing-xl $spacing-2xl;
+      min-height: 70px;
+      max-width: 400px;
+    }
+
+    &--primary {
+      background: linear-gradient(135deg, #7B68BE 0%, #5B8FE5 100%);
+      color: white;
+      border: none;
+
+      &:hover {
+        transform: translateY(-2px);
+        box-shadow: $shadow-lg;
+        opacity: 0.95;
+      }
+    }
+
+    &--secondary {
+      background-color: white;
+      color: $text-primary;
+      border: 1px solid $border-color;
+
+      &:hover {
+        border-color: $primary-color;
+        color: $primary-color;
+        background-color: $background-color;
+      }
+    }
+
+    &-icon {
+      flex-shrink: 0;
+      width: 20px;
+      height: 20px;
+
+      &--secondary {
+        color: $text-secondary;
+      }
+    }
+  }
+
+  &__meetings {
+    background-color: white;
+    border: 1px solid $border-color;
+    border-radius: $border-radius-lg;
+    padding: $spacing-xl;
+    margin-top: $spacing-2xl;
+
+    @include respond-to(md) {
+      padding: $spacing-2xl;
+    }
+  }
+
+  &__meetings-title {
+    font-size: $font-size-xl;
+    font-weight: $font-weight-semibold;
+    color: $text-primary;
+    margin: 0 0 $spacing-lg 0;
+
+    @include respond-to(md) {
+      font-size: $font-size-2xl;
+    }
+  }
+
+  &__meetings-list {
+    display: flex;
+    flex-direction: column;
+    gap: $spacing-md;
+  }
+
+  &__meeting-item {
+    display: flex;
+    align-items: center;
+    gap: $spacing-md;
+    padding: $spacing-md $spacing-md;
+    border-bottom: 1px solid $border-color;
+    border-radius: $border-radius-md;
+    cursor: pointer;
+    transition: all $transition-fast;
+
+    &:last-child {
+      border-bottom: none;
+    }
+
+    &:hover {
+      background-color: rgba($primary-color, 0.05);
+      transform: translateX(4px);
+    }
+
+    @include respond-to(md) {
+      gap: $spacing-lg;
+      padding: $spacing-lg $spacing-md;
+    }
+  }
+
+  &__meeting-time {
+    font-size: $font-size-base;
+    font-weight: $font-weight-medium;
+    color: $text-primary;
+    min-width: 80px;
+
+    @include respond-to(md) {
+      font-size: $font-size-lg;
+      min-width: 100px;
+    }
+  }
+
+  &__meeting-name {
+    font-size: $font-size-base;
+    color: $text-primary;
+    flex: 1;
+
+    @include respond-to(md) {
+      font-size: $font-size-lg;
+    }
+  }
+}
+
