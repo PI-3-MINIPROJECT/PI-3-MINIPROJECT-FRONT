@@ -1,9 +1,11 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import Input from '../../components/Input/Input';
 import Button from '../../components/Button/Button';
 import './CreateMeeting.scss';
 
 export default function CreateMeeting() {
+  const navigate = useNavigate();
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [date, setDate] = useState('');
@@ -49,6 +51,7 @@ export default function CreateMeeting() {
       console.log('Crear reunión:', { title, description, date, time, duration, maxParticipants, meetingId });
       await new Promise(resolve => setTimeout(resolve, 1000));
       // Aquí iría la lógica para crear la reunión
+      navigate('/meetings/room');
     } catch (error) {
       console.error('Error al crear reunión:', error);
     } finally {

@@ -1,0 +1,102 @@
+@use '../../styles/variables' as *;
+@use '../../styles/mixins' as *;
+
+.join-meeting {
+  min-height: calc(100vh - 200px);
+  padding: $spacing-2xl $spacing-md;
+  background-color: $background-color;
+
+  @include respond-to(md) {
+    padding: $spacing-3xl $spacing-md;
+  }
+
+  &__container {
+    @include container;
+    max-width: 600px;
+    margin: 0 auto;
+
+    @include respond-to(lg) {
+      max-width: 700px;
+    }
+  }
+
+  &__header {
+    text-align: center;
+    margin-bottom: $spacing-2xl;
+
+    @include respond-to(md) {
+      margin-bottom: $spacing-3xl;
+    }
+  }
+
+  &__title {
+    font-size: $font-size-3xl;
+    font-weight: $font-weight-bold;
+    color: $text-primary;
+    margin: 0 0 $spacing-md 0;
+
+    @include respond-to(md) {
+      font-size: $font-size-4xl;
+    }
+
+    &-highlight {
+      color: $secondary-color;
+    }
+  }
+
+  &__subtitle {
+    font-size: $font-size-base;
+    color: $text-secondary;
+    margin: 0;
+
+    @include respond-to(md) {
+      font-size: $font-size-lg;
+    }
+  }
+
+  &__form {
+    background-color: white;
+    border-radius: $border-radius-lg;
+    padding: $spacing-2xl;
+    box-shadow: $shadow-md;
+
+    @include respond-to(md) {
+      padding: $spacing-3xl;
+    }
+  }
+
+  &__form-group {
+    margin-bottom: $spacing-2xl;
+  }
+
+  &__actions {
+    display: flex;
+    flex-direction: column;
+    gap: $spacing-md;
+
+    @include respond-to(md) {
+      flex-direction: row;
+      justify-content: center;
+      gap: $spacing-lg;
+    }
+  }
+
+  &__submit-button {
+    width: 100%;
+
+    @include respond-to(md) {
+      width: auto;
+      min-width: 200px;
+    }
+  }
+
+  &__cancel-button {
+    width: 100%;
+
+    @include respond-to(md) {
+      width: auto;
+      min-width: 200px;
+    }
+  }
+}
+

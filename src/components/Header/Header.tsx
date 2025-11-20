@@ -55,8 +55,11 @@ export default function Header() {
           >
             Crear reunión
           </Link>
-          {isActive('/explore') ? (
-            <Link to="/account" className="header__button header__button--access">
+          {isActive('/explore') || isActive('/account') ? (
+            <Link 
+              to="/account" 
+              className={`header__button header__button--access ${isActive('/account') ? 'header__button--active' : ''}`}
+            >
               Mi cuenta
             </Link>
           ) : (

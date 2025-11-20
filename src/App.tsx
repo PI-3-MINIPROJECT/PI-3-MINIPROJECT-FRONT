@@ -5,9 +5,14 @@ import Home from './pages/Home/Home';
 import About from './pages/About/About';
 import Sitemap from './pages/Sitemap/Sitemap';
 import Login from './pages/Login/Login';
+import Register from './pages/Register/Register';
 import ForgotPassword from './pages/ForgotPassword/ForgotPassword';
 import Dashboard from './pages/Dashboard/Dashboard';
 import CreateMeeting from './pages/CreateMeeting/CreateMeeting';
+import JoinMeeting from './pages/JoinMeeting/JoinMeeting';
+import Profile from './pages/Profile/Profile';
+import EditProfile from './pages/EditProfile/EditProfile';
+import VideoConference from './pages/VideoConference/VideoConference';
 import './App.scss';
 
 function Layout({ children }: { children: React.ReactNode }) {
@@ -26,7 +31,9 @@ function App() {
   return (
     <Routes>
       <Route path="/login" element={<Login />} />
+      <Route path="/register" element={<Register />} />
       <Route path="/forgot-password" element={<ForgotPassword />} />
+      <Route path="/meetings/room" element={<VideoConference />} />
       <Route
         path="/*"
         element={
@@ -37,6 +44,9 @@ function App() {
               <Route path="/sitemap" element={<Sitemap />} />
               <Route path="/explore" element={<Dashboard />} />
               <Route path="/meetings/create" element={<CreateMeeting />} />
+              <Route path="/meetings/join" element={<JoinMeeting />} />
+              <Route path="/account" element={<Profile />} />
+              <Route path="/account/edit" element={<EditProfile />} />
             </Routes>
           </Layout>
         }

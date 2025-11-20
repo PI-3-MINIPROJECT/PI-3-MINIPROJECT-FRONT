@@ -1,0 +1,314 @@
+@use 'sass:color';
+@use '../../styles/variables' as *;
+@use '../../styles/mixins' as *;
+
+.video-conference {
+  display: flex;
+  height: 100vh;
+  width: 100vw;
+  overflow: hidden;
+  background-color: #2c3e50;
+
+  &__main {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+  }
+
+  &__video-area {
+    flex: 1;
+    background-color: #4A3C6B;
+    display: flex;
+    align-items: stretch;
+    justify-content: stretch;
+    position: relative;
+    overflow: hidden;
+    padding: $spacing-md;
+
+    @include respond-to(md) {
+      padding: $spacing-lg;
+    }
+  }
+
+  &__participants {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: $spacing-md;
+    width: 100%;
+    height: 100%;
+
+    @include respond-to(md) {
+      grid-template-columns: repeat(2, 1fr);
+      gap: $spacing-lg;
+    }
+
+    @include respond-to(lg) {
+      grid-template-columns: repeat(3, 1fr);
+    }
+
+    @media (min-width: 1400px) {
+      grid-template-columns: repeat(4, 1fr);
+    }
+  }
+
+  &__participant {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    justify-content: stretch;
+    position: relative;
+    min-height: 0;
+  }
+
+  &__avatar {
+    width: 100%;
+    height: 100%;
+    border-radius: $border-radius-lg;
+    background-color: #5C4B9B;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    overflow: hidden;
+    min-height: 0;
+  }
+
+  &__avatar-initials {
+    font-size: $font-size-3xl;
+    font-weight: $font-weight-bold;
+    color: white;
+
+    @include respond-to(md) {
+      font-size: $font-size-4xl;
+    }
+
+    @include respond-to(lg) {
+      font-size: 4rem;
+    }
+  }
+
+  &__participant-name {
+    font-size: $font-size-sm;
+    color: white;
+    text-align: center;
+    padding: $spacing-xs $spacing-sm;
+    background-color: rgba(0, 0, 0, 0.6);
+    border-radius: $border-radius-md;
+    position: absolute;
+    bottom: $spacing-sm;
+    left: 50%;
+    transform: translateX(-50%);
+    white-space: nowrap;
+    z-index: 10;
+
+    @include respond-to(md) {
+      font-size: $font-size-base;
+      padding: $spacing-sm $spacing-md;
+      bottom: $spacing-md;
+    }
+  }
+
+  &__controls {
+    background-color: #333333;
+    padding: $spacing-lg $spacing-md;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: $spacing-md;
+    flex-wrap: wrap;
+
+    @include respond-to(md) {
+      padding: $spacing-xl $spacing-lg;
+      gap: $spacing-lg;
+    }
+  }
+
+  &__control-button {
+    width: 64px;
+    height: 64px;
+    border-radius: 50%;
+    border: none;
+    background-color: #555555;
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all $transition-fast;
+    flex-shrink: 0;
+
+    @include respond-to(md) {
+      width: 72px;
+      height: 72px;
+    }
+
+    svg {
+      width: 40px;
+      height: 40px;
+
+      @include respond-to(md) {
+        width: 44px;
+        height: 44px;
+      }
+    }
+
+    &:hover {
+      background-color: #666666;
+      transform: scale(1.05);
+    }
+
+    &--active {
+      background-color: #666666;
+    }
+
+    &--camera {
+      background-color: #ffb3ba;
+      color: white;
+
+      &:hover {
+        background-color: #ff9ba3;
+      }
+
+      &.video-conference__control-button--active {
+        background-color: #666666;
+      }
+    }
+
+    &--end {
+      background-color: $error-color;
+      color: white;
+
+      &:hover {
+        background-color: color.adjust($error-color, $lightness: -10%);
+        transform: scale(1.1);
+      }
+    }
+
+    &:focus-visible {
+      @include focus-visible;
+      outline-color: white;
+    }
+  }
+
+  &__chat {
+    width: 100%;
+    max-width: 400px;
+    background-color: white;
+    display: flex;
+    flex-direction: column;
+    border-left: 1px solid $border-color;
+    transition: transform $transition-base;
+    flex-shrink: 0;
+
+    @include respond-to(md) {
+      width: 400px;
+    }
+  }
+
+  &__chat-header {
+    padding: $spacing-lg $spacing-md;
+    border-bottom: 1px solid $border-color;
+  }
+
+  &__chat-title {
+    font-size: $font-size-lg;
+    font-weight: $font-weight-semibold;
+    color: $text-primary;
+    margin: 0;
+  }
+
+  &__chat-messages {
+    flex: 1;
+    overflow-y: auto;
+    padding: $spacing-lg;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  &__empty-message {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: $spacing-md;
+    padding: $spacing-xl;
+    background-color: $background-color;
+    border-radius: $border-radius-lg;
+    text-align: center;
+    max-width: 300px;
+  }
+
+  &__empty-icon {
+    width: 48px;
+    height: 48px;
+    margin-bottom: $spacing-sm;
+  }
+
+  &__empty-text {
+    font-size: $font-size-sm;
+    color: $text-secondary;
+    margin: 0;
+    line-height: $line-height-relaxed;
+  }
+
+  &__chat-input {
+    display: flex;
+    align-items: center;
+    gap: $spacing-sm;
+    padding: $spacing-md;
+    border-top: 1px solid $border-color;
+  }
+
+  &__chat-field {
+    flex: 1;
+    padding: $spacing-md;
+    border: 1px solid $border-color;
+    border-radius: $border-radius-lg;
+    font-size: $font-size-base;
+    font-family: $font-family-primary;
+    color: $text-primary;
+
+    &:focus {
+      outline: none;
+      border-color: $primary-color;
+      box-shadow: 0 0 0 3px rgba($primary-color, 0.1);
+    }
+
+    &::placeholder {
+      color: $text-secondary;
+      opacity: 0.6;
+    }
+  }
+
+  &__chat-send {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    border: none;
+    background-color: $primary-color;
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all $transition-fast;
+    flex-shrink: 0;
+
+    &:hover {
+      background-color: $primary-light;
+      transform: scale(1.05);
+    }
+
+    &:focus-visible {
+      @include focus-visible;
+    }
+
+    svg {
+      width: 20px;
+      height: 20px;
+    }
+  }
+}
+

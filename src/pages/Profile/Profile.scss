@@ -1,0 +1,395 @@
+@use 'sass:color';
+@use '../../styles/variables' as *;
+@use '../../styles/mixins' as *;
+
+.profile {
+  min-height: calc(100vh - 200px);
+  padding: $spacing-2xl $spacing-md;
+  background-color: $background-color;
+
+  @include respond-to(md) {
+    padding: $spacing-3xl $spacing-md;
+  }
+
+  &__container {
+    @include container;
+    max-width: 800px;
+    margin: 0 auto;
+  }
+
+  &__header {
+    text-align: center;
+    margin-bottom: $spacing-2xl;
+
+    @include respond-to(md) {
+      margin-bottom: $spacing-3xl;
+    }
+  }
+
+  &__title {
+    font-size: $font-size-3xl;
+    font-weight: $font-weight-bold;
+    color: $text-primary;
+    margin: 0 0 $spacing-md 0;
+
+    @include respond-to(md) {
+      font-size: $font-size-4xl;
+    }
+
+    &-highlight {
+      color: $secondary-color;
+    }
+  }
+
+  &__subtitle {
+    font-size: $font-size-base;
+    color: $text-secondary;
+    margin: 0;
+
+    @include respond-to(md) {
+      font-size: $font-size-lg;
+    }
+  }
+
+  &__card {
+    background-color: white;
+    border-radius: $border-radius-lg;
+    padding: $spacing-2xl;
+    box-shadow: $shadow-md;
+
+    @include respond-to(md) {
+      padding: $spacing-3xl;
+    }
+  }
+
+  &__card-header {
+    display: flex;
+    align-items: center;
+    gap: $spacing-lg;
+    margin-bottom: $spacing-2xl;
+    padding-bottom: $spacing-2xl;
+    border-bottom: 1px solid $border-color;
+
+    @include respond-to(md) {
+      gap: $spacing-xl;
+      margin-bottom: $spacing-3xl;
+      padding-bottom: $spacing-3xl;
+    }
+  }
+
+  &__avatar {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    background-color: $secondary-color;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+
+    @include respond-to(md) {
+      width: 100px;
+      height: 100px;
+    }
+  }
+
+  &__avatar-initials {
+    font-size: $font-size-2xl;
+    font-weight: $font-weight-bold;
+    color: white;
+
+    @include respond-to(md) {
+      font-size: $font-size-3xl;
+    }
+  }
+
+  &__user-info {
+    flex: 1;
+  }
+
+  &__user-name {
+    font-size: $font-size-xl;
+    font-weight: $font-weight-bold;
+    color: $text-primary;
+    margin: 0 0 $spacing-xs 0;
+
+    @include respond-to(md) {
+      font-size: $font-size-2xl;
+    }
+  }
+
+  &__username {
+    font-size: $font-size-base;
+    color: $text-secondary;
+    margin: 0;
+
+    @include respond-to(md) {
+      font-size: $font-size-lg;
+    }
+  }
+
+  &__details {
+    display: flex;
+    flex-direction: column;
+    gap: $spacing-lg;
+    margin-bottom: $spacing-2xl;
+
+    @include respond-to(md) {
+      gap: $spacing-xl;
+      margin-bottom: $spacing-3xl;
+    }
+  }
+
+  &__details-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: $spacing-md;
+    align-items: center;
+
+    @include respond-to(md) {
+      gap: $spacing-lg;
+    }
+  }
+
+  &__detail-label {
+    font-size: $font-size-base;
+    font-weight: $font-weight-medium;
+    color: $text-primary;
+
+    @include respond-to(md) {
+      font-size: $font-size-lg;
+    }
+  }
+
+  &__detail-value {
+    font-size: $font-size-base;
+    color: $text-primary;
+    text-align: right;
+
+    @include respond-to(md) {
+      font-size: $font-size-lg;
+    }
+  }
+
+  &__actions {
+    display: flex;
+    flex-direction: column;
+    gap: $spacing-md;
+
+    @include respond-to(md) {
+      flex-direction: row;
+      gap: $spacing-lg;
+    }
+  }
+
+  &__edit-button {
+    flex: 1;
+  }
+
+  &__delete-button {
+    flex: 1;
+    padding: calc($spacing-md * 1.1) calc($spacing-xl * 1.1);
+    border-radius: $border-radius-lg;
+    font-weight: $font-weight-semibold;
+    font-size: calc($font-size-base * 1.1);
+    transition: all $transition-fast;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    text-decoration: none;
+    cursor: pointer;
+    border: none;
+    font-family: $font-family-primary;
+    background-color: $error-color;
+    color: white;
+    min-height: 48px;
+
+    @include respond-to(md) {
+      min-height: 54px;
+    }
+
+    &:hover {
+      background-color: color.adjust($error-color, $lightness: -10%);
+      transform: translateY(-2px);
+      box-shadow: $shadow-lg;
+    }
+
+    &:focus-visible {
+      @include focus-visible;
+    }
+  }
+
+  &__modal-backdrop {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.5);
+    z-index: $z-index-modal-backdrop;
+    backdrop-filter: blur(4px);
+  }
+
+  &__modal {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background-color: white;
+    border-radius: $border-radius-lg;
+    padding: $spacing-2xl;
+    box-shadow: $shadow-xl;
+    z-index: $z-index-modal;
+    width: 90%;
+    max-width: 600px;
+    max-height: 80vh;
+    overflow-y: auto;
+    margin-top: 0;
+
+    @include respond-to(md) {
+      padding: $spacing-3xl;
+      max-width: 700px;
+      max-height: 85vh;
+    }
+
+    @include respond-to(lg) {
+      max-width: 800px;
+      max-height: 90vh;
+    }
+  }
+
+  &__modal-title {
+    font-size: $font-size-2xl;
+    font-weight: $font-weight-bold;
+    color: $text-primary;
+    margin: 0 0 $spacing-lg 0;
+
+    @include respond-to(md) {
+      font-size: $font-size-3xl;
+    }
+  }
+
+  &__modal-text {
+    font-size: $font-size-base;
+    color: $text-primary;
+    line-height: $line-height-relaxed;
+    margin: 0 0 $spacing-xl 0;
+
+    @include respond-to(md) {
+      font-size: $font-size-lg;
+      margin-bottom: $spacing-2xl;
+    }
+  }
+
+  &__modal-form {
+    margin-bottom: $spacing-2xl;
+  }
+
+  &__modal-password-toggle {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: $text-secondary;
+    transition: color $transition-fast;
+
+    &:hover {
+      color: $text-primary;
+    }
+
+    &:focus-visible {
+      @include focus-visible;
+    }
+
+    svg {
+      width: 20px;
+      height: 20px;
+    }
+  }
+
+  &__modal-actions {
+    display: flex;
+    flex-direction: column;
+    gap: $spacing-md;
+
+    @include respond-to(md) {
+      flex-direction: row;
+      gap: $spacing-lg;
+    }
+  }
+
+  &__modal-cancel-button {
+    flex: 1;
+    padding: calc($spacing-md * 1.1) calc($spacing-xl * 1.1);
+    border-radius: $border-radius-lg;
+    font-weight: $font-weight-semibold;
+    font-size: calc($font-size-base * 1.1);
+    transition: all $transition-fast;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    text-decoration: none;
+    cursor: pointer;
+    border: 1px solid $border-color;
+    font-family: $font-family-primary;
+    background-color: white;
+    color: $text-primary;
+    min-height: 48px;
+
+    @include respond-to(md) {
+      min-height: 54px;
+    }
+
+    &:hover {
+      border-color: $primary-color;
+      color: $primary-color;
+      background-color: $background-color;
+    }
+
+    &:focus-visible {
+      @include focus-visible;
+    }
+  }
+
+  &__modal-delete-button {
+    flex: 1;
+    padding: calc($spacing-md * 1.1) calc($spacing-xl * 1.1);
+    border-radius: $border-radius-lg;
+    font-weight: $font-weight-semibold;
+    font-size: calc($font-size-base * 1.1);
+    transition: all $transition-fast;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    text-decoration: none;
+    cursor: pointer;
+    border: none;
+    font-family: $font-family-primary;
+    background-color: $error-color;
+    color: white;
+    min-height: 48px;
+
+    @include respond-to(md) {
+      min-height: 54px;
+    }
+
+    &:hover:not(:disabled) {
+      background-color: color.adjust($error-color, $lightness: -10%);
+      transform: translateY(-2px);
+      box-shadow: $shadow-lg;
+    }
+
+    &:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+
+    &:focus-visible {
+      @include focus-visible;
+    }
+  }
+}
+

@@ -23,8 +23,8 @@ export default function About() {
             </div>
             <div className="about__mission-illustration">
               <img 
-                src="/monitor.png" 
-                alt="Videoconferencia" 
+                src="/nosotros.png" 
+                alt="Sobre Nosotros" 
                 className="about__mission-image"
               />
             </div>
