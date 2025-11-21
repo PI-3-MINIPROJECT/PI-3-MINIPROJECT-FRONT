@@ -84,6 +84,7 @@ src/
 - ✅ Diseño responsivo
 - ✅ Accesibilidad básica (WCAG)
 - ✅ Routing con React Router
+- ✅ 2 Heurísticas de Usabilidad implementadas y documentadas (ver [HEURISTICS.md](./HEURISTICS.md))
 
 ### Próximos Sprints
 - Sprint 2: Chat en tiempo real
@@ -206,6 +207,13 @@ Puedes configurar notificaciones en **Settings** → **Notifications** para reci
 - **Comentarios**: JSDoc para funciones y componentes
 - **Estilo**: ESLint configurado
 - **Accesibilidad**: WCAG 2.1 compliance progresivo
+
+## 📚 Documentación Adicional
+
+- **[HEURISTICS.md](./HEURISTICS.md)**: Documentación de las 2 heurísticas de usabilidad implementadas (Visibilidad del estado del sistema y Prevención de errores)
+- **[ACCESSIBILITY.md](./ACCESSIBILITY.md)**: Documentación de la pauta WCAG 2.1.1 Keyboard (Operable) implementada
+- **[API_INTEGRATION.md](./API_INTEGRATION.md)**: Documentación de integración con el backend
+- **[FRONTEND_API_DOCUMENTATION.md](./FRONTEND_API_DOCUMENTATION.md)**: Documentación detallada de la API del frontend
 
 ## 👥 Equipo
 

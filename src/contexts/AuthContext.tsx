@@ -10,6 +10,13 @@ interface AuthProviderProps {
   children: ReactNode;
 }
 
+/**
+ * Authentication context provider component
+ * Manages user authentication state, session tokens, and provides auth methods to child components
+ * @param {AuthProviderProps} props - Component props
+ * @param {ReactNode} props.children - Child components to wrap with auth context
+ * @returns {JSX.Element} Auth context provider
+ */
 export function AuthProvider({ children }: AuthProviderProps) {
   const [user, setUserState] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);

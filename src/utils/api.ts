@@ -6,6 +6,13 @@ type ApiErrorWithStatus = Error & {
   isUnauthorized?: boolean;
 };
 
+/**
+ * Converts a standard Error to an ApiErrorWithStatus with optional status code
+ * @param {Error} error - The error to convert
+ * @param {number} [status] - Optional HTTP status code
+ * @param {Partial<ApiErrorWithStatus>} [extra] - Optional additional properties
+ * @returns {ApiErrorWithStatus} Error with status information
+ */
 function toApiError(error: Error, status?: number, extra?: Partial<ApiErrorWithStatus>): ApiErrorWithStatus {
   const enriched = error as ApiErrorWithStatus;
   enriched.status = status;
@@ -15,12 +22,25 @@ function toApiError(error: Error, status?: number, extra?: Partial<ApiErrorWithS
   return enriched;
 }
 
+/**
+ * Type guard to check if a value is a JSON record object
+ * @param {unknown} value - Value to check
+ * @returns {boolean} True if value is a record object
+ */
 function isJsonRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null;
 }
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
 
+/**
+ * Makes an HTTP request to the API endpoint with authentication headers
+ * @template T - Type of the expected response data
+ * @param {string} endpoint - API endpoint path (e.g., '/api/users/profile')
+ * @param {RequestInit} [options={}] - Fetch API options (method, body, headers, etc.)
+ * @returns {Promise<ApiResponse<T>>} Promise resolving to API response with success status and data
+ * @throws {Error} Throws error if network request fails
+ */
 export async function apiRequest<T>(
   endpoint: string,
   options: RequestInit = {}
@@ -113,10 +133,23 @@ export async function apiRequest<T>(
   }
 }
 
+/**
+ * Performs a GET request to the API endpoint
+ * @template T - Type of the expected response data
+ * @param {string} endpoint - API endpoint path
+ * @returns {Promise<ApiResponse<T>>} Promise resolving to API response
+ */
 export async function get<T>(endpoint: string): Promise<ApiResponse<T>> {
   return apiRequest<T>(endpoint, { method: 'GET' });
 }
 
+/**
+ * Performs a POST request to the API endpoint
+ * @template T - Type of the expected response data
+ * @param {string} endpoint - API endpoint path
+ * @param {unknown} body - Request body to send (will be JSON stringified)
+ * @returns {Promise<ApiResponse<T>>} Promise resolving to API response
+ */
 export async function post<T>(
   endpoint: string,
   body: unknown
@@ -127,6 +160,13 @@ export async function post<T>(
   });
 }
 
+/**
+ * Performs a PUT request to the API endpoint
+ * @template T - Type of the expected response data
+ * @param {string} endpoint - API endpoint path
+ * @param {unknown} body - Request body to send (will be JSON stringified)
+ * @returns {Promise<ApiResponse<T>>} Promise resolving to API response
+ */
 export async function put<T>(
   endpoint: string,
   body: unknown
@@ -137,11 +177,22 @@ export async function put<T>(
   });
 }
 
+/**
+ * Performs a DELETE request to the API endpoint
+ * @template T - Type of the expected response data
+ * @param {string} endpoint - API endpoint path
+ * @returns {Promise<ApiResponse<T>>} Promise resolving to API response
+ */
 export async function del<T>(endpoint: string): Promise<ApiResponse<T>> {
   return apiRequest<T>(endpoint, { method: 'DELETE' });
 }
 
-// Funciones de autenticación
+/**
+ * Registers a new user in the system
+ * @param {import('../types').RegisterRequest} userData - User registration data (firstName, lastName, age, email, password)
+ * @returns {Promise<import('../types').AuthResponse>} Promise resolving to authentication response with user data
+ * @throws {Error} Throws error if registration fails (e.g., email already exists, validation errors)
+ */
 export async function register(userData: import('../types').RegisterRequest): Promise<import('../types').AuthResponse> {
   const response = await post<import('../types').User>('/api/auth/register', userData);
   
@@ -159,6 +210,12 @@ export async function register(userData: import('../types').RegisterRequest): Pr
   );
 }
 
+/**
+ * Authenticates a user with email and password
+ * @param {import('../types').LoginRequest} credentials - Login credentials (email, password, rememberMe)
+ * @returns {Promise<import('../types').AuthResponse>} Promise resolving to authentication response with user data and token
+ * @throws {Error} Throws error if authentication fails (e.g., invalid credentials, user not found)
+ */
 export async function login(credentials: import('../types').LoginRequest): Promise<import('../types').AuthResponse> {
   const response = await post<import('../types').User>('/api/auth/login', credentials);
   
@@ -176,6 +233,11 @@ export async function login(credentials: import('../types').LoginRequest): Promi
   );
 }
 
+/**
+ * Logs out the current user and invalidates the session
+ * @returns {Promise<{success: boolean; message: string}>} Promise resolving to logout confirmation
+ * @throws {Error} Throws error if logout fails
+ */
 export async function logout(): Promise<{ success: boolean; message: string }> {
   const response = await post<void>('/api/auth/logout', {});
   
@@ -192,6 +254,12 @@ export async function logout(): Promise<{ success: boolean; message: string }> {
   );
 }
 
+/**
+ * Requests a password reset link to be sent to the user's email
+ * @param {string} email - User's email address
+ * @returns {Promise<{success: boolean; message: string; resetLink?: string}>} Promise resolving to reset link response
+ * @throws {Error} Throws error if email not found or reset request fails
+ */
 export async function resetPassword(email: string): Promise<{ success: boolean; message: string; resetLink?: string }> {
   const response = await post<{ resetLink: string }>('/api/auth/reset-password', { email });
   
@@ -209,7 +277,11 @@ export async function resetPassword(email: string): Promise<{ success: boolean; 
   );
 }
 
-// Funciones de gestión de usuarios
+/**
+ * Retrieves the current authenticated user's profile information
+ * @returns {Promise<import('../types').User>} Promise resolving to user profile data
+ * @throws {Error} Throws error if user is not authenticated or profile fetch fails
+ */
 export async function getCurrentUser(): Promise<import('../types').User> {
   const response = await get<import('../types').User>('/api/users/profile');
   
@@ -223,6 +295,12 @@ export async function getCurrentUser(): Promise<import('../types').User> {
   );
 }
 
+/**
+ * Updates the current user's profile information
+ * @param {Partial<Omit<import('../types').User, 'uid' | 'createdAt' | 'updatedAt'>>} updates - Partial user data to update (name, last_name, age, email)
+ * @returns {Promise<import('../types').User>} Promise resolving to updated user profile data
+ * @throws {Error} Throws error if update fails (e.g., validation errors, unauthorized)
+ */
 export async function updateProfile(updates: Partial<Omit<import('../types').User, 'uid' | 'createdAt' | 'updatedAt'>>): Promise<import('../types').User> {
   const response = await put<import('../types').User>('/api/users/profile', updates);
   
@@ -236,6 +314,12 @@ export async function updateProfile(updates: Partial<Omit<import('../types').Use
   );
 }
 
+/**
+ * Updates the current user's password
+ * @param {import('../types').UpdatePasswordRequest} passwordData - Password update data (currentPassword, newPassword, confirmPassword)
+ * @returns {Promise<{success: boolean; message: string}>} Promise resolving to update confirmation
+ * @throws {Error} Throws error if password update fails (e.g., current password incorrect, validation errors)
+ */
 export async function updatePassword(passwordData: import('../types').UpdatePasswordRequest): Promise<{ success: boolean; message: string }> {
   const response = await put<{ success: boolean; message: string }>('/api/auth/update-password', passwordData);
   
@@ -252,6 +336,11 @@ export async function updatePassword(passwordData: import('../types').UpdatePass
   );
 }
 
+/**
+ * Permanently deletes the current user's account
+ * @returns {Promise<{success: boolean; message: string}>} Promise resolving to deletion confirmation
+ * @throws {Error} Throws error if account deletion fails
+ */
 export async function deleteAccount(): Promise<{ success: boolean; message: string }> {
   const response = await del<void>('/api/users/profile');
   
