@@ -157,12 +157,49 @@ El sistema utiliza **cookies de sesión HTTP-only** para autenticación:
 ```json
 {
   "success": true,
-  "message": "Password reset link generated",
-  "resetLink": "https://firebase_reset_link"
+  "message": "Se ha enviado un enlace de recuperación a tu correo electrónico",
+  "data": {
+    "email": "usuario@example.com"
+  }
 }
 ```
 
-### 6. OAuth con Google
+**Errores Comunes:**
+- 400: No existe una cuenta con este correo electrónico
+- 500: Error del servidor
+
+### 6. Confirmar Recuperación de Contraseña
+**Endpoint:** `POST /api/auth/confirm-password-reset`
+
+**Body:**
+```json
+{
+  "oobCode": "codigo_del_email",
+  "newPassword": "nuevaContrasena123"
+}
+```
+
+**Validaciones:**
+- `oobCode`: Código obtenido del enlace del email (parámetro `oobCode` de la URL)
+- `newPassword`: Mínimo 6 caracteres
+
+**Respuesta Exitosa (200):**
+```json
+{
+  "success": true,
+  "message": "Contraseña restablecida exitosamente",
+  "data": {
+    "email": "usuario@example.com"
+  }
+}
+```
+
+**Errores Comunes:**
+- 400: El código de recuperación es inválido
+- 400: El enlace de recuperación ha expirado
+- 400: La contraseña debe tener al menos 6 caracteres
+
+### 7. OAuth con Google
 **Endpoint:** `GET /api/auth/oauth/google`
 
 **Flujo:**
@@ -616,6 +653,100 @@ const login = async (email, password) => {
     return response.data.data; // Datos del usuario
   } catch (error) {
     throw new Error(error.response?.data?.message || 'Error de login');
+  }
+};
+```
+
+### Ejemplo de Actualización de Contraseña
+```javascript
+const updatePassword = async (currentPassword, newPassword, confirmPassword) => {
+  try {
+    const response = await api.put('/auth/update-password', {
+      currentPassword,
+      newPassword,
+      confirmPassword
+    });
+    
+    return response.data; // { success: true, message: "..." }
+  } catch (error) {
+    // Manejar errores específicos
+    const errorMessage = error.response?.data?.message || 'Error al actualizar contraseña';
+    throw new Error(errorMessage);
+  }
+};
+
+// Ejemplo de uso en un componente
+const handlePasswordUpdate = async (formData) => {
+  try {
+    await updatePassword(
+      formData.currentPassword,
+      formData.newPassword,
+      formData.confirmPassword
+    );
+    
+    // Mostrar mensaje de éxito
+    alert('Contraseña actualizada exitosamente');
+  } catch (error) {
+    // Mostrar error al usuario
+    alert(error.message);
+  }
+};
+```
+
+### Ejemplo de Recuperación de Contraseña
+```javascript
+// Paso 1: Solicitar recuperación
+const requestPasswordReset = async (email) => {
+  try {
+    const response = await api.post('/auth/reset-password', { email });
+    return response.data;
+  } catch (error) {
+    const errorMessage = error.response?.data?.message || 'Error al enviar email';
+    throw new Error(errorMessage);
+  }
+};
+
+// Paso 2: Confirmar nueva contraseña (desde la página del enlace)
+const confirmPasswordReset = async (oobCode, newPassword) => {
+  try {
+    const response = await api.post('/auth/confirm-password-reset', {
+      oobCode,
+      newPassword
+    });
+    return response.data;
+  } catch (error) {
+    const errorMessage = error.response?.data?.message || 'Error al restablecer contraseña';
+    throw new Error(errorMessage);
+  }
+};
+
+// Ejemplo de uso completo
+const handleForgotPassword = async (email) => {
+  try {
+    await requestPasswordReset(email);
+    alert('Se ha enviado un enlace de recuperación a tu correo');
+  } catch (error) {
+    alert(error.message);
+  }
+};
+
+// En la página de reset (obteniendo oobCode de la URL)
+const handlePasswordReset = async (newPassword) => {
+  const urlParams = new URLSearchParams(window.location.search);
+  const oobCode = urlParams.get('oobCode');
+  
+  if (!oobCode) {
+    alert('Enlace de recuperación inválido');
+    return;
+  }
+  
+  try {
+    await confirmPasswordReset(oobCode, newPassword);
+    alert('Contraseña restablecida exitosamente');
+    // Redirigir al login
+    window.location.href = '/login';
+  } catch (error) {
+    alert(error.message);
   }
 };
 ```
