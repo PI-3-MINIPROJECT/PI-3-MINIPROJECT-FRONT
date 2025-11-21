@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useAuth } from '../../contexts/AuthContext';
+import { useAuth } from '../../hooks/useAuth';
 import { deleteAccount } from '../../utils/api';
 import { handleAuthError } from '../../utils/auth';
 import Button from '../../components/Button/Button';
@@ -12,20 +12,21 @@ export default function Profile() {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [error, setError] = useState('');
+  const userId = user?.uid;
 
-  // Redirigir si no está autenticado
   useEffect(() => {
     if (!isLoading && !user) {
       navigate('/login');
     }
   }, [user, isLoading, navigate]);
 
-  // Recargar datos del usuario al montar el componente
   useEffect(() => {
-    if (user) {
-      refreshUser();
+    if (!userId) {
+      return;
     }
-  }, [user, refreshUser]);
+
+    refreshUser();
+  }, [refreshUser, userId]);
 
   const handleDeleteAccount = () => {
     setShowDeleteModal(true);
@@ -42,14 +43,13 @@ export default function Profile() {
     
     try {
       await deleteAccount();
-      logout(); // Limpiar estado de autenticación
+      logout();
       navigate('/', { 
         state: { 
           message: 'Cuenta eliminada exitosamente' 
         } 
       });
     } catch (error) {
-      console.error('Error al eliminar cuenta:', error);
       const errorMessage = handleAuthError(error);
       setError(errorMessage);
     } finally {
@@ -66,7 +66,6 @@ export default function Profile() {
 
 
 
-  // Mostrar loading mientras se cargan los datos
   if (isLoading) {
     return (
       <main className="profile" role="main">
@@ -79,7 +78,6 @@ export default function Profile() {
     );
   }
 
-  // Si no hay usuario, no mostrar nada (el useEffect ya redirige)
   if (!user) {
     return null;
   }

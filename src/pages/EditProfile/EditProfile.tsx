@@ -1,6 +1,6 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { useAuth } from '../../contexts/AuthContext';
+import { useAuth } from '../../hooks/useAuth';
 import { updateProfile, updatePassword } from '../../utils/api';
 import Input from '../../components/Input/Input';
 import Button from '../../components/Button/Button';
@@ -32,7 +32,230 @@ export default function EditProfile() {
     general?: string;
   }>({});
 
-  // Cargar datos del usuario al montar el componente
+  type EditField =
+    | 'firstName'
+    | 'lastName'
+    | 'age'
+    | 'email'
+    | 'currentPassword'
+    | 'newPassword'
+    | 'confirmPassword';
+
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+  const sanitizeNumericInput = (value: string) =>
+    value.replace(/[^0-9]/g, '').slice(0, 3);
+
+  const getPasswordChecks = (pwd: string) => ({
+    length: pwd.length >= 6,
+    lowercase: /[a-z]/.test(pwd),
+    uppercase: /[A-Z]/.test(pwd),
+    number: /\d/.test(pwd),
+    special: /[!@#$%^&*(),.?":{}|<>_-]/.test(pwd),
+  });
+
+  const passwordChecks = useMemo(() => getPasswordChecks(newPassword), [newPassword]);
+
+
+  const isPasswordGroupActive = Boolean(
+    currentPassword.trim() || newPassword.trim() || confirmPassword.trim()
+  );
+
+  const getFieldValue = (field: EditField): string => {
+    switch (field) {
+      case 'firstName':
+        return firstName;
+      case 'lastName':
+        return lastName;
+      case 'age':
+        return age;
+      case 'email':
+        return email;
+      case 'currentPassword':
+        return currentPassword;
+      case 'newPassword':
+        return newPassword;
+      case 'confirmPassword':
+        return confirmPassword;
+      default:
+        return '';
+    }
+  };
+
+  const validateField = (
+    field: EditField,
+    value: string,
+    opts?: { validatePasswordGroup?: boolean; passwordComparisonValue?: string }
+  ): string | undefined => {
+    const trimmed = value.trim();
+    switch (field) {
+      case 'firstName':
+        if (!trimmed) return 'El nombre es requerido';
+        if (trimmed.length < 2 || trimmed.length > 50) {
+          return 'El nombre debe tener entre 2 y 50 caracteres';
+        }
+        return undefined;
+      case 'lastName':
+        if (!trimmed) return 'El apellido es requerido';
+        if (trimmed.length < 2 || trimmed.length > 50) {
+          return 'El apellido debe tener entre 2 y 50 caracteres';
+        }
+        return undefined;
+      case 'age':
+        if (!trimmed) return 'La edad es requerida';
+        if (isNaN(Number(trimmed))) {
+          return 'La edad debe ser numérica';
+        }
+        if (Number(trimmed) < 1 || Number(trimmed) > 120) {
+          return 'La edad debe estar entre 1 y 120';
+        }
+        return undefined;
+      case 'email':
+        if (!trimmed) return 'El correo electrónico es requerido';
+        if (!emailRegex.test(trimmed)) {
+          return 'Ingrese un correo electrónico válido';
+        }
+        return undefined;
+      case 'currentPassword':
+        if (!opts?.validatePasswordGroup) return undefined;
+        if (!trimmed) return 'La contraseña actual es requerida';
+        return undefined;
+      case 'newPassword': {
+        if (!opts?.validatePasswordGroup) return undefined;
+        if (!trimmed) return 'La nueva contraseña es requerida';
+        const checks = getPasswordChecks(trimmed);
+        if (!Object.values(checks).every(Boolean)) {
+          return 'La nueva contraseña debe cumplir con todos los requisitos.';
+        }
+        return undefined;
+      }
+      case 'confirmPassword':
+        if (!opts?.validatePasswordGroup) return undefined;
+        if (!trimmed) return 'Confirma tu nueva contraseña';
+        if (trimmed !== (opts?.passwordComparisonValue ?? newPassword)) {
+          return 'Las contraseñas no coinciden';
+        }
+        return undefined;
+      default:
+        return undefined;
+    }
+  };
+
+  const updateFieldError = (field: EditField, errorMessage?: string) => {
+    setErrors((prev) => {
+      const next = { ...prev };
+      if (errorMessage) {
+        next[field] = errorMessage;
+      } else {
+        delete next[field];
+      }
+      return next;
+    });
+  };
+
+  const handleFieldBlur = (field: EditField) => {
+    const value = getFieldValue(field);
+    const shouldValidatePasswords =
+      field === 'currentPassword' ||
+      field === 'newPassword' ||
+      field === 'confirmPassword'
+        ? isPasswordGroupActive
+        : true;
+    updateFieldError(
+      field,
+      validateField(field, value, {
+        validatePasswordGroup: shouldValidatePasswords,
+        passwordComparisonValue: field === 'confirmPassword' ? newPassword : undefined,
+      })
+    );
+  };
+
+  const clearGeneralError = () => {
+    setErrors((prev) => {
+      if (!prev.general) return prev;
+      const next = { ...prev };
+      delete next.general;
+      return next;
+    });
+  };
+
+  const handleFirstNameChange = (value: string) => {
+    setFirstName(value);
+    clearGeneralError();
+    if (errors.firstName) {
+      updateFieldError('firstName', validateField('firstName', value));
+    }
+  };
+
+  const handleLastNameChange = (value: string) => {
+    setLastName(value);
+    clearGeneralError();
+    if (errors.lastName) {
+      updateFieldError('lastName', validateField('lastName', value));
+    }
+  };
+
+  const handleAgeChange = (value: string) => {
+    const sanitized = sanitizeNumericInput(value);
+    setAge(sanitized);
+    clearGeneralError();
+    if (errors.age) {
+      updateFieldError('age', validateField('age', sanitized));
+    }
+  };
+
+  const handleEmailChange = (value: string) => {
+    setEmail(value);
+    clearGeneralError();
+    if (errors.email) {
+      updateFieldError('email', validateField('email', value));
+    }
+  };
+
+  const handleCurrentPasswordChange = (value: string) => {
+    setCurrentPassword(value);
+    clearGeneralError();
+    if (errors.currentPassword) {
+      updateFieldError(
+        'currentPassword',
+        validateField('currentPassword', value, {
+          validatePasswordGroup: true,
+        })
+      );
+    }
+  };
+
+  const handleNewPasswordChange = (value: string) => {
+    setNewPassword(value);
+    clearGeneralError();
+    if (errors.newPassword) {
+      updateFieldError(
+        'newPassword',
+        validateField('newPassword', value, { validatePasswordGroup: true })
+      );
+    }
+    if (confirmPassword) {
+      updateFieldError(
+        'confirmPassword',
+        validateField('confirmPassword', confirmPassword, {
+          validatePasswordGroup: true,
+          passwordComparisonValue: value,
+        })
+      );
+    }
+  };
+
+  const handleConfirmPasswordChange = (value: string) => {
+    setConfirmPassword(value);
+    clearGeneralError();
+    updateFieldError(
+      'confirmPassword',
+      validateField('confirmPassword', value, {
+        validatePasswordGroup: true,
+      })
+    );
+  };
+
   useEffect(() => {
     if (!isLoading && !user) {
       navigate('/login');
@@ -44,73 +267,61 @@ export default function EditProfile() {
       setLastName(user.last_name || '');
       setAge(user.age?.toString() || '');
       setEmail(user.email || '');
+      setCurrentPassword('');
+      setNewPassword('');
+      setConfirmPassword('');
     }
   }, [user, isLoading, navigate]);
 
-  // Forzar recarga de datos del usuario al montar el componente
   useEffect(() => {
     const loadUserData = async () => {
       if (refreshUser) {
         try {
           await refreshUser();
         } catch (error) {
-          console.error('Error al refrescar datos del usuario:', error);
+          void error;
         }
       }
     };
     
     loadUserData();
-  }, [refreshUser]); // Ejecutar cuando refreshUser esté disponible
+  }, [refreshUser]);
+
+  const fieldsToValidate: EditField[] = [
+    'firstName',
+    'lastName',
+    'age',
+    'email',
+    'currentPassword',
+    'newPassword',
+    'confirmPassword',
+  ];
 
   const validateForm = (): boolean => {
     const newErrors: typeof errors = {};
+    const isChangingPassword =
+      currentPassword.trim() || newPassword.trim() || confirmPassword.trim();
 
-    if (!firstName.trim()) {
-      newErrors.firstName = 'El nombre es requerido';
-    } else if (firstName.length < 2 || firstName.length > 50) {
-      newErrors.firstName = 'El nombre debe tener entre 2 y 50 caracteres';
-    }
-
-    if (!lastName.trim()) {
-      newErrors.lastName = 'El apellido es requerido';
-    } else if (lastName.length < 2 || lastName.length > 50) {
-      newErrors.lastName = 'El apellido debe tener entre 2 y 50 caracteres';
-    }
-
-    if (!age.trim()) {
-      newErrors.age = 'La edad es requerida';
-    } else {
-      const ageNum = Number(age);
-      if (isNaN(ageNum) || ageNum < 1 || ageNum > 120) {
-        newErrors.age = 'La edad debe ser un número entre 1 y 120';
+    fieldsToValidate.forEach((field) => {
+      const value = getFieldValue(field);
+      const errorMessage = validateField(field, value, {
+        validatePasswordGroup:
+          field === 'currentPassword' ||
+          field === 'newPassword' ||
+          field === 'confirmPassword'
+            ? Boolean(isChangingPassword)
+            : undefined,
+        passwordComparisonValue: field === 'confirmPassword' ? newPassword : undefined,
+      });
+      if (errorMessage) {
+        newErrors[field] = errorMessage;
       }
-    }
+    });
 
-    if (!email.trim()) {
-      newErrors.email = 'El correo electrónico es requerido';
-    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-      newErrors.email = 'Ingrese un correo electrónico válido';
-    }
-
-    // Validaciones de contraseña (solo si se está intentando cambiar)
-    const isChangingPassword = currentPassword.trim() || newPassword.trim() || confirmPassword.trim();
-    
-    if (isChangingPassword) {
-      if (!currentPassword.trim()) {
-        newErrors.currentPassword = 'La contraseña actual es requerida';
-      }
-      
-      if (!newPassword.trim()) {
-        newErrors.newPassword = 'La nueva contraseña es requerida';
-      } else if (newPassword.length < 6) {
-        newErrors.newPassword = 'La nueva contraseña debe tener al menos 6 caracteres';
-      }
-      
-      if (!confirmPassword.trim()) {
-        newErrors.confirmPassword = 'Confirma tu nueva contraseña';
-      } else if (newPassword !== confirmPassword) {
-        newErrors.confirmPassword = 'Las contraseñas no coinciden';
-      }
+    if (Object.keys(newErrors).length > 0) {
+      newErrors.general =
+        newErrors.general ??
+        'Por favor corrige los campos marcados antes de continuar.';
     }
 
     setErrors(newErrors);
@@ -129,7 +340,6 @@ export default function EditProfile() {
     setSuccess('');
 
     try {
-      // Actualizar datos del perfil
       const ageNumber = parseInt(age.trim(), 10);
       if (isNaN(ageNumber)) {
         throw new Error('La edad debe ser un número válido');
@@ -142,12 +352,10 @@ export default function EditProfile() {
         email: email.trim()
       };
 
-      // Detectar si se está cambiando contraseña
       const isChangingPassword = currentPassword.trim() || newPassword.trim() || confirmPassword.trim();
 
       await updateProfile(profileUpdates);
       
-      // Si se está cambiando la contraseña, hacer la actualización por separado
       if (isChangingPassword) {
         const passwordData = {
           currentPassword: currentPassword.trim(),
@@ -158,12 +366,10 @@ export default function EditProfile() {
         await updatePassword(passwordData);
       }
 
-      // Refrescar los datos del usuario (el backend debería mantener la sesión activa)
       try {
         await refreshUser();
       } catch (error) {
-        console.warn('Error al refrescar usuario después de actualización:', error);
-        // Si hay error, solo loguearlo pero no fallar el proceso
+        void error;
       }
       
       const successMessage = isChangingPassword 
@@ -172,14 +378,12 @@ export default function EditProfile() {
       
       setSuccess(successMessage);
       
-      // Limpiar campos de contraseña después de actualización exitosa
       if (isChangingPassword) {
         setCurrentPassword('');
         setNewPassword('');
         setConfirmPassword('');
       }
       
-      // Redirigir después de un breve delay para mostrar el mensaje de éxito
       setTimeout(() => {
         navigate('/account', { 
           state: { 
@@ -188,19 +392,15 @@ export default function EditProfile() {
         });
       }, 1500);
     } catch (error) {
-      console.error('Error al actualizar:', error);
-      
       let errorMessage = 'Error al actualizar el perfil';
       if (error instanceof Error) {
         errorMessage = error.message;
         
-        // Si es un error de autenticación, dar una sugerencia más útil
         if (errorMessage.includes('Credenciales incorrectas') || 
             errorMessage.includes('No autenticado') || 
             errorMessage.includes('401')) {
           errorMessage = 'Tu sesión ha expirado. Por favor, inicia sesión nuevamente.';
           
-          // Opcional: redirigir automáticamente al login después de unos segundos
           setTimeout(() => {
             navigate('/login');
           }, 3000);
@@ -226,7 +426,6 @@ export default function EditProfile() {
     )
   );
 
-  // Mostrar loading mientras se cargan los datos
   if (isLoading || !user) {
     return (
       <main className="edit-profile" role="main">
@@ -264,7 +463,6 @@ export default function EditProfile() {
         )}
 
         <form className="edit-profile__form" onSubmit={handleSubmit}>
-          {/* Campos ocultos para engañar al autocompletado del navegador */}
           <input type="text" style={{display: 'none'}} />
           <input type="password" style={{display: 'none'}} />
           
@@ -275,7 +473,8 @@ export default function EditProfile() {
               label="Nombres"
               placeholder="Ingresa tu nombre"
               value={firstName}
-              onChange={(e) => setFirstName(e.target.value)}
+              onChange={(e) => handleFirstNameChange(e.target.value)}
+              onBlur={() => handleFieldBlur('firstName')}
               error={errors.firstName}
               disabled={isSubmitting}
               required
@@ -289,7 +488,8 @@ export default function EditProfile() {
               label="Apellidos"
               placeholder="Ingresa tus apellidos"
               value={lastName}
-              onChange={(e) => setLastName(e.target.value)}
+              onChange={(e) => handleLastNameChange(e.target.value)}
+              onBlur={() => handleFieldBlur('lastName')}
               error={errors.lastName}
               disabled={isSubmitting}
               required
@@ -299,16 +499,18 @@ export default function EditProfile() {
           <div className="edit-profile__form-group">
             <Input
               id="age"
-              type="number"
+              type="text"
               label="Edad"
               placeholder="Ingresa tu edad"
               value={age}
-              onChange={(e) => setAge(e.target.value)}
+              onChange={(e) => handleAgeChange(e.target.value)}
+              onBlur={() => handleFieldBlur('age')}
               error={errors.age}
               disabled={isSubmitting}
-              min="1"
-              max="120"
               required
+              autoComplete="off"
+              inputMode="numeric"
+              pattern="[0-9]*"
             />
           </div>
 
@@ -319,7 +521,8 @@ export default function EditProfile() {
               label="Correo electrónico"
               placeholder="Ingresa tu correo electrónico"
               value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              onChange={(e) => handleEmailChange(e.target.value)}
+              onBlur={() => handleFieldBlur('email')}
               error={errors.email}
               disabled={isSubmitting}
               required
@@ -334,10 +537,13 @@ export default function EditProfile() {
               label="Contraseña actual"
               placeholder="••••••••"
               value={currentPassword}
-              onChange={(e) => setCurrentPassword(e.target.value)}
+              onChange={(e) => handleCurrentPasswordChange(e.target.value)}
+              onBlur={() => handleFieldBlur('currentPassword')}
               error={errors.currentPassword}
               disabled={isSubmitting}
-              autoComplete="nope"
+              autoComplete="new-password"
+              spellCheck={false}
+              autoCorrect="off"
               icon={
                 <button
                   type="button"
@@ -359,10 +565,11 @@ export default function EditProfile() {
               label="Nueva contraseña"
               placeholder="••••••••"
               value={newPassword}
-              onChange={(e) => setNewPassword(e.target.value)}
+              onChange={(e) => handleNewPasswordChange(e.target.value)}
+              onBlur={() => handleFieldBlur('newPassword')}
               error={errors.newPassword}
               disabled={isSubmitting}
-              autoComplete="nope"
+              autoComplete="new-password"
               icon={
                 <button
                   type="button"
@@ -384,10 +591,11 @@ export default function EditProfile() {
               label="Confirmar nueva contraseña"
               placeholder="••••••••"
               value={confirmPassword}
-              onChange={(e) => setConfirmPassword(e.target.value)}
+              onChange={(e) => handleConfirmPasswordChange(e.target.value)}
+              onBlur={() => handleFieldBlur('confirmPassword')}
               error={errors.confirmPassword}
               disabled={isSubmitting}
-              autoComplete="nope"
+              autoComplete="new-password"
               icon={
                 <button
                   type="button"
@@ -400,6 +608,44 @@ export default function EditProfile() {
               }
             />
           </div>
+
+          {isPasswordGroupActive && (
+            <div className="edit-profile__password-requirements" aria-live="polite">
+              <p className="edit-profile__password-requirements-title">La nueva contraseña debe incluir:</p>
+              <ul className="edit-profile__password-requirements-list">
+                <li className={`edit-profile__password-requirement ${passwordChecks.length ? 'edit-profile__password-requirement--met' : ''}`}>
+                  <span className="edit-profile__password-requirement-icon">
+                    {passwordChecks.length ? '✔' : '•'}
+                  </span>
+                  Al menos 6 caracteres
+                </li>
+                <li className={`edit-profile__password-requirement ${passwordChecks.lowercase ? 'edit-profile__password-requirement--met' : ''}`}>
+                  <span className="edit-profile__password-requirement-icon">
+                    {passwordChecks.lowercase ? '✔' : '•'}
+                  </span>
+                  Una letra minúscula
+                </li>
+                <li className={`edit-profile__password-requirement ${passwordChecks.uppercase ? 'edit-profile__password-requirement--met' : ''}`}>
+                  <span className="edit-profile__password-requirement-icon">
+                    {passwordChecks.uppercase ? '✔' : '•'}
+                  </span>
+                  Una letra mayúscula
+                </li>
+                <li className={`edit-profile__password-requirement ${passwordChecks.number ? 'edit-profile__password-requirement--met' : ''}`}>
+                  <span className="edit-profile__password-requirement-icon">
+                    {passwordChecks.number ? '✔' : '•'}
+                  </span>
+                  Un número
+                </li>
+                <li className={`edit-profile__password-requirement ${passwordChecks.special ? 'edit-profile__password-requirement--met' : ''}`}>
+                  <span className="edit-profile__password-requirement-icon">
+                    {passwordChecks.special ? '✔' : '•'}
+                  </span>
+                  Un carácter especial
+                </li>
+              </ul>
+            </div>
+          )}
 
           <div className="edit-profile__actions">
             <Button

@@ -48,12 +48,10 @@ export default function CreateMeeting() {
 
     setIsSubmitting(true);
     try {
-      console.log('Crear reunión:', { title, description, date, time, duration, maxParticipants, meetingId });
       await new Promise(resolve => setTimeout(resolve, 1000));
-      // Aquí iría la lógica para crear la reunión
       navigate('/meetings/room');
-    } catch (error) {
-      console.error('Error al crear reunión:', error);
+    } catch {
+      setErrors({ title: 'No se pudo crear la reunión. Intenta nuevamente.' });
     } finally {
       setIsSubmitting(false);
     }

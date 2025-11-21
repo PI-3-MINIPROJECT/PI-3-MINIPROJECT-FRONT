@@ -15,6 +15,7 @@
     @include container;
     max-width: 800px;
     margin: 0 auto;
+    animation: dashboardFadeIn 0.5s ease-out both;
   }
 
   &__welcome-message {
@@ -26,6 +27,7 @@
     color: #155724;
     text-align: center;
     margin-bottom: $spacing-xl;
+    animation: dashboardAlert 0.45s ease-out both;
 
     @include respond-to(md) {
       font-size: $font-size-lg;
@@ -35,6 +37,7 @@
   &__greeting {
     text-align: center;
     margin-bottom: $spacing-2xl;
+    animation: dashboardFadeIn 0.55s ease-out 0.05s both;
 
     @include respond-to(md) {
       margin-bottom: $spacing-3xl;
@@ -68,6 +71,7 @@
     gap: $spacing-md;
     margin-bottom: $spacing-2xl;
     align-items: center;
+    animation: dashboardSlideUp 0.55s ease-out 0.08s both;
 
     @include respond-to(md) {
       flex-direction: row;
@@ -89,6 +93,7 @@
     transition: all $transition-fast;
     min-height: 60px;
     width: 100%;
+    animation: dashboardButtonPop 0.45s ease-out both;
 
     @include respond-to(md) {
       font-size: $font-size-lg;
@@ -138,6 +143,7 @@
     border-radius: $border-radius-lg;
     padding: $spacing-xl;
     margin-top: $spacing-2xl;
+    animation: dashboardCardRise 0.55s ease-out 0.1s both;
 
     @include respond-to(md) {
       padding: $spacing-2xl;
@@ -159,6 +165,7 @@
     display: flex;
     flex-direction: column;
     gap: $spacing-md;
+    animation: dashboardFadeIn 0.45s ease-out 0.12s both;
   }
 
   &__meeting-item {
@@ -170,6 +177,8 @@
     border-radius: $border-radius-md;
     cursor: pointer;
     transition: all $transition-fast;
+    animation: dashboardItemSlide 0.45s ease-out both;
+    animation-delay: calc(0.05s * var(--meeting-index, 1));
 
     &:last-child {
       border-bottom: none;
@@ -205,6 +214,72 @@
 
     @include respond-to(md) {
       font-size: $font-size-lg;
+    }
+  }
+
+  @keyframes dashboardFadeIn {
+    from {
+      opacity: 0;
+      transform: translateY(18px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @keyframes dashboardAlert {
+    from {
+      opacity: 0;
+      transform: translateY(-12px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @keyframes dashboardSlideUp {
+    from {
+      opacity: 0;
+      transform: translateY(20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @keyframes dashboardButtonPop {
+    from {
+      opacity: 0;
+      transform: translateY(12px) scale(0.98);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+    }
+  }
+
+  @keyframes dashboardCardRise {
+    from {
+      opacity: 0;
+      transform: translateY(28px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @keyframes dashboardItemSlide {
+    from {
+      opacity: 0;
+      transform: translateX(-14px);
+    }
+    to {
+      opacity: 1;
+      transform: translateX(0);
     }
   }
 }

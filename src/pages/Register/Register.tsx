@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import Input from '../../components/Input/Input';
 import Button from '../../components/Button/Button';
@@ -17,7 +17,7 @@ export default function Register() {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  const [errors, setErrors] = useState<{ 
+  const [errors, setErrors] = useState<{
     firstName?: string;
     lastName?: string;
     email?: string;
@@ -28,46 +28,206 @@ export default function Register() {
   }>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const validateEmail = (email: string): boolean => {
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    return emailRegex.test(email);
+  type RegisterField =
+    | 'firstName'
+    | 'lastName'
+    | 'email'
+    | 'age'
+    | 'password'
+    | 'confirmPassword';
+
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+  const sanitizeNumericInput = (value: string) =>
+    value.replace(/[^0-9]/g, '').slice(0, 3);
+
+  const getPasswordChecks = (pwd: string) => ({
+    length: pwd.length >= 6,
+    lowercase: /[a-z]/.test(pwd),
+    uppercase: /[A-Z]/.test(pwd),
+    number: /\d/.test(pwd),
+    special: /[!@#$%^&*(),.?":{}|<>_-]/.test(pwd),
+  });
+
+  const passwordChecks = useMemo(() => getPasswordChecks(password), [password]);
+
+  const getFieldValue = (field: RegisterField): string => {
+    switch (field) {
+      case 'firstName':
+        return firstName;
+      case 'lastName':
+        return lastName;
+      case 'email':
+        return email;
+      case 'age':
+        return age;
+      case 'password':
+        return password;
+      case 'confirmPassword':
+        return confirmPassword;
+      default:
+        return '';
+    }
   };
+
+  const validateField = (
+    field: RegisterField,
+    value: string,
+    opts?: { passwordValue?: string }
+  ): string | undefined => {
+    const trimmed = value.trim();
+    switch (field) {
+      case 'firstName':
+        if (!trimmed) return 'El nombre es requerido';
+        if (trimmed.length < 2 || trimmed.length > 50) {
+          return 'El nombre debe tener entre 2 y 50 caracteres';
+        }
+        return undefined;
+      case 'lastName':
+        if (!trimmed) return 'El apellido es requerido';
+        if (trimmed.length < 2 || trimmed.length > 50) {
+          return 'El apellido debe tener entre 2 y 50 caracteres';
+        }
+        return undefined;
+      case 'email':
+        if (!trimmed) return 'El correo electrónico es requerido';
+        if (!emailRegex.test(trimmed)) {
+          return 'Ingrese un correo electrónico válido';
+        }
+        return undefined;
+      case 'age':
+        if (!trimmed) return 'La edad es requerida';
+        if (isNaN(Number(trimmed))) {
+          return 'La edad debe ser numérica';
+        }
+        if (Number(trimmed) < 1 || Number(trimmed) > 120) {
+          return 'La edad debe estar entre 1 y 120';
+        }
+        return undefined;
+      case 'password': {
+        if (!trimmed) return 'La contraseña es requerida';
+        const checks = getPasswordChecks(trimmed);
+        if (!Object.values(checks).every(Boolean)) {
+          return 'La contraseña debe cumplir con todos los requisitos.';
+        }
+        return undefined;
+      }
+      case 'confirmPassword':
+        if (!trimmed) return 'Confirme su contraseña';
+        if (trimmed !== (opts?.passwordValue ?? password)) {
+          return 'Las contraseñas no coinciden';
+        }
+        return undefined;
+      default:
+        return undefined;
+    }
+  };
+
+  const updateFieldError = (
+    field: RegisterField,
+    errorMessage?: string
+  ) => {
+    setErrors((prev) => {
+      const next = { ...prev };
+      if (errorMessage) {
+        next[field] = errorMessage;
+      } else {
+        delete next[field];
+      }
+      return next;
+    });
+  };
+
+  const handleFieldBlur = (field: RegisterField) => {
+    const value = getFieldValue(field);
+    updateFieldError(field, validateField(field, value));
+  };
+
+  const clearGeneralError = () => {
+    setErrors((prev) => {
+      if (!prev.general) return prev;
+      const next = { ...prev };
+      delete next.general;
+      return next;
+    });
+  };
+
+  const handleFirstNameChange = (value: string) => {
+    setFirstName(value);
+    clearGeneralError();
+    if (errors.firstName) {
+      updateFieldError('firstName', validateField('firstName', value));
+    }
+  };
+
+  const handleLastNameChange = (value: string) => {
+    setLastName(value);
+    clearGeneralError();
+    if (errors.lastName) {
+      updateFieldError('lastName', validateField('lastName', value));
+    }
+  };
+
+  const handleEmailChange = (value: string) => {
+    setEmail(value);
+    clearGeneralError();
+    if (errors.email) {
+      updateFieldError('email', validateField('email', value));
+    }
+  };
+
+  const handleAgeChange = (value: string) => {
+    const sanitized = sanitizeNumericInput(value);
+    setAge(sanitized);
+    clearGeneralError();
+    if (errors.age) {
+      updateFieldError('age', validateField('age', sanitized));
+    }
+  };
+
+  const handlePasswordChange = (value: string) => {
+    setPassword(value);
+    clearGeneralError();
+    if (errors.password) {
+      updateFieldError('password', validateField('password', value));
+    }
+    if (confirmPassword) {
+      updateFieldError(
+        'confirmPassword',
+        validateField('confirmPassword', confirmPassword, {
+          passwordValue: value,
+        })
+      );
+    }
+  };
+
+  const handleConfirmPasswordChange = (value: string) => {
+    setConfirmPassword(value);
+    clearGeneralError();
+    updateFieldError(
+      'confirmPassword',
+      validateField('confirmPassword', value)
+    );
+  };
+
+  const fieldsToValidate: RegisterField[] = [
+    'firstName',
+    'lastName',
+    'email',
+    'age',
+    'password',
+    'confirmPassword',
+  ];
 
   const validateForm = (): boolean => {
     const newErrors: typeof errors = {};
-
-    if (!firstName.trim()) {
-      newErrors.firstName = 'El nombre es requerido';
-    }
-
-    if (!lastName.trim()) {
-      newErrors.lastName = 'El apellido es requerido';
-    }
-
-    if (!email.trim()) {
-      newErrors.email = 'El correo electrónico es requerido';
-    } else if (!validateEmail(email)) {
-      newErrors.email = 'Ingrese un correo electrónico válido';
-    }
-
-    if (!age.trim()) {
-      newErrors.age = 'La edad es requerida';
-    } else if (isNaN(Number(age)) || Number(age) < 1 || Number(age) > 120) {
-      newErrors.age = 'La edad debe ser un número entre 1 y 120';
-    }
-
-    if (!password.trim()) {
-      newErrors.password = 'La contraseña es requerida';
-    } else if (password.length < 6) {
-      newErrors.password = 'La contraseña debe tener al menos 6 caracteres';
-    }
-
-    if (!confirmPassword.trim()) {
-      newErrors.confirmPassword = 'Confirme su contraseña';
-    } else if (password !== confirmPassword) {
-      newErrors.confirmPassword = 'Las contraseñas no coinciden';
-    }
-
+    fieldsToValidate.forEach((field) => {
+      const value = getFieldValue(field);
+      const errorMessage = validateField(field, value);
+      if (errorMessage) {
+        newErrors[field] = errorMessage;
+      }
+    });
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -80,7 +240,7 @@ export default function Register() {
     }
 
     setIsSubmitting(true);
-    setErrors({}); // Limpiar errores anteriores
+    setErrors({});
     
     try {
       const registerData: RegisterRequest = {
@@ -94,8 +254,6 @@ export default function Register() {
       const response = await register(registerData);
       
       if (response.success) {
-        console.log('Usuario registrado exitosamente:', response.data);
-        // Redirigir al login con mensaje de éxito
         navigate('/login', { 
           state: { 
             message: 'Registro exitoso. Ahora puedes iniciar sesión.' 
@@ -103,11 +261,8 @@ export default function Register() {
         });
       }
     } catch (error) {
-      console.error('Error en registro:', error);
-      
       const errorMessage = handleAuthError(error);
       
-      // Si el error es específico de email duplicado, mostrarlo en el campo email
       if (errorMessage.includes('ya está registrado')) {
         setErrors({ email: errorMessage });
       } else {
@@ -157,7 +312,9 @@ export default function Register() {
                 Únete a konned y comienza a conectarte
               </p>
 
-              <form className="register__form" onSubmit={handleSubmit}>
+              <form className="register__form" onSubmit={handleSubmit} autoComplete="off">
+                <input type="text" style={{ display: 'none' }} />
+                <input type="password" style={{ display: 'none' }} />
                 {errors.general && (
                   <div className="register__error-message" role="alert">
                     {errors.general}
@@ -167,58 +324,77 @@ export default function Register() {
                 <div className="register__form-row">
                   <Input
                     id="firstName"
+                    name="register-first-name"
                     type="text"
                     label="Nombres"
                     placeholder="e.g. John"
                     value={firstName}
-                    onChange={(e) => setFirstName(e.target.value)}
+                    onChange={(e) => handleFirstNameChange(e.target.value)}
+                    onBlur={() => handleFieldBlur('firstName')}
                     error={errors.firstName}
                     required
+                    autoComplete="off"
                   />
                   <Input
                     id="lastName"
+                    name="register-last-name"
                     type="text"
                     label="Apellidos"
                     placeholder="e.g. Green"
                     value={lastName}
-                    onChange={(e) => setLastName(e.target.value)}
+                    onChange={(e) => handleLastNameChange(e.target.value)}
+                    onBlur={() => handleFieldBlur('lastName')}
                     error={errors.lastName}
                     required
+                    autoComplete="off"
                   />
                 </div>
 
                 <Input
                   id="email"
+                  name="register-email"
                   type="email"
                   label="Correo electrónico"
                   placeholder="example@gmail.com"
                   value={email}
-                  onChange={(e) => setEmail(e.target.value)}
+                  onChange={(e) => handleEmailChange(e.target.value)}
+                  onBlur={() => handleFieldBlur('email')}
                   error={errors.email}
                   required
+                  autoComplete="off"
                 />
 
                 <Input
                   id="age"
+                  name="register-age"
                   type="text"
                   label="Edad"
                   placeholder="28"
                   value={age}
-                  onChange={(e) => setAge(e.target.value)}
+                  onChange={(e) => handleAgeChange(e.target.value)}
+                  onBlur={() => handleFieldBlur('age')}
                   error={errors.age}
                   required
+                  autoComplete="off"
+                  inputMode="numeric"
+                  pattern="[0-9]*"
                 />
 
                 <div className="register__password-wrapper">
                   <Input
                     id="password"
+                    name="register-password"
                     type={showPassword ? 'text' : 'password'}
                     label="Contraseña"
                     placeholder="••••••••"
                     value={password}
-                    onChange={(e) => setPassword(e.target.value)}
+                    onChange={(e) => handlePasswordChange(e.target.value)}
+                    onBlur={() => handleFieldBlur('password')}
                     error={errors.password}
                     required
+                    autoComplete="new-password"
+                    spellCheck={false}
+                    autoCorrect="off"
                     icon={
                       <button
                         type="button"
@@ -231,17 +407,57 @@ export default function Register() {
                     }
                   />
                 </div>
+                <div className="register__password-requirements" aria-live="polite">
+                  <p className="register__password-requirements-title">La contraseña debe incluir:</p>
+                  <ul className="register__password-requirements-list">
+                    <li className={`register__password-requirement ${passwordChecks.length ? 'register__password-requirement--met' : ''}`}>
+                      <span className="register__password-requirement-icon">
+                        {passwordChecks.length ? '✔' : '•'}
+                      </span>
+                      Al menos 6 caracteres
+                    </li>
+                    <li className={`register__password-requirement ${passwordChecks.lowercase ? 'register__password-requirement--met' : ''}`}>
+                      <span className="register__password-requirement-icon">
+                        {passwordChecks.lowercase ? '✔' : '•'}
+                      </span>
+                      Una letra minúscula
+                    </li>
+                    <li className={`register__password-requirement ${passwordChecks.uppercase ? 'register__password-requirement--met' : ''}`}>
+                      <span className="register__password-requirement-icon">
+                        {passwordChecks.uppercase ? '✔' : '•'}
+                      </span>
+                      Una letra mayúscula
+                    </li>
+                    <li className={`register__password-requirement ${passwordChecks.number ? 'register__password-requirement--met' : ''}`}>
+                      <span className="register__password-requirement-icon">
+                        {passwordChecks.number ? '✔' : '•'}
+                      </span>
+                      Un número
+                    </li>
+                    <li className={`register__password-requirement ${passwordChecks.special ? 'register__password-requirement--met' : ''}`}>
+                      <span className="register__password-requirement-icon">
+                        {passwordChecks.special ? '✔' : '•'}
+                      </span>
+                      Un carácter especial
+                    </li>
+                  </ul>
+                </div>
 
                 <div className="register__password-wrapper">
                   <Input
                     id="confirmPassword"
+                    name="register-confirm-password"
                     type={showConfirmPassword ? 'text' : 'password'}
                     label="Confirmar contraseña"
                     placeholder="••••••••"
                     value={confirmPassword}
-                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    onChange={(e) => handleConfirmPasswordChange(e.target.value)}
+                    onBlur={() => handleFieldBlur('confirmPassword')}
                     error={errors.confirmPassword}
                     required
+                    autoComplete="new-password"
+                    spellCheck={false}
+                    autoCorrect="off"
                     icon={
                       <button
                         type="button"

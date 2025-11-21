@@ -1,4 +1,23 @@
 import type { ApiResponse } from '../types';
+import { getSessionToken } from './cookies';
+
+type ApiErrorWithStatus = Error & {
+  status?: number;
+  isUnauthorized?: boolean;
+};
+
+function toApiError(error: Error, status?: number, extra?: Partial<ApiErrorWithStatus>): ApiErrorWithStatus {
+  const enriched = error as ApiErrorWithStatus;
+  enriched.status = status;
+  if (extra?.isUnauthorized !== undefined) {
+    enriched.isUnauthorized = extra.isUnauthorized;
+  }
+  return enriched;
+}
+
+function isJsonRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null;
+}
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
 
@@ -9,43 +28,82 @@ export async function apiRequest<T>(
   const fullUrl = `${API_URL}${endpoint}`;
   
   try {
-    const response = await fetch(fullUrl, {
-      credentials: 'include', // Importante para cookies de sesión
-      headers: {
-        'Content-Type': 'application/json',
-        ...options.headers,
-      },
-      ...options,
+    const token = getSessionToken();
+    const headers = new Headers({
+      'Content-Type': 'application/json',
     });
 
-    const data = await response.json();
+    if (options.headers) {
+      new Headers(options.headers as HeadersInit).forEach((value, key) => {
+        headers.set(key, value);
+      });
+    }
+
+    if (token && !headers.has('Authorization')) {
+      headers.set('Authorization', `Bearer ${token}`);
+    }
+
+    const fetchOptions: RequestInit = {
+      ...options,
+      credentials: 'include', // Importante para cookies de sesión
+      headers,
+    };
+
+    const response = await fetch(fullUrl, fetchOptions);
+
+    let data: unknown = null;
+    try {
+      data = await response.json();
+    } catch {
+      data = null;
+    }
 
     if (!response.ok) {
-      // Mensajes de error más amigables según el código de estado
-      let friendlyMessage = data.message || data.error;
-      
-      if (response.status === 404) {
-        friendlyMessage = 'El correo electrónico no está registrado';
-      } else if (response.status === 401) {
-        friendlyMessage = 'Credenciales incorrectas';
-      } else if (response.status === 409) {
-        friendlyMessage = 'El correo electrónico ya está en uso';
-      } else if (response.status === 400) {
-        friendlyMessage = data.message || 'Datos inválidos';
-      } else if (response.status >= 500) {
-        friendlyMessage = 'Error del servidor. Inténtalo más tarde';
+      // Mensajes de error priorizando la respuesta del backend
+      let friendlyMessage: string | undefined;
+      if (isJsonRecord(data)) {
+        if (typeof data.message === 'string') {
+          friendlyMessage = data.message;
+        } else if (typeof data.error === 'string') {
+          friendlyMessage = data.error;
+        }
+      }
+
+      if (!friendlyMessage) {
+        if (response.status === 404) {
+          friendlyMessage = 'Recurso no encontrado';
+        } else if (response.status === 401) {
+          friendlyMessage = 'No autenticado';
+        } else if (response.status === 409) {
+          friendlyMessage = 'Conflicto en la solicitud';
+        } else if (response.status === 400) {
+          friendlyMessage = 'Solicitud inválida';
+        } else if (response.status >= 500) {
+          friendlyMessage = 'Error del servidor. Inténtalo más tarde';
+        }
       }
       
       return {
         success: false,
         error: friendlyMessage || 'Ha ocurrido un error',
-        message: friendlyMessage || 'Ha ocurrido un error',
+        message: friendlyMessage,
+        status: response.status,
+        raw: data,
       };
     }
 
+    const payload =
+      isJsonRecord(data) && 'data' in data ? (data as Record<string, unknown>).data : data;
+
+    const message =
+      isJsonRecord(data) && typeof data.message === 'string' ? data.message : undefined;
+
     return {
       success: true,
-      data,
+      data: payload as T,
+      message,
+      status: response.status,
+      raw: data,
     };
   } catch (error) {
     return {
@@ -95,7 +153,10 @@ export async function register(userData: import('../types').RegisterRequest): Pr
     };
   }
   
-  throw new Error(response.error || response.message || 'Error en el registro');
+  throw toApiError(
+    new Error(response.error || response.message || 'Error en el registro'),
+    response.status
+  );
 }
 
 export async function login(credentials: import('../types').LoginRequest): Promise<import('../types').AuthResponse> {
@@ -109,7 +170,10 @@ export async function login(credentials: import('../types').LoginRequest): Promi
     };
   }
   
-  throw new Error(response.error || response.message || 'Error en el login');
+  throw toApiError(
+    new Error(response.error || response.message || 'Error en el login'),
+    response.status
+  );
 }
 
 export async function logout(): Promise<{ success: boolean; message: string }> {
@@ -122,7 +186,10 @@ export async function logout(): Promise<{ success: boolean; message: string }> {
     };
   }
   
-  throw new Error(response.error || response.message || 'Error al cerrar sesión');
+  throw toApiError(
+    new Error(response.error || response.message || 'Error al cerrar sesión'),
+    response.status
+  );
 }
 
 export async function resetPassword(email: string): Promise<{ success: boolean; message: string; resetLink?: string }> {
@@ -136,28 +203,37 @@ export async function resetPassword(email: string): Promise<{ success: boolean; 
     };
   }
   
-  throw new Error(response.error || response.message || 'Error al generar enlace de recuperación');
+  throw toApiError(
+    new Error(response.error || response.message || 'Error al generar enlace de recuperación'),
+    response.status
+  );
 }
 
 // Funciones de gestión de usuarios
 export async function getCurrentUser(): Promise<import('../types').User> {
-  const response = await get<{ success: boolean; data: import('../types').User }>('/api/users/profile');
+  const response = await get<import('../types').User>('/api/users/profile');
   
-  if (response.success && response.data && response.data.data) {
-    return response.data.data;
+  if (response.success && response.data) {
+    return response.data;
   }
   
-  throw new Error(response.error || response.message || 'Error al obtener perfil');
+  throw toApiError(
+    new Error(response.error || response.message || 'Error al obtener perfil'),
+    response.status
+  );
 }
 
 export async function updateProfile(updates: Partial<Omit<import('../types').User, 'uid' | 'createdAt' | 'updatedAt'>>): Promise<import('../types').User> {
-  const response = await put<{ success: boolean; data: import('../types').User }>('/api/users/profile', updates);
+  const response = await put<import('../types').User>('/api/users/profile', updates);
   
-  if (response.success && response.data && response.data.data) {
-    return response.data.data;
+  if (response.success && response.data) {
+    return response.data;
   }
   
-  throw new Error(response.error || response.message || 'Error al actualizar perfil');
+  throw toApiError(
+    new Error(response.error || response.message || 'Error al actualizar perfil'),
+    response.status
+  );
 }
 
 export async function updatePassword(passwordData: import('../types').UpdatePasswordRequest): Promise<{ success: boolean; message: string }> {
@@ -170,7 +246,10 @@ export async function updatePassword(passwordData: import('../types').UpdatePass
     };
   }
   
-  throw new Error(response.error || response.message || 'Error al actualizar contraseña');
+  throw toApiError(
+    new Error(response.error || response.message || 'Error al actualizar contraseña'),
+    response.status
+  );
 }
 
 export async function deleteAccount(): Promise<{ success: boolean; message: string }> {
@@ -183,6 +262,9 @@ export async function deleteAccount(): Promise<{ success: boolean; message: stri
     };
   }
   
-  throw new Error(response.error || response.message || 'Error al eliminar cuenta');
+  throw toApiError(
+    new Error(response.error || response.message || 'Error al eliminar cuenta'),
+    response.status
+  );
 }
 

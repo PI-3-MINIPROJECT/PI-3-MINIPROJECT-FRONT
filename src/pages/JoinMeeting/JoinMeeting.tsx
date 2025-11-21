@@ -30,12 +30,10 @@ export default function JoinMeeting() {
 
     setIsJoining(true);
     try {
-      console.log('Unirse a reunión:', { meetingId });
       await new Promise(resolve => setTimeout(resolve, 1000));
-      // Aquí iría la lógica para unirse a la reunión
       navigate('/meetings/room');
-    } catch (error) {
-      console.error('Error al unirse a la reunión:', error);
+    } catch {
+      setErrors({ meetingId: 'No se pudo unir a la reunión. Intenta más tarde.' });
     } finally {
       setIsJoining(false);
     }

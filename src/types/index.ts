@@ -6,6 +6,8 @@ export interface User {
   age: number;
   createdAt?: string;
   updatedAt?: string;
+  token?: string;
+  accessToken?: string;
 }
 
 export interface Meeting {
@@ -22,6 +24,8 @@ export interface ApiResponse<T> {
   data?: T;
   error?: string;
   message?: string;
+  status?: number;
+  raw?: unknown;
 }
 
 export interface RegisterRequest {

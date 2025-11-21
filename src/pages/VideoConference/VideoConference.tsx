@@ -9,7 +9,6 @@ export default function VideoConference() {
   const [message, setMessage] = useState('');
   const [showChat, setShowChat] = useState(true);
 
-  // Participantes de ejemplo
   const participants = [
     { id: 1, name: 'John Green', initials: 'JG', isCameraOn: false },
     { id: 2, name: 'María López', initials: 'ML', isCameraOn: false },
@@ -24,7 +23,6 @@ export default function VideoConference() {
   const handleSendMessage = (e: React.FormEvent) => {
     e.preventDefault();
     if (message.trim()) {
-      console.log('Enviar mensaje:', message);
       setMessage('');
     }
   };

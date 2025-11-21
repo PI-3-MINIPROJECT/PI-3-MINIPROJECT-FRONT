@@ -16,6 +16,7 @@
     min-height: calc(100vh - 80px);
     display: flex;
     align-items: center;
+    animation: homeHeroReveal 0.6s ease-out both;
 
     @include respond-to(md) {
       padding: calc($spacing-sm * 1.5) calc($spacing-md * 1.1) calc($spacing-3xl * 1.1);
@@ -34,6 +35,7 @@
     gap: calc($spacing-xl * 1.2);
     align-items: center;
     width: 100%;
+    animation: homeContentStagger 0.55s ease-out 0.1s both;
 
     @include respond-to(lg) {
       grid-template-columns: 1fr 1fr;
@@ -47,6 +49,7 @@
     gap: calc($spacing-lg * 1.2);
     position: relative;
     z-index: 2;
+    animation: homeSlideUp 0.55s ease-out 0.05s both;
 
     @include respond-to(md) {
       gap: calc($spacing-xl * 1.1);
@@ -111,6 +114,7 @@
     align-items: center;
     position: relative;
     z-index: 1;
+    animation: homeScaleIn 0.65s ease-out 0.1s both;
   }
 
   &__illustration {
@@ -142,6 +146,7 @@
     padding: calc($spacing-3xl * 1.1) calc($spacing-md * 1.1);
     background-color: white;
     text-align: center;
+    animation: homeFadeUp 0.55s ease-out both;
   }
 
   &__message-title {
@@ -157,6 +162,7 @@
   &__feature {
     padding: calc($spacing-3xl * 2) calc($spacing-md * 1.1);
     background-color: white;
+    animation: homeFeatureWave 0.65s ease-out both;
 
     @include respond-to(md) {
       padding: calc($spacing-3xl * 2.5) calc($spacing-md * 1.1);
@@ -197,12 +203,14 @@
       grid-template-columns: 1fr 1fr;
       gap: calc($spacing-3xl * 2);
     }
+    animation: homeSlideUp 0.55s ease-out both;
   }
 
   &__feature-text {
     display: flex;
     flex-direction: column;
     gap: calc($spacing-lg * 1.2);
+    animation: homeSlideUp 0.55s ease-out 0.05s both;
   }
 
   &__feature-title {
@@ -242,6 +250,7 @@
     display: flex;
     justify-content: center;
     align-items: center;
+    animation: homeScaleIn 0.65s ease-out 0.05s both;
   }
 
   &__feature-placeholder {
@@ -264,11 +273,13 @@
     @include respond-to(lg) {
       height: 450px;
     }
+    animation: homeGlow 1.2s ease-out both;
   }
 
   &__faq {
     padding: calc($spacing-3xl * 2.5) calc($spacing-md * 1.1);
     background-color: white;
+    animation: homeFadeUp 0.55s ease-out both;
   }
 
   &__faq-title {
@@ -300,6 +311,8 @@
     background-color: $background-color;
     border-radius: $border-radius-lg;
     border-left: 4px solid $primary-color;
+    animation: homeFaqPop 0.45s ease-out both;
+    animation-delay: calc(0.05s * var(--faq-index, 1));
   }
 
   &__faq-question {
@@ -320,6 +333,7 @@
     padding: calc($spacing-3xl * 2.5) calc($spacing-md * 1.1);
     background-color: $background-color;
     text-align: center;
+    animation: homeFadeUp 0.55s ease-out 0.05s both;
   }
 
   &__cta-content {
@@ -329,6 +343,7 @@
     flex-direction: column;
     gap: calc($spacing-lg * 1.2);
     align-items: center;
+    animation: homeSlideUp 0.55s ease-out 0.05s both;
   }
 
   &__cta-title {
@@ -364,5 +379,108 @@
     flex-wrap: wrap;
     justify-content: center;
     margin-top: calc($spacing-md * 0.5);
+    animation: homeButtonBounce 0.6s ease-out 0.1s both;
+  }
+
+  @keyframes homeHeroReveal {
+    from {
+      opacity: 0;
+      transform: translateY(25px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @keyframes homeContentStagger {
+    from {
+      opacity: 0;
+      transform: translateY(30px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @keyframes homeSlideUp {
+    from {
+      opacity: 0;
+      transform: translateY(18px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @keyframes homeScaleIn {
+    from {
+      opacity: 0;
+      transform: scale(0.95);
+    }
+    to {
+      opacity: 1;
+      transform: scale(1);
+    }
+  }
+
+  @keyframes homeFadeUp {
+    from {
+      opacity: 0;
+      transform: translateY(22px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @keyframes homeFeatureWave {
+    from {
+      opacity: 0;
+      transform: translateY(35px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @keyframes homeGlow {
+    from {
+      opacity: 0;
+      box-shadow: none;
+    }
+    to {
+      opacity: 1;
+      box-shadow: 0 25px 60px rgba($primary-color, 0.15);
+    }
+  }
+
+  @keyframes homeFaqPop {
+    from {
+      opacity: 0;
+      transform: translateY(15px) scale(0.98);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+    }
+  }
+
+  @keyframes homeButtonBounce {
+    0% {
+      opacity: 0;
+      transform: translateY(20px);
+    }
+    70% {
+      opacity: 1;
+      transform: translateY(-4px);
+    }
+    100% {
+      transform: translateY(0);
+    }
   }
 }

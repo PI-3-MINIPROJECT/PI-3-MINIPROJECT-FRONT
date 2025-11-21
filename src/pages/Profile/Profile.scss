@@ -15,11 +15,13 @@
     @include container;
     max-width: 800px;
     margin: 0 auto;
+    animation: profileFade 0.55s ease-out both;
   }
 
   &__header {
     text-align: center;
     margin-bottom: $spacing-2xl;
+    animation: profileFade 0.6s ease-out 0.05s both;
 
     @include respond-to(md) {
       margin-bottom: $spacing-3xl;
@@ -63,6 +65,7 @@
     border-radius: $border-radius-lg;
     padding: $spacing-2xl;
     box-shadow: $shadow-md;
+    animation: profileCard 0.6s ease-out 0.08s both;
 
     @include respond-to(md) {
       padding: $spacing-3xl;
@@ -76,6 +79,7 @@
     margin-bottom: $spacing-2xl;
     padding-bottom: $spacing-2xl;
     border-bottom: 1px solid $border-color;
+    animation: profileSlideUp 0.5s ease-out both;
 
     @include respond-to(md) {
       gap: $spacing-xl;
@@ -140,6 +144,7 @@
     flex-direction: column;
     gap: $spacing-lg;
     margin-bottom: $spacing-2xl;
+    animation: profileSlideUp 0.55s ease-out 0.05s both;
 
     @include respond-to(md) {
       gap: $spacing-xl;
@@ -182,6 +187,7 @@
     display: flex;
     flex-direction: column;
     gap: $spacing-md;
+    animation: profileFade 0.55s ease-out 0.1s both;
 
     @include respond-to(md) {
       flex-direction: row;
@@ -191,6 +197,7 @@
 
   &__edit-button {
     flex: 1;
+    animation: profileButton 0.55s ease-out 0.12s both;
   }
 
   &__delete-button {
@@ -210,6 +217,7 @@
     background-color: $error-color;
     color: white;
     min-height: 48px;
+    animation: profileButton 0.55s ease-out 0.15s both;
 
     @include respond-to(md) {
       min-height: 54px;
@@ -235,6 +243,7 @@
     background-color: rgba(0, 0, 0, 0.5);
     z-index: $z-index-modal-backdrop;
     backdrop-filter: blur(4px);
+    animation: profileBackdrop 0.3s ease-out both;
   }
 
   &__modal {
@@ -252,6 +261,7 @@
     max-height: 80vh;
     overflow-y: auto;
     margin-top: 0;
+    animation: profileModal 0.4s ease-out both;
 
     @include respond-to(md) {
       padding: $spacing-3xl;
@@ -297,6 +307,7 @@
     color: #721c24;
     text-align: center;
     margin-bottom: $spacing-lg;
+    animation: profileAlert 0.4s ease-out both;
 
     @include respond-to(md) {
       font-size: $font-size-base;
@@ -411,6 +422,84 @@
 
     &:focus-visible {
       @include focus-visible;
+    }
+  }
+
+  @keyframes profileFade {
+    from {
+      opacity: 0;
+      transform: translateY(18px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @keyframes profileCard {
+    from {
+      opacity: 0;
+      transform: translateY(24px) scale(0.98);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+    }
+  }
+
+  @keyframes profileSlideUp {
+    from {
+      opacity: 0;
+      transform: translateY(16px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @keyframes profileButton {
+    0% {
+      opacity: 0;
+      transform: translateY(18px);
+    }
+    70% {
+      opacity: 1;
+      transform: translateY(-3px);
+    }
+    100% {
+      transform: translateY(0);
+    }
+  }
+
+  @keyframes profileBackdrop {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+
+  @keyframes profileModal {
+    from {
+      opacity: 0;
+      transform: translate(-50%, -45%);
+    }
+    to {
+      opacity: 1;
+      transform: translate(-50%, -50%);
+    }
+  }
+
+  @keyframes profileAlert {
+    from {
+      opacity: 0;
+      transform: translateY(-10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
     }
   }
 }
