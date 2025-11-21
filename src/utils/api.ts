@@ -21,10 +21,25 @@ export async function apiRequest<T>(
     const data = await response.json();
 
     if (!response.ok) {
+      // Mensajes de error más amigables según el código de estado
+      let friendlyMessage = data.message || data.error;
+      
+      if (response.status === 404) {
+        friendlyMessage = 'El correo electrónico no está registrado';
+      } else if (response.status === 401) {
+        friendlyMessage = 'Credenciales incorrectas';
+      } else if (response.status === 409) {
+        friendlyMessage = 'El correo electrónico ya está en uso';
+      } else if (response.status === 400) {
+        friendlyMessage = data.message || 'Datos inválidos';
+      } else if (response.status >= 500) {
+        friendlyMessage = 'Error del servidor. Inténtalo más tarde';
+      }
+      
       return {
         success: false,
-        error: data.error || 'An error occurred',
-        message: data.message,
+        error: friendlyMessage || 'Ha ocurrido un error',
+        message: friendlyMessage || 'Ha ocurrido un error',
       };
     }
 
@@ -143,6 +158,19 @@ export async function updateProfile(updates: Partial<Omit<import('../types').Use
   }
   
   throw new Error(response.error || response.message || 'Error al actualizar perfil');
+}
+
+export async function updatePassword(passwordData: import('../types').UpdatePasswordRequest): Promise<{ success: boolean; message: string }> {
+  const response = await put<{ success: boolean; message: string }>('/api/auth/update-password', passwordData);
+  
+  if (response.success) {
+    return {
+      success: true,
+      message: response.message || 'Contraseña actualizada exitosamente'
+    };
+  }
+  
+  throw new Error(response.error || response.message || 'Error al actualizar contraseña');
 }
 
 export async function deleteAccount(): Promise<{ success: boolean; message: string }> {

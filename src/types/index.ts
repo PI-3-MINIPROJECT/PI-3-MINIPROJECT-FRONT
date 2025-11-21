@@ -43,3 +43,9 @@ export interface AuthResponse {
   data: User;
 }
 
+export interface UpdatePasswordRequest {
+  currentPassword: string;
+  newPassword: string;
+  confirmPassword: string;
+}
+

@@ -1,21 +1,26 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { useAuth } from '../../contexts/AuthContext';
+import { updateProfile, updatePassword } from '../../utils/api';
 import Input from '../../components/Input/Input';
 import Button from '../../components/Button/Button';
 import './EditProfile.scss';
 
 export default function EditProfile() {
   const navigate = useNavigate();
-  const [firstName, setFirstName] = useState('John');
-  const [lastName, setLastName] = useState('Green');
-  const [age, setAge] = useState('28');
-  const [email, setEmail] = useState('example@gmail.com');
+  const { user, isLoading, refreshUser } = useAuth();
+  const [firstName, setFirstName] = useState('');
+  const [lastName, setLastName] = useState('');
+  const [age, setAge] = useState('');
+  const [email, setEmail] = useState('');
   const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [showCurrentPassword, setShowCurrentPassword] = useState(false);
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [success, setSuccess] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [errors, setErrors] = useState<{ 
     firstName?: string;
     lastName?: string;
@@ -24,24 +29,61 @@ export default function EditProfile() {
     currentPassword?: string;
     newPassword?: string;
     confirmPassword?: string;
+    general?: string;
   }>({});
-  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Cargar datos del usuario al montar el componente
+  useEffect(() => {
+    if (!isLoading && !user) {
+      navigate('/login');
+      return;
+    }
+
+    if (user) {
+      setFirstName(user.name || '');
+      setLastName(user.last_name || '');
+      setAge(user.age?.toString() || '');
+      setEmail(user.email || '');
+    }
+  }, [user, isLoading, navigate]);
+
+  // Forzar recarga de datos del usuario al montar el componente
+  useEffect(() => {
+    const loadUserData = async () => {
+      if (refreshUser) {
+        try {
+          await refreshUser();
+        } catch (error) {
+          console.error('Error al refrescar datos del usuario:', error);
+        }
+      }
+    };
+    
+    loadUserData();
+  }, [refreshUser]); // Ejecutar cuando refreshUser esté disponible
 
   const validateForm = (): boolean => {
     const newErrors: typeof errors = {};
 
     if (!firstName.trim()) {
       newErrors.firstName = 'El nombre es requerido';
+    } else if (firstName.length < 2 || firstName.length > 50) {
+      newErrors.firstName = 'El nombre debe tener entre 2 y 50 caracteres';
     }
 
     if (!lastName.trim()) {
       newErrors.lastName = 'El apellido es requerido';
+    } else if (lastName.length < 2 || lastName.length > 50) {
+      newErrors.lastName = 'El apellido debe tener entre 2 y 50 caracteres';
     }
 
     if (!age.trim()) {
       newErrors.age = 'La edad es requerida';
-    } else if (isNaN(Number(age)) || Number(age) < 0) {
-      newErrors.age = 'La edad debe ser un número válido';
+    } else {
+      const ageNum = Number(age);
+      if (isNaN(ageNum) || ageNum < 1 || ageNum > 120) {
+        newErrors.age = 'La edad debe ser un número entre 1 y 120';
+      }
     }
 
     if (!email.trim()) {
@@ -50,12 +92,25 @@ export default function EditProfile() {
       newErrors.email = 'Ingrese un correo electrónico válido';
     }
 
-    if (newPassword && newPassword.length < 6) {
-      newErrors.newPassword = 'La nueva contraseña debe tener al menos 6 caracteres';
-    }
-
-    if (newPassword && newPassword !== confirmPassword) {
-      newErrors.confirmPassword = 'Las contraseñas no coinciden';
+    // Validaciones de contraseña (solo si se está intentando cambiar)
+    const isChangingPassword = currentPassword.trim() || newPassword.trim() || confirmPassword.trim();
+    
+    if (isChangingPassword) {
+      if (!currentPassword.trim()) {
+        newErrors.currentPassword = 'La contraseña actual es requerida';
+      }
+      
+      if (!newPassword.trim()) {
+        newErrors.newPassword = 'La nueva contraseña es requerida';
+      } else if (newPassword.length < 6) {
+        newErrors.newPassword = 'La nueva contraseña debe tener al menos 6 caracteres';
+      }
+      
+      if (!confirmPassword.trim()) {
+        newErrors.confirmPassword = 'Confirma tu nueva contraseña';
+      } else if (newPassword !== confirmPassword) {
+        newErrors.confirmPassword = 'Las contraseñas no coinciden';
+      }
     }
 
     setErrors(newErrors);
@@ -70,12 +125,89 @@ export default function EditProfile() {
     }
 
     setIsSubmitting(true);
+    setErrors({});
+    setSuccess('');
+
     try {
-      console.log('Actualizar perfil:', { firstName, lastName, age, email, currentPassword, newPassword });
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      navigate('/account');
+      // Actualizar datos del perfil
+      const ageNumber = parseInt(age.trim(), 10);
+      if (isNaN(ageNumber)) {
+        throw new Error('La edad debe ser un número válido');
+      }
+      
+      const profileUpdates = {
+        name: firstName.trim(),
+        last_name: lastName.trim(),
+        age: ageNumber,
+        email: email.trim()
+      };
+
+      // Detectar si se está cambiando contraseña
+      const isChangingPassword = currentPassword.trim() || newPassword.trim() || confirmPassword.trim();
+
+      await updateProfile(profileUpdates);
+      
+      // Si se está cambiando la contraseña, hacer la actualización por separado
+      if (isChangingPassword) {
+        const passwordData = {
+          currentPassword: currentPassword.trim(),
+          newPassword: newPassword.trim(),
+          confirmPassword: confirmPassword.trim()
+        };
+        
+        await updatePassword(passwordData);
+      }
+
+      // Refrescar los datos del usuario (el backend debería mantener la sesión activa)
+      try {
+        await refreshUser();
+      } catch (error) {
+        console.warn('Error al refrescar usuario después de actualización:', error);
+        // Si hay error, solo loguearlo pero no fallar el proceso
+      }
+      
+      const successMessage = isChangingPassword 
+        ? 'Perfil y contraseña actualizados exitosamente'
+        : 'Perfil actualizado exitosamente';
+      
+      setSuccess(successMessage);
+      
+      // Limpiar campos de contraseña después de actualización exitosa
+      if (isChangingPassword) {
+        setCurrentPassword('');
+        setNewPassword('');
+        setConfirmPassword('');
+      }
+      
+      // Redirigir después de un breve delay para mostrar el mensaje de éxito
+      setTimeout(() => {
+        navigate('/account', { 
+          state: { 
+            message: successMessage
+          } 
+        });
+      }, 1500);
     } catch (error) {
-      console.error('Error al actualizar perfil:', error);
+      console.error('Error al actualizar:', error);
+      
+      let errorMessage = 'Error al actualizar el perfil';
+      if (error instanceof Error) {
+        errorMessage = error.message;
+        
+        // Si es un error de autenticación, dar una sugerencia más útil
+        if (errorMessage.includes('Credenciales incorrectas') || 
+            errorMessage.includes('No autenticado') || 
+            errorMessage.includes('401')) {
+          errorMessage = 'Tu sesión ha expirado. Por favor, inicia sesión nuevamente.';
+          
+          // Opcional: redirigir automáticamente al login después de unos segundos
+          setTimeout(() => {
+            navigate('/login');
+          }, 3000);
+        }
+      }
+      
+      setErrors({ general: errorMessage });
     } finally {
       setIsSubmitting(false);
     }
@@ -94,6 +226,19 @@ export default function EditProfile() {
     )
   );
 
+  // Mostrar loading mientras se cargan los datos
+  if (isLoading || !user) {
+    return (
+      <main className="edit-profile" role="main">
+        <div className="edit-profile__container">
+          <div className="edit-profile__loading">
+            <p>Cargando datos del perfil...</p>
+          </div>
+        </div>
+      </main>
+    );
+  }
+
   return (
     <main className="edit-profile" role="main">
       <div className="edit-profile__container">
@@ -106,16 +251,33 @@ export default function EditProfile() {
           </p>
         </div>
 
+        {success && (
+          <div className="edit-profile__success" role="alert">
+            {success}
+          </div>
+        )}
+
+        {errors.general && (
+          <div className="edit-profile__error" role="alert">
+            {errors.general}
+          </div>
+        )}
+
         <form className="edit-profile__form" onSubmit={handleSubmit}>
+          {/* Campos ocultos para engañar al autocompletado del navegador */}
+          <input type="text" style={{display: 'none'}} />
+          <input type="password" style={{display: 'none'}} />
+          
           <div className="edit-profile__form-group">
             <Input
               id="firstName"
               type="text"
               label="Nombres"
-              placeholder="e.g. John"
+              placeholder="Ingresa tu nombre"
               value={firstName}
               onChange={(e) => setFirstName(e.target.value)}
               error={errors.firstName}
+              disabled={isSubmitting}
               required
             />
           </div>
@@ -125,10 +287,11 @@ export default function EditProfile() {
               id="lastName"
               type="text"
               label="Apellidos"
-              placeholder="e.g. Green"
+              placeholder="Ingresa tus apellidos"
               value={lastName}
               onChange={(e) => setLastName(e.target.value)}
               error={errors.lastName}
+              disabled={isSubmitting}
               required
             />
           </div>
@@ -136,12 +299,15 @@ export default function EditProfile() {
           <div className="edit-profile__form-group">
             <Input
               id="age"
-              type="text"
+              type="number"
               label="Edad"
-              placeholder="28"
+              placeholder="Ingresa tu edad"
               value={age}
               onChange={(e) => setAge(e.target.value)}
               error={errors.age}
+              disabled={isSubmitting}
+              min="1"
+              max="120"
               required
             />
           </div>
@@ -151,23 +317,27 @@ export default function EditProfile() {
               id="email"
               type="email"
               label="Correo electrónico"
-              placeholder="example@gmail.com"
+              placeholder="Ingresa tu correo electrónico"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               error={errors.email}
+              disabled={isSubmitting}
               required
             />
           </div>
 
           <div className="edit-profile__form-group">
             <Input
-              id="currentPassword"
+              id="current-pwd-edit"
+              name="current-pwd-edit"
               type={showCurrentPassword ? 'text' : 'password'}
               label="Contraseña actual"
               placeholder="••••••••"
               value={currentPassword}
               onChange={(e) => setCurrentPassword(e.target.value)}
               error={errors.currentPassword}
+              disabled={isSubmitting}
+              autoComplete="nope"
               icon={
                 <button
                   type="button"
@@ -183,13 +353,16 @@ export default function EditProfile() {
 
           <div className="edit-profile__form-group">
             <Input
-              id="newPassword"
+              id="new-pwd-edit"
+              name="new-pwd-edit"
               type={showNewPassword ? 'text' : 'password'}
               label="Nueva contraseña"
               placeholder="••••••••"
               value={newPassword}
               onChange={(e) => setNewPassword(e.target.value)}
               error={errors.newPassword}
+              disabled={isSubmitting}
+              autoComplete="nope"
               icon={
                 <button
                   type="button"
@@ -205,13 +378,16 @@ export default function EditProfile() {
 
           <div className="edit-profile__form-group">
             <Input
-              id="confirmPassword"
+              id="confirm-pwd-edit"
+              name="confirm-pwd-edit"
               type={showConfirmPassword ? 'text' : 'password'}
               label="Confirmar nueva contraseña"
               placeholder="••••••••"
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
               error={errors.confirmPassword}
+              disabled={isSubmitting}
+              autoComplete="nope"
               icon={
                 <button
                   type="button"
@@ -229,12 +405,20 @@ export default function EditProfile() {
             <Button
               type="submit"
               variant="primary"
-              disabled={isSubmitting}
+              disabled={isSubmitting || isLoading}
               className="edit-profile__save-button"
             >
-              {isSubmitting ? 'Guardando...' : 'Guardar cambios'}
+              {isSubmitting ? '⟳ Guardando...' : 'Guardar cambios'}
             </Button>
-            <Link to="/account" className="edit-profile__cancel-button">
+            <Link 
+              to="/account" 
+              className={`edit-profile__cancel-button ${isSubmitting ? 'edit-profile__cancel-button--disabled' : ''}`}
+              onClick={(e) => {
+                if (isSubmitting) {
+                  e.preventDefault();
+                }
+              }}
+            >
               Cancelar
             </Link>
           </div>
