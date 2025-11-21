@@ -2,16 +2,11 @@ import type { ApiResponse } from '../types';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
 
-// Debug: verificar que la URL esté correcta
-console.log('🔧 API_URL configurada:', API_URL);
-
 export async function apiRequest<T>(
   endpoint: string,
   options: RequestInit = {}
 ): Promise<ApiResponse<T>> {
   const fullUrl = `${API_URL}${endpoint}`;
-  console.log('🌐 Haciendo request a:', fullUrl);
-  console.log('📦 Opciones del request:', options);
   
   try {
     const response = await fetch(fullUrl, {
@@ -22,8 +17,6 @@ export async function apiRequest<T>(
       },
       ...options,
     });
-    
-    console.log('📡 Respuesta recibida:', response.status, response.statusText);
 
     const data = await response.json();
 
@@ -40,7 +33,6 @@ export async function apiRequest<T>(
       data,
     };
   } catch (error) {
-    console.error('❌ Error en request:', error);
     return {
       success: false,
       error: error instanceof Error ? error.message : 'Network error',

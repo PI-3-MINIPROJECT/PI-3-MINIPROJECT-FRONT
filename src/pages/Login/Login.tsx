@@ -1,16 +1,36 @@
-import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import Input from '../../components/Input/Input';
 import Button from '../../components/Button/Button';
+import { login } from '../../utils/api';
+import { handleAuthError, redirectToGoogleOAuth } from '../../utils/auth';
+import type { LoginRequest } from '../../types';
 import './Login.scss';
 
 export default function Login() {
+  const navigate = useNavigate();
+  const location = useLocation();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(false);
-  const [errors, setErrors] = useState<{ email?: string; password?: string }>({});
+  const [errors, setErrors] = useState<{ 
+    email?: string; 
+    password?: string;
+    general?: string;
+  }>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [successMessage, setSuccessMessage] = useState('');
+
+  // Mostrar mensaje de éxito del registro si viene desde la página de registro
+  useEffect(() => {
+    if (location.state?.message) {
+      setSuccessMessage(location.state.message);
+      // Limpiar el mensaje después de 5 segundos
+      const timer = setTimeout(() => setSuccessMessage(''), 5000);
+      return () => clearTimeout(timer);
+    }
+  }, [location.state]);
 
   const validateEmail = (email: string): boolean => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -44,11 +64,38 @@ export default function Login() {
     }
 
     setIsSubmitting(true);
+    setErrors({}); // Limpiar errores anteriores
+    setSuccessMessage(''); // Limpiar mensaje de éxito
+    
     try {
-      console.log('Login:', { email, password, rememberMe });
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      const loginData: LoginRequest = {
+        email: email.trim(),
+        password
+      };
+
+      const response = await login(loginData);
+      
+      if (response.success) {
+        console.log('Usuario logueado exitosamente:', response.data);
+        // Redirigir al dashboard
+        navigate('/dashboard', { 
+          state: { 
+            user: response.data,
+            message: 'Bienvenido de vuelta!'
+          } 
+        });
+      }
     } catch (error) {
       console.error('Error en login:', error);
+      
+      const errorMessage = handleAuthError(error);
+      
+      // Si el error es de credenciales incorrectas, mostrarlo como error general
+      if (errorMessage.includes('Credenciales incorrectas') || errorMessage.includes('401')) {
+        setErrors({ general: 'Correo electrónico o contraseña incorrectos' });
+      } else {
+        setErrors({ general: errorMessage });
+      }
     } finally {
       setIsSubmitting(false);
     }
@@ -87,6 +134,17 @@ export default function Login() {
             </p>
 
             <form className="login__form" onSubmit={handleSubmit}>
+              {successMessage && (
+                <div className="login__success-message" role="alert">
+                  {successMessage}
+                </div>
+              )}
+              
+              {errors.general && (
+                <div className="login__error-message" role="alert">
+                  {errors.general}
+                </div>
+              )}
               <Input
                 id="email"
                 type="email"
@@ -171,7 +229,12 @@ export default function Login() {
                   <text x="12" y="17" font-family="Arial, sans-serif" font-size="16" font-weight="bold" fill="white" text-anchor="middle">f</text>
                 </svg>
               </button>
-              <button type="button" className="login__social-button login__social-button--google">
+              <button 
+                type="button" 
+                className="login__social-button login__social-button--google"
+                onClick={redirectToGoogleOAuth}
+                title="Iniciar sesión con Google"
+              >
                 <svg width="24" height="24" viewBox="0 0 24 24">
                   <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
                   <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
