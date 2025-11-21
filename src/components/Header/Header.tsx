@@ -3,6 +3,11 @@ import { useAuth } from '../../hooks/useAuth';
 import { logout } from '../../utils/api';
 import './Header.scss';
 
+/**
+ * Header component containing navigation, logo, and user actions
+ * Displays different content based on authentication status
+ * @returns {JSX.Element} Header component with navigation and user menu
+ */
 export default function Header() {
   const location = useLocation();
   const { user, isAuthenticated, logout: authLogout } = useAuth();

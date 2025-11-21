@@ -2,6 +2,11 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import './VideoConference.scss';
 
+/**
+ * VideoConference page component displaying the video conference interface
+ * Shows participants, chat panel, and control buttons (mic, camera, etc.)
+ * @returns {JSX.Element} Video conference page with meeting interface
+ */
 export default function VideoConference() {
   const navigate = useNavigate();
   const [isMicOn, setIsMicOn] = useState(true);

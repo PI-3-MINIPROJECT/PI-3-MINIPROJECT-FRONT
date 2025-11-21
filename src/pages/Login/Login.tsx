@@ -8,6 +8,11 @@ import { handleAuthError, redirectToGoogleOAuth, getCurrentUser } from '../../ut
 import type { LoginRequest } from '../../types';
 import './Login.scss';
 
+/**
+ * Login page component for user authentication
+ * Handles manual login, OAuth redirects, and displays success messages from registration
+ * @returns {JSX.Element} Login page with email/password form and OAuth options
+ */
 export default function Login() {
   const navigate = useNavigate();
   const location = useLocation();
@@ -25,30 +30,20 @@ export default function Login() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [successMessage, setSuccessMessage] = useState('');
 
-  // Detectar cuando vuelve de OAuth
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     
     if (params.get('oauth_success') === 'true') {
-      console.log('✅ Login exitoso con Google');
-      
-      // Verificar que la cookie de sesión se haya establecido correctamente
       const sessionCookie = document.cookie.split('; ').find(row => row.startsWith('session='));
       
       if (sessionCookie) {
-        console.log('✅ Cookie de sesión detectada correctamente');
-        
-        // Obtener el perfil del usuario desde el backend
-        // El backend ya estableció la cookie, ahora obtenemos los datos
         const fetchUserProfile = async () => {
           try {
             const response = await getCurrentUser();
             
             if (response.success && response.data) {
-              console.log('✅ Perfil de usuario obtenido:', response.data);
               setUser(response.data, true);
               
-              // Redirigir a dashboard/explore
               navigate('/explore', { 
                 state: { 
                   message: '¡Bienvenido! Has iniciado sesión con Google exitosamente.' 
@@ -57,29 +52,25 @@ export default function Login() {
             } else {
               throw new Error('No se pudo obtener el perfil del usuario');
             }
-          } catch (error) {
-            console.error('❌ Error al obtener perfil de usuario:', error);
+          } catch {
             setErrors({ general: 'Error al obtener tu información. Intenta de nuevo.' });
           }
         };
         
         fetchUserProfile();
       } else {
-        console.warn('⚠️ No se encontró la cookie de sesión después del OAuth');
         setErrors({ general: 'Error en la autenticación con Google. Intenta de nuevo.' });
       }
     }
   }, [navigate, setUser]);
 
   useEffect(() => {
-    // Manejar mensajes del estado de navegación
     if (location.state?.message) {
       setSuccessMessage(location.state.message);
       const timer = setTimeout(() => setSuccessMessage(''), 5000);
       return () => clearTimeout(timer);
     }
 
-    // Manejar mensajes de parámetros URL
     const success = searchParams.get('success');
     const error = searchParams.get('error');
 

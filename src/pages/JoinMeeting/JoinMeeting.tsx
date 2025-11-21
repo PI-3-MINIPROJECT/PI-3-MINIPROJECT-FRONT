@@ -4,6 +4,11 @@ import Input from '../../components/Input/Input';
 import Button from '../../components/Button/Button';
 import './JoinMeeting.scss';
 
+/**
+ * JoinMeeting page component for joining a video conference by meeting ID
+ * Validates meeting ID and navigates to the meeting room
+ * @returns {JSX.Element} Join meeting page with meeting ID input form
+ */
 export default function JoinMeeting() {
   const navigate = useNavigate();
   const [meetingId, setMeetingId] = useState('');

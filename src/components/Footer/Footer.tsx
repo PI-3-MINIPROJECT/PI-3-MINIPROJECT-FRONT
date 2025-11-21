@@ -1,6 +1,10 @@
 import { Link } from 'react-router-dom';
 import './Footer.scss';
 
+/**
+ * Footer component containing site links, logo, and copyright information
+ * @returns {JSX.Element} Footer component with navigation links and copyright
+ */
 export default function Footer() {
   const currentYear = new Date().getFullYear();
 

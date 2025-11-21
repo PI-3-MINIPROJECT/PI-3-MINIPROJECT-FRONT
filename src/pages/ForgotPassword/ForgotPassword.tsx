@@ -6,6 +6,11 @@ import Input from '../../components/Input/Input';
 import Button from '../../components/Button/Button';
 import './ForgotPassword.scss';
 
+/**
+ * ForgotPassword page component for requesting password reset via email
+ * Sends password reset email to the user's email address
+ * @returns {JSX.Element} Forgot password page with email input form
+ */
 export default function ForgotPassword() {
   const [email, setEmail] = useState('');
   const [errors, setErrors] = useState<{ email?: string }>({});
@@ -42,7 +47,6 @@ export default function ForgotPassword() {
       await resetPassword(email);
       setIsSubmitted(true);
     } catch (error) {
-      console.error('Error al enviar email de recuperación:', error);
       const errorMessage = handleAuthError(error);
       setErrors({ email: errorMessage });
     } finally {

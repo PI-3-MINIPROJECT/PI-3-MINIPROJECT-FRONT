@@ -6,14 +6,22 @@ import { handleAuthError } from '../../utils/auth';
 import Button from '../../components/Button/Button';
 import './Profile.scss';
 
+/**
+ * Profile page component displaying user information and account management options
+ * Includes delete account functionality with confirmation modal
+ * @returns {JSX.Element} Profile page with user details and account actions
+ */
 export default function Profile() {
   const navigate = useNavigate();
   const { user, isLoading, refreshUser, logout } = useAuth();
   const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [showSecondConfirmation, setShowSecondConfirmation] = useState(false);
+  const [confirmationText, setConfirmationText] = useState('');
   const [isDeleting, setIsDeleting] = useState(false);
   const [error, setError] = useState('');
   const userId = user?.uid;
   const cancelButtonRef = useRef<HTMLButtonElement>(null);
+  const confirmationInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (!isLoading && !user) {
@@ -30,10 +38,16 @@ export default function Profile() {
   }, [refreshUser, userId]);
 
   useEffect(() => {
-    if (showDeleteModal && cancelButtonRef.current) {
+    if (showDeleteModal && cancelButtonRef.current && !showSecondConfirmation) {
       cancelButtonRef.current.focus();
     }
-  }, [showDeleteModal]);
+  }, [showDeleteModal, showSecondConfirmation]);
+
+  useEffect(() => {
+    if (showSecondConfirmation && confirmationInputRef.current) {
+      confirmationInputRef.current.focus();
+    }
+  }, [showSecondConfirmation]);
 
   useEffect(() => {
     const handleEscape = (e: KeyboardEvent) => {
@@ -54,15 +68,29 @@ export default function Profile() {
   }, [showDeleteModal]);
 
   const handleDeleteAccount = () => {
+    setShowSecondConfirmation(false);
+    setConfirmationText('');
+    setError('');
     setShowDeleteModal(true);
   };
 
   const handleCloseModal = () => {
     setShowDeleteModal(false);
+    setShowSecondConfirmation(false);
+    setConfirmationText('');
     setError('');
   };
 
+  const handleFirstConfirm = () => {
+    setShowSecondConfirmation(true);
+  };
+
   const handleConfirmDelete = async () => {
+    if (confirmationText.trim().toUpperCase() !== 'ELIMINAR') {
+      setError('Debes escribir "ELIMINAR" para confirmar la eliminación');
+      return;
+    }
+
     setIsDeleting(true);
     setError('');
     
@@ -184,34 +212,82 @@ export default function Profile() {
             <h2 id="delete-modal-title" className="profile__modal-title">
               Eliminar cuenta
             </h2>
-            <p className="profile__modal-text">
-              ¿Estás seguro de que deseas eliminar tu cuenta? Esta acción no puede deshacerse y perderás todos tus datos.
-            </p>
-            
-            {error && (
-              <div className="profile__modal-error" role="alert">
-                {error}
-              </div>
+            {!showSecondConfirmation ? (
+              <>
+                <p className="profile__modal-text">
+                  ¿Estás seguro de que deseas eliminar tu cuenta? Esta acción no puede deshacerse y perderás todos tus datos.
+                </p>
+                
+                {error && (
+                  <div className="profile__modal-error" role="alert">
+                    {error}
+                  </div>
+                )}
+                
+                <div className="profile__modal-actions">
+                  <button
+                    ref={cancelButtonRef}
+                    type="button"
+                    onClick={handleCloseModal}
+                    className="profile__modal-cancel-button"
+                  >
+                    Cancelar
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleFirstConfirm}
+                    className="profile__modal-delete-button"
+                  >
+                    Continuar
+                  </button>
+                </div>
+              </>
+            ) : (
+              <>
+                <p className="profile__modal-text">
+                  Esta es tu última oportunidad. Para confirmar la eliminación permanente de tu cuenta, escribe <strong>"ELIMINAR"</strong> en el campo de abajo.
+                </p>
+                
+                <div className="profile__modal-confirmation-input">
+                  <input
+                    ref={confirmationInputRef}
+                    type="text"
+                    value={confirmationText}
+                    onChange={(e) => setConfirmationText(e.target.value)}
+                    placeholder="Escribe ELIMINAR para confirmar"
+                    className="profile__modal-input"
+                    aria-label="Confirmación de eliminación"
+                    disabled={isDeleting}
+                  />
+                </div>
+                
+                {error && (
+                  <div className="profile__modal-error" role="alert">
+                    {error}
+                  </div>
+                )}
+                
+                <div className="profile__modal-actions">
+                  <button
+                    ref={cancelButtonRef}
+                    type="button"
+                    onClick={handleCloseModal}
+                    className="profile__modal-cancel-button"
+                    disabled={isDeleting}
+                  >
+                    Cancelar
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleConfirmDelete}
+                    disabled={isDeleting || confirmationText.trim().toUpperCase() !== 'ELIMINAR'}
+                    className="profile__modal-delete-button"
+                  >
+                    {isDeleting ? 'Eliminando...' : 'Eliminar definitivamente'}
+                  </button>
+                </div>
+              </>
             )}
-            
-            <div className="profile__modal-actions">
-              <button
-                ref={cancelButtonRef}
-                type="button"
-                onClick={handleCloseModal}
-                className="profile__modal-cancel-button"
-              >
-                Cancelar
-              </button>
-              <button
-                type="button"
-                onClick={handleConfirmDelete}
-                disabled={isDeleting}
-                className="profile__modal-delete-button"
-              >
-                {isDeleting ? 'Eliminando...' : 'Eliminar definitivamente'}
-              </button>
-            </div>
           </div>
         </>
       )}

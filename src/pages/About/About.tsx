@@ -1,5 +1,10 @@
 import './About.scss';
 
+/**
+ * About page component displaying information about the platform
+ * Shows mission, vision, and feature highlights
+ * @returns {JSX.Element} About page with company information
+ */
 export default function About() {
   return (
     <main className="about" role="main">

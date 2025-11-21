@@ -17,6 +17,12 @@ import EditProfile from './pages/EditProfile/EditProfile';
 import VideoConference from './pages/VideoConference/VideoConference';
 import './App.scss';
 
+/**
+ * Layout component that wraps pages with Header and Footer
+ * @param {Object} props - Component props
+ * @param {React.ReactNode} props.children - Child components to render
+ * @returns {JSX.Element} Layout component with header, content, and footer
+ */
 function Layout({ children }: { children: React.ReactNode }) {
   return (
     <div className="app">
@@ -29,6 +35,10 @@ function Layout({ children }: { children: React.ReactNode }) {
   );
 }
 
+/**
+ * Main App component that sets up routing and authentication context
+ * @returns {JSX.Element} App component with routes and authentication provider
+ */
 function App() {
   return (
     <AuthProvider>

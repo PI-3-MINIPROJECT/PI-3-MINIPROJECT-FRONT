@@ -6,6 +6,11 @@ import Input from '../../components/Input/Input';
 import Button from '../../components/Button/Button';
 import './ResetPassword.scss';
 
+/**
+ * ResetPassword page component for confirming password reset with verification code
+ * Validates the reset code from email and allows setting a new password
+ * @returns {JSX.Element} Reset password page with new password form
+ */
 export default function ResetPassword() {
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -19,12 +24,10 @@ export default function ResetPassword() {
   const [searchParams] = useSearchParams();
 
   useEffect(() => {
-    // Verificar parámetros de la URL
     const mode = searchParams.get('mode');
     const oobCode = searchParams.get('oobCode');
     
     if (mode !== 'resetPassword' || !oobCode) {
-      // Redirigir a error o login si no hay parámetros válidos
       navigate('/login?error=invalid_reset_link');
     }
   }, [navigate, searchParams]);
@@ -68,13 +71,11 @@ export default function ResetPassword() {
       await confirmPasswordReset(oobCode, newPassword);
       setIsSuccess(true);
       
-      // Redirigir después de un breve delay
       setTimeout(() => {
         navigate('/login?success=password_reset');
       }, 3000);
       
     } catch (error) {
-      console.error('Error al restablecer contraseña:', error);
       const errorMessage = handleAuthError(error);
       setErrors({ general: errorMessage });
     } finally {

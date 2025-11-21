@@ -1,6 +1,10 @@
 import Button from '../../components/Button/Button';
 import './Home.scss';
 
+/**
+ * Home page component displaying hero section, features, FAQ, and call-to-action
+ * @returns {JSX.Element} Home page with landing content
+ */
 export default function Home() {
   return (
     <main className="home" role="main">

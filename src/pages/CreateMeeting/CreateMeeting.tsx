@@ -4,14 +4,19 @@ import Input from '../../components/Input/Input';
 import Button from '../../components/Button/Button';
 import './CreateMeeting.scss';
 
+/**
+ * CreateMeeting page component for creating a new video conference meeting
+ * Allows users to set meeting details and navigate to the meeting room
+ * @returns {JSX.Element} Create meeting page with meeting configuration form
+ */
 export default function CreateMeeting() {
   const navigate = useNavigate();
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [date, setDate] = useState('');
   const [time, setTime] = useState('10:30');
-  const [duration, setDuration] = useState('45 minutos');
-  const [maxParticipants, setMaxParticipants] = useState('10 participantes');
+  const [duration, setDuration] = useState('45 minutes');
+  const [maxParticipants, setMaxParticipants] = useState('10 participants');
   const [meetingId, setMeetingId] = useState('5f3a91e2');
   const [errors, setErrors] = useState<{ 
     title?: string; 
