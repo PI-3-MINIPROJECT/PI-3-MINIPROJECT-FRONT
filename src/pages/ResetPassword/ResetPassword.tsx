@@ -6,6 +6,11 @@ import Input from '../../components/Input/Input';
 import Button from '../../components/Button/Button';
 import './ResetPassword.scss';
 
+/**
+ * ResetPassword page component for confirming password reset with verification code
+ * Validates the reset code from email and allows setting a new password
+ * @returns {JSX.Element} Reset password page with new password form
+ */
 export default function ResetPassword() {
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');

@@ -3,6 +3,11 @@ import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
 import './Dashboard.scss';
 
+/**
+ * Dashboard page component displaying user welcome message and meeting actions
+ * Shows welcome message from location state (e.g., after login or account deletion)
+ * @returns {JSX.Element} Dashboard page with greeting and action buttons
+ */
 export default function Dashboard() {
   const { user } = useAuth();
   const location = useLocation();

@@ -2,12 +2,25 @@ import React, { forwardRef } from 'react';
 import type { InputHTMLAttributes } from 'react';
 import './Input.scss';
 
+/**
+ * Input component props interface
+ */
 interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
   label?: string;
   error?: string;
   icon?: React.ReactNode;
 }
 
+/**
+ * Reusable Input component with label, error message, and optional icon support
+ * @param {InputProps} props - Component props extending HTML input attributes
+ * @param {string} [props.label] - Label text displayed above the input
+ * @param {string} [props.error] - Error message displayed below the input
+ * @param {React.ReactNode} [props.icon] - Optional icon displayed inside the input
+ * @param {string} [props.className=''] - Additional CSS classes
+ * @param {React.Ref<HTMLInputElement>} ref - Forwarded ref to the input element
+ * @returns {JSX.Element} Input component with label, error message, and optional icon
+ */
 const Input = forwardRef<HTMLInputElement, InputProps>(
   ({ label, error, icon, className = '', ...props }, ref) => {
     return (

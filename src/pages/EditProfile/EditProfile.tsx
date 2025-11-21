@@ -6,6 +6,11 @@ import Input from '../../components/Input/Input';
 import Button from '../../components/Button/Button';
 import './EditProfile.scss';
 
+/**
+ * EditProfile page component for updating user information and password
+ * Includes form validation, password strength checking, and profile update functionality
+ * @returns {JSX.Element} Edit profile page with user information and password update forms
+ */
 export default function EditProfile() {
   const navigate = useNavigate();
   const { user, isLoading, refreshUser } = useAuth();

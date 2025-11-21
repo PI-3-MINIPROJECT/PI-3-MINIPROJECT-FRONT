@@ -6,6 +6,11 @@ import { handleAuthError } from '../../utils/auth';
 import Button from '../../components/Button/Button';
 import './Profile.scss';
 
+/**
+ * Profile page component displaying user information and account management options
+ * Includes delete account functionality with confirmation modal
+ * @returns {JSX.Element} Profile page with user details and account actions
+ */
 export default function Profile() {
   const navigate = useNavigate();
   const { user, isLoading, refreshUser, logout } = useAuth();

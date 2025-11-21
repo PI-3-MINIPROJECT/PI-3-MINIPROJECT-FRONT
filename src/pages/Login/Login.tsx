@@ -8,6 +8,11 @@ import { handleAuthError, redirectToGoogleOAuth, getCurrentUser } from '../../ut
 import type { LoginRequest } from '../../types';
 import './Login.scss';
 
+/**
+ * Login page component for user authentication
+ * Handles manual login, OAuth redirects, and displays success messages from registration
+ * @returns {JSX.Element} Login page with email/password form and OAuth options
+ */
 export default function Login() {
   const navigate = useNavigate();
   const location = useLocation();

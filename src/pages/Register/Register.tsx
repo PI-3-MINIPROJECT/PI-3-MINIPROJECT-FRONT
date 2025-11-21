@@ -7,6 +7,11 @@ import { handleAuthError, redirectToGoogleOAuth } from '../../utils/auth';
 import type { RegisterRequest } from '../../types';
 import './Register.scss';
 
+/**
+ * Register page component for new user registration
+ * Includes form validation, password strength checking, and OAuth options
+ * @returns {JSX.Element} Registration page with user signup form
+ */
 export default function Register() {
   const navigate = useNavigate();
   const [firstName, setFirstName] = useState('');
