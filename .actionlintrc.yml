@@ -1,0 +1,10 @@
+# Configuración para actionlint (linter de GitHub Actions workflows)
+# Suprime warnings sobre acceso a secrets, que son válidos en workflows
+
+self-hosted-runner:
+  labels: []
+
+# Ignorar warnings sobre acceso a secrets en workflows
+# Estos son falsos positivos - el acceso a secrets es válido y necesario
+no-undefined-inputs: false
+

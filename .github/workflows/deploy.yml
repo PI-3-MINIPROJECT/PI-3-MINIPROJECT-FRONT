@@ -38,23 +38,43 @@ jobs:
       - name: Build project
         run: npm run build
 
-  # Job para desplegar a Vercel
-  deploy:
-    name: Deploy to Vercel
+  # Job para desplegar a Vercel (Producción)
+  deploy-prod:
+    name: Deploy to Vercel (Production)
     runs-on: ubuntu-latest
     needs: validate
-    # Solo desplegar en push, no en pull requests
-    if: github.event_name == 'push'
+    # Solo desplegar en push a main/master
+    if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master')
     
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Deploy to Vercel
+      - name: Deploy to Vercel (Production)
         uses: amondnet/vercel-action@v25
         with:
           vercel-token: ${{ secrets.VERCEL_TOKEN }}
           vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
           vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID }}
           vercel-args: '--prod'
+
+  # Job para desplegar Preview en Pull Requests
+  deploy-preview:
+    name: Deploy to Vercel (Preview)
+    runs-on: ubuntu-latest
+    needs: validate
+    # Solo desplegar en pull requests
+    if: github.event_name == 'pull_request'
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Deploy to Vercel (Preview)
+        uses: amondnet/vercel-action@v25
+        with:
+          vercel-token: ${{ secrets.VERCEL_TOKEN }}
+          vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
+          vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID }}
+          github-comment: true
 
