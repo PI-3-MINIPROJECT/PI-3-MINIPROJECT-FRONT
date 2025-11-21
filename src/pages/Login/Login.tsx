@@ -79,8 +79,8 @@ export default function Login() {
       
       if (response.success) {
         console.log('Usuario logueado exitosamente:', response.data);
-        // Actualizar el contexto de autenticación
-        setUser(response.data);
+        // Actualizar el contexto de autenticación (setUser ya guarda en cookies)
+        setUser(response.data, rememberMe);
         // Redirigir al dashboard
         navigate('/explore', { 
           state: { 

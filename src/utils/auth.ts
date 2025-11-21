@@ -1,4 +1,6 @@
 // Utilidades adicionales para autenticación
+import { get, put, del } from './api';
+import type { User } from '../types';
 
 /**
  * Redirige al usuario al endpoint de OAuth de Google
@@ -12,23 +14,20 @@ export function redirectToGoogleOAuth(): void {
  * Obtiene el perfil del usuario actual
  */
 export async function getCurrentUser() {
-  const { get } = await import('./api');
-  return get<import('../types').User>('/api/users/profile');
+  return get<User>('/api/users/profile');
 }
 
 /**
  * Actualiza el perfil del usuario
  */
-export async function updateProfile(updates: Partial<Omit<import('../types').User, 'uid' | 'createdAt' | 'updatedAt'>>) {
-  const { put } = await import('./api');
-  return put<import('../types').User>('/api/users/profile', updates);
+export async function updateProfile(updates: Partial<Omit<User, 'uid' | 'createdAt' | 'updatedAt'>>) {
+  return put<User>('/api/users/profile', updates);
 }
 
 /**
  * Elimina la cuenta del usuario
  */
 export async function deleteAccount() {
-  const { del } = await import('./api');
   return del<void>('/api/users/profile');
 }
 
