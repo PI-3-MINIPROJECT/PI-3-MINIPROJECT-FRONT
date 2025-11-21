@@ -124,3 +124,37 @@ export async function resetPassword(email: string): Promise<{ success: boolean; 
   throw new Error(response.error || response.message || 'Error al generar enlace de recuperación');
 }
 
+// Funciones de gestión de usuarios
+export async function getCurrentUser(): Promise<import('../types').User> {
+  const response = await get<{ success: boolean; data: import('../types').User }>('/api/users/profile');
+  
+  if (response.success && response.data && response.data.data) {
+    return response.data.data;
+  }
+  
+  throw new Error(response.error || response.message || 'Error al obtener perfil');
+}
+
+export async function updateProfile(updates: Partial<Omit<import('../types').User, 'uid' | 'createdAt' | 'updatedAt'>>): Promise<import('../types').User> {
+  const response = await put<{ success: boolean; data: import('../types').User }>('/api/users/profile', updates);
+  
+  if (response.success && response.data && response.data.data) {
+    return response.data.data;
+  }
+  
+  throw new Error(response.error || response.message || 'Error al actualizar perfil');
+}
+
+export async function deleteAccount(): Promise<{ success: boolean; message: string }> {
+  const response = await del<void>('/api/users/profile');
+  
+  if (response.success) {
+    return {
+      success: true,
+      message: 'Cuenta eliminada exitosamente'
+    };
+  }
+  
+  throw new Error(response.error || response.message || 'Error al eliminar cuenta');
+}
+

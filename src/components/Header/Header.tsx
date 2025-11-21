@@ -1,11 +1,32 @@
 import { Link, useLocation } from 'react-router-dom';
+import { useAuth } from '../../contexts/AuthContext';
+import { logout } from '../../utils/api';
 import './Header.scss';
 
 export default function Header() {
   const location = useLocation();
+  const { user, isAuthenticated, logout: authLogout } = useAuth();
 
   const isActive = (path: string): boolean => {
     return location.pathname === path;
+  };
+
+  const handleLogout = async () => {
+    try {
+      await logout();
+      authLogout();
+    } catch (error) {
+      console.error('Error al cerrar sesión:', error);
+      // Aún así limpiamos el estado local
+      authLogout();
+    }
+  };
+
+  const getUserInitials = () => {
+    if (!user) return 'U';
+    const firstName = user.name || '';
+    const lastName = user.last_name || '';
+    return `${firstName.charAt(0)}${lastName.charAt(0)}`.toUpperCase();
   };
 
   return (
@@ -55,13 +76,29 @@ export default function Header() {
           >
             Crear reunión
           </Link>
-          {isActive('/explore') || isActive('/account') ? (
-            <Link 
-              to="/account" 
-              className={`header__button header__button--access ${isActive('/account') ? 'header__button--active' : ''}`}
-            >
-              Mi cuenta
-            </Link>
+          
+          {isAuthenticated ? (
+            <div className="header__user">
+              <Link to="/account" className="header__user-avatar" title={`${user?.name} ${user?.last_name}`}>
+                <span className="header__user-initials">
+                  {getUserInitials()}
+                </span>
+              </Link>
+              <div className="header__user-dropdown">
+                <Link to="/account" className="header__user-dropdown-item">
+                  Mi Perfil
+                </Link>
+                <Link to="/account/edit" className="header__user-dropdown-item">
+                  Editar Perfil
+                </Link>
+                <button 
+                  onClick={handleLogout}
+                  className="header__user-dropdown-item header__user-dropdown-item--logout"
+                >
+                  Cerrar Sesión
+                </button>
+              </div>
+            </div>
           ) : (
             <Link to="/login" className="header__button header__button--access">
               Acceder

@@ -147,12 +147,12 @@
   }
 
   &__error-message {
-    background-color: color.adjust($error-color, $lightness: 45%);
+    background-color: #f8d7da;
     border: 1px solid $error-color;
     border-radius: $border-radius-md;
     padding: calc($spacing-sm);
     font-size: calc($font-size-sm);
-    color: color.adjust($error-color, $lightness: -20%);
+    color: #721c24;
     text-align: center;
     margin-bottom: calc($spacing-sm);
 

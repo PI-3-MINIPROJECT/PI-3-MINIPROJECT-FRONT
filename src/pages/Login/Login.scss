@@ -126,12 +126,12 @@
   }
 
   &__success-message {
-    background-color: color.adjust($success-color, $lightness: 45%);
+    background-color: #d4edda;
     border: 1px solid $success-color;
     border-radius: $border-radius-md;
     padding: calc($spacing-sm);
     font-size: calc($font-size-sm);
-    color: color.adjust($success-color, $lightness: -20%);
+    color: #155724;
     text-align: center;
     margin-bottom: calc($spacing-sm);
 
@@ -142,12 +142,12 @@
   }
 
   &__error-message {
-    background-color: color.adjust($error-color, $lightness: 45%);
+    background-color: #f8d7da;
     border: 1px solid $error-color;
     border-radius: $border-radius-md;
     padding: calc($spacing-sm);
     font-size: calc($font-size-sm);
-    color: color.adjust($error-color, $lightness: -20%);
+    color: #721c24;
     text-align: center;
     margin-bottom: calc($spacing-sm);
 

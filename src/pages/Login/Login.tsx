@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
+import { useAuth } from '../../contexts/AuthContext';
 import Input from '../../components/Input/Input';
 import Button from '../../components/Button/Button';
 import { login } from '../../utils/api';
@@ -10,6 +11,7 @@ import './Login.scss';
 export default function Login() {
   const navigate = useNavigate();
   const location = useLocation();
+  const { setUser } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -77,8 +79,10 @@ export default function Login() {
       
       if (response.success) {
         console.log('Usuario logueado exitosamente:', response.data);
+        // Actualizar el contexto de autenticación
+        setUser(response.data);
         // Redirigir al dashboard
-        navigate('/dashboard', { 
+        navigate('/explore', { 
           state: { 
             user: response.data,
             message: 'Bienvenido de vuelta!'
