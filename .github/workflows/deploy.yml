@@ -43,7 +43,7 @@ jobs:
     name: Deploy to Vercel (Production)
     runs-on: ubuntu-latest
     needs: validate
-    # Solo desplegar en push a main/master
+    # Solo desplegar en push a main/master, nunca en pull requests
     if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master')
     
     steps:
@@ -69,12 +69,21 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Deploy to Vercel (Preview)
+        id: vercel-deploy
         uses: amondnet/vercel-action@v25
         with:
           vercel-token: ${{ secrets.VERCEL_TOKEN }}
           vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
           vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID }}
+          vercel-args: '--yes'
           github-comment: true
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Output Preview URL
+        run: |
+          echo "Preview URL: ${{ steps.vercel-deploy.outputs.preview-url }}"
 
