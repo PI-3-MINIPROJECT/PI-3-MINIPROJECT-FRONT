@@ -65,9 +65,11 @@ export default function Home() {
               </p>
             </div>
             <div className="home__feature-image">
-              <div className="home__feature-placeholder">
-                <span>📊 Colaboración en tiempo real</span>
-              </div>
+              <img 
+                src="/reunion.jpg" 
+                alt="Colaboración en tiempo real" 
+                className="home__feature-img"
+              />
             </div>
           </div>
         </div>
@@ -86,9 +88,11 @@ export default function Home() {
               </p>
             </div>
             <div className="home__feature-image">
-              <div className="home__feature-placeholder">
-                <span>📱 Multiplataforma</span>
-              </div>
+              <img 
+                src="/meet.png" 
+                alt="Multiplataforma" 
+                className="home__feature-img"
+              />
             </div>
           </div>
         </div>
@@ -108,9 +112,11 @@ export default function Home() {
               </p>
             </div>
             <div className="home__feature-image">
-              <div className="home__feature-placeholder">
-                <span>🎥 Alta calidad HD</span>
-              </div>
+              <img 
+                src="/alta.jpg" 
+                alt="Alta calidad HD" 
+                className="home__feature-img"
+              />
             </div>
           </div>
         </div>
@@ -130,9 +136,11 @@ export default function Home() {
               </p>
             </div>
             <div className="home__feature-image">
-              <div className="home__feature-placeholder">
-                <span>👥 Gestión de equipos</span>
-              </div>
+              <img 
+                src="/equipos.png" 
+                alt="Gestión de equipos" 
+                className="home__feature-img"
+              />
             </div>
           </div>
         </div>
@@ -152,9 +160,11 @@ export default function Home() {
               </p>
             </div>
             <div className="home__feature-image">
-              <div className="home__feature-placeholder">
-                <span>🔒 Seguridad avanzada</span>
-              </div>
+              <img 
+                src="/seguridad.png" 
+                alt="Seguridad avanzada" 
+                className="home__feature-img"
+              />
             </div>
           </div>
         </div>

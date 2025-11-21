@@ -281,11 +281,11 @@ export async function resetPassword(email: string): Promise<{ success: boolean; 
  * Confirma el restablecimiento de contraseña con el código del email
  * @param {string} oobCode - Código de verificación del email
  * @param {string} newPassword - Nueva contraseña
- * @returns {Promise<{success: boolean; message: string; data?: any}>} Promise resolving to confirmation response
+ * @returns {Promise<{success: boolean; message: string; data?: unknown}>} Promise resolving to confirmation response
  * @throws {Error} Throws error if code is invalid or password reset fails
  */
-export async function confirmPasswordReset(oobCode: string, newPassword: string): Promise<{ success: boolean; message: string; data?: any }> {
-  const response = await post<any>('/api/auth/confirm-password-reset', { oobCode, newPassword });
+export async function confirmPasswordReset(oobCode: string, newPassword: string): Promise<{ success: boolean; message: string; data?: unknown }> {
+  const response = await post<unknown>('/api/auth/confirm-password-reset', { oobCode, newPassword });
   
   if (response.success) {
     return {
