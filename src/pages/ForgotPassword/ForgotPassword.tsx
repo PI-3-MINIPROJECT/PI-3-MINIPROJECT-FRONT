@@ -1,5 +1,7 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
+import { resetPassword } from '../../utils/api';
+import { handleAuthError } from '../../utils/auth';
 import Input from '../../components/Input/Input';
 import Button from '../../components/Button/Button';
 import './ForgotPassword.scss';
@@ -37,10 +39,12 @@ export default function ForgotPassword() {
 
     setIsSubmitting(true);
     try {
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      await resetPassword(email);
       setIsSubmitted(true);
-    } catch {
-      setErrors({ email: 'Ocurrió un error inesperado. Intenta de nuevo.' });
+    } catch (error) {
+      console.error('Error al enviar email de recuperación:', error);
+      const errorMessage = handleAuthError(error);
+      setErrors({ email: errorMessage });
     } finally {
       setIsSubmitting(false);
     }

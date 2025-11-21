@@ -8,6 +8,7 @@ import Sitemap from './pages/Sitemap/Sitemap';
 import Login from './pages/Login/Login';
 import Register from './pages/Register/Register';
 import ForgotPassword from './pages/ForgotPassword/ForgotPassword';
+import ResetPassword from './pages/ResetPassword/ResetPassword';
 import Dashboard from './pages/Dashboard/Dashboard';
 import CreateMeeting from './pages/CreateMeeting/CreateMeeting';
 import JoinMeeting from './pages/JoinMeeting/JoinMeeting';
@@ -35,6 +36,7 @@ function App() {
       <Route path="/login" element={<Login />} />
       <Route path="/register" element={<Register />} />
       <Route path="/forgot-password" element={<ForgotPassword />} />
+      <Route path="/reset-password" element={<ResetPassword />} />
       <Route path="/meetings/room" element={<VideoConference />} />
       <Route
         path="/*"

@@ -278,6 +278,30 @@ export async function resetPassword(email: string): Promise<{ success: boolean; 
 }
 
 /**
+ * Confirma el restablecimiento de contraseña con el código del email
+ * @param {string} oobCode - Código de verificación del email
+ * @param {string} newPassword - Nueva contraseña
+ * @returns {Promise<{success: boolean; message: string; data?: any}>} Promise resolving to confirmation response
+ * @throws {Error} Throws error if code is invalid or password reset fails
+ */
+export async function confirmPasswordReset(oobCode: string, newPassword: string): Promise<{ success: boolean; message: string; data?: any }> {
+  const response = await post<any>('/api/auth/confirm-password-reset', { oobCode, newPassword });
+  
+  if (response.success) {
+    return {
+      success: true,
+      message: response.message || 'Contraseña restablecida exitosamente',
+      data: response.data
+    };
+  }
+  
+  throw toApiError(
+    new Error(response.error || response.message || 'Error al restablecer contraseña'),
+    response.status
+  );
+}
+
+/**
  * Retrieves the current authenticated user's profile information
  * @returns {Promise<import('../types').User>} Promise resolving to user profile data
  * @throws {Error} Throws error if user is not authenticated or profile fetch fails

@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Link, useNavigate, useLocation } from 'react-router-dom';
+import { Link, useNavigate, useLocation, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
 import Input from '../../components/Input/Input';
 import Button from '../../components/Button/Button';
@@ -11,6 +11,7 @@ import './Login.scss';
 export default function Login() {
   const navigate = useNavigate();
   const location = useLocation();
+  const [searchParams] = useSearchParams();
   const { setUser } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -25,12 +26,27 @@ export default function Login() {
   const [successMessage, setSuccessMessage] = useState('');
 
   useEffect(() => {
+    // Manejar mensajes del estado de navegación
     if (location.state?.message) {
       setSuccessMessage(location.state.message);
       const timer = setTimeout(() => setSuccessMessage(''), 5000);
       return () => clearTimeout(timer);
     }
-  }, [location.state]);
+
+    // Manejar mensajes de parámetros URL
+    const success = searchParams.get('success');
+    const error = searchParams.get('error');
+
+    if (success === 'password_reset') {
+      setSuccessMessage('Contraseña restablecida exitosamente. Ya puedes iniciar sesión.');
+      const timer = setTimeout(() => setSuccessMessage(''), 5000);
+      return () => clearTimeout(timer);
+    }
+
+    if (error === 'invalid_reset_link') {
+      setErrors({ general: 'El enlace de recuperación no es válido o ha expirado.' });
+    }
+  }, [location.state, searchParams]);
 
   const validateEmail = (email: string): boolean => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
