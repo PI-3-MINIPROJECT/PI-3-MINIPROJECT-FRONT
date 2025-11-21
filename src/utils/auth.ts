@@ -1,43 +1,40 @@
-// Utilidades adicionales para autenticación
 import { get, put, del } from './api';
 import type { User } from '../types';
 
-/**
- * Redirige al usuario al endpoint de OAuth de Google
- */
+type ErrorWithStatus = Error & { status?: number };
+
+function getStatusCode(error: unknown): number | undefined {
+  if (error && typeof error === 'object' && 'status' in error) {
+    return (error as ErrorWithStatus).status;
+  }
+  return undefined;
+}
+
 export function redirectToGoogleOAuth(): void {
   const baseUrl = import.meta.env.VITE_API_URL || 'http://localhost:3000';
   window.location.href = `${baseUrl}/api/auth/oauth/google`;
 }
 
-/**
- * Obtiene el perfil del usuario actual
- */
 export async function getCurrentUser() {
   return get<User>('/api/users/profile');
 }
 
-/**
- * Actualiza el perfil del usuario
- */
 export async function updateProfile(updates: Partial<Omit<User, 'uid' | 'createdAt' | 'updatedAt'>>) {
   return put<User>('/api/users/profile', updates);
 }
 
-/**
- * Elimina la cuenta del usuario
- */
 export async function deleteAccount() {
   return del<void>('/api/users/profile');
 }
 
-/**
- * Maneja errores de autenticación de manera consistente
- */
 export function handleAuthError(error: unknown): string {
   if (error instanceof Error) {
-    // Errores específicos del backend
-    if (error.message.includes('401') || error.message.includes('No autenticado')) {
+    const status = getStatusCode(error);
+    if (
+      status === 401 ||
+      error.message.includes('401') ||
+      error.message.includes('No autenticado')
+    ) {
       return 'Sesión expirada. Por favor, inicia sesión de nuevo.';
     }
     
@@ -63,9 +60,6 @@ export function handleAuthError(error: unknown): string {
   return 'Error de conexión. Verifica tu conexión a internet.';
 }
 
-/**
- * Verifica si el usuario está autenticado consultando su perfil
- */
 export async function checkAuthStatus(): Promise<boolean> {
   try {
     const response = await getCurrentUser();

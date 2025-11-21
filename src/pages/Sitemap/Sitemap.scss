@@ -8,6 +8,7 @@
   &__container {
     @include container;
     max-width: 900px;
+    animation: sitemapFade 0.5s ease-out both;
   }
 
   h1 {
@@ -22,10 +23,12 @@
     text-align: center;
     margin-bottom: $spacing-3xl;
     line-height: $line-height-relaxed;
+    animation: sitemapFade 0.55s ease-out 0.05s both;
   }
 
   &__section {
     margin-bottom: $spacing-3xl;
+    animation: sitemapSlideUp 0.55s ease-out 0.08s both;
 
     h2 {
       font-size: $font-size-2xl;
@@ -50,6 +53,8 @@
       display: flex;
       flex-direction: column;
       gap: $spacing-xs;
+      animation: sitemapItem 0.45s ease-out both;
+      animation-delay: calc(0.03s * var(--sitemap-index, 1));
 
       a {
         font-weight: $font-weight-semibold;
@@ -78,6 +83,7 @@
     padding: $spacing-lg;
     border-radius: $border-radius-lg;
     box-shadow: $shadow-sm;
+    animation: sitemapCard 0.55s ease-out 0.1s both;
 
     ul {
       list-style: none;
@@ -98,6 +104,50 @@
         }
       }
     }
+  }
+}
+
+@keyframes sitemapFade {
+  from {
+    opacity: 0;
+    transform: translateY(18px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes sitemapSlideUp {
+  from {
+    opacity: 0;
+    transform: translateY(24px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes sitemapItem {
+  from {
+    opacity: 0;
+    transform: translateX(-12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes sitemapCard {
+  from {
+    opacity: 0;
+    transform: translateY(22px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
   }
 }
 

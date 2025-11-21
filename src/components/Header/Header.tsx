@@ -1,5 +1,5 @@
 import { Link, useLocation } from 'react-router-dom';
-import { useAuth } from '../../contexts/AuthContext';
+import { useAuth } from '../../hooks/useAuth';
 import { logout } from '../../utils/api';
 import './Header.scss';
 
@@ -15,9 +15,7 @@ export default function Header() {
     try {
       await logout();
       authLogout();
-    } catch (error) {
-      console.error('Error al cerrar sesión:', error);
-      // Aún así limpiamos el estado local
+    } catch {
       authLogout();
     }
   };

@@ -78,6 +78,7 @@
     max-width: 500px;
     display: flex;
     flex-direction: column;
+    animation: registerContentSlide 0.6s ease-out both;
   }
 
   &__logo {
@@ -88,6 +89,7 @@
     margin-top: 0;
     text-decoration: none;
     width: 100%;
+    animation: registerFadeIn 0.5s ease-out both;
 
     @include respond-to(md) {
       margin-bottom: calc($spacing-xl);
@@ -139,6 +141,7 @@
     flex-direction: column;
     gap: calc($spacing-sm * 1.2);
     margin-bottom: calc($spacing-md);
+    animation: registerFormPop 0.55s ease-out 0.05s both;
 
     @include respond-to(md) {
       gap: calc($spacing-md * 1.2);
@@ -166,6 +169,7 @@
     display: grid;
     grid-template-columns: 1fr;
     gap: calc($spacing-sm * 1.2);
+    animation: registerRowStagger 0.55s ease-out both;
 
     @include respond-to(md) {
       grid-template-columns: 1fr 1fr;
@@ -175,6 +179,7 @@
 
   &__password-wrapper {
     position: relative;
+    animation: registerRowStagger 0.55s ease-out 0.05s both;
   }
 
   &__password-toggle {
@@ -201,6 +206,21 @@
   &__submit-button {
     margin-top: calc($spacing-sm);
     width: 100%;
+    animation: registerButtonBounce 0.6s ease-out 0.12s both;
+
+    button,
+    & {
+      transition: transform $transition-fast, box-shadow $transition-fast;
+    }
+
+    &:hover {
+      transform: translateY(-1px);
+      box-shadow: $shadow-md;
+    }
+
+    &:active {
+      transform: translateY(0);
+    }
   }
 
   &__login-text {
@@ -262,6 +282,7 @@
     gap: calc($spacing-md * 1.5);
     justify-content: center;
     margin-bottom: calc($spacing-sm);
+    animation: registerFadeIn 0.65s ease-out 0.18s both;
   }
 
   &__social-button {
@@ -298,6 +319,130 @@
       width: 24px;
       height: 24px;
       display: block;
+    }
+  }
+
+  &__password-requirements {
+    background-color: color.adjust($background-color, $lightness: 3%);
+    border: 1px solid rgba($border-color, 0.6);
+    border-radius: $border-radius-md;
+    padding: calc($spacing-sm);
+    font-size: calc($font-size-sm);
+    color: $text-secondary;
+    animation: registerFadeIn 0.5s ease-out 0.08s both;
+
+    @include respond-to(md) {
+      padding: calc($spacing-sm * 1.2);
+      font-size: $font-size-base;
+    }
+  }
+
+  &__password-requirements-title {
+    margin: 0 0 calc($spacing-xs);
+    font-weight: $font-weight-semibold;
+    color: $text-primary;
+  }
+
+  &__password-requirements-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: calc($spacing-xs);
+  }
+
+  &__password-requirement {
+    display: flex;
+    align-items: center;
+    gap: calc($spacing-xs);
+    color: $text-secondary;
+    transition: color $transition-fast;
+    position: relative;
+
+    &--met {
+      color: $success-color;
+
+      &::after {
+        width: 100%;
+      }
+    }
+
+    &::after {
+      content: '';
+      position: absolute;
+      left: 0;
+      bottom: -4px;
+      height: 2px;
+      width: 0;
+      background-color: rgba($success-color, 0.3);
+      transition: width $transition-fast;
+    }
+  }
+
+  &__password-requirement-icon {
+    width: 18px;
+    display: inline-flex;
+    justify-content: center;
+    align-items: center;
+    font-weight: $font-weight-bold;
+  }
+
+  @keyframes registerFadeIn {
+    from {
+      opacity: 0;
+      transform: translateY(18px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @keyframes registerContentSlide {
+    from {
+      opacity: 0;
+      transform: translateY(32px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @keyframes registerFormPop {
+    from {
+      opacity: 0;
+      transform: scale(0.98);
+    }
+    to {
+      opacity: 1;
+      transform: scale(1);
+    }
+  }
+
+  @keyframes registerRowStagger {
+    from {
+      opacity: 0;
+      transform: translateY(16px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @keyframes registerButtonBounce {
+    0% {
+      opacity: 0;
+      transform: translateY(20px);
+    }
+    70% {
+      opacity: 1;
+      transform: translateY(-4px);
+    }
+    100% {
+      transform: translateY(0);
     }
   }
 }

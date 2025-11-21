@@ -37,11 +37,10 @@ export default function ForgotPassword() {
 
     setIsSubmitting(true);
     try {
-      console.log('Password recovery requested for:', email);
       await new Promise(resolve => setTimeout(resolve, 1000));
       setIsSubmitted(true);
-    } catch (error) {
-      console.error('Error en recuperación de contraseña:', error);
+    } catch {
+      setErrors({ email: 'Ocurrió un error inesperado. Intenta de nuevo.' });
     } finally {
       setIsSubmitting(false);
     }

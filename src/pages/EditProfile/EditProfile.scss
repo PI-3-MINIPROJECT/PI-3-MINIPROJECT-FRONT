@@ -1,3 +1,4 @@
+@use 'sass:color';
 @use '../../styles/variables' as *;
 @use '../../styles/mixins' as *;
 
@@ -23,6 +24,7 @@
   &__header {
     text-align: center;
     margin-bottom: $spacing-2xl;
+    animation: editProfileFadeDown 0.55s ease-out both;
 
     @include respond-to(md) {
       margin-bottom: $spacing-3xl;
@@ -54,11 +56,54 @@
     }
   }
 
+  &__success {
+    background-color: #d4edda;
+    border: 1px solid #c3e6cb;
+    color: #155724;
+    padding: $spacing-md;
+    border-radius: $border-radius-md;
+    margin-bottom: $spacing-lg;
+    display: flex;
+    align-items: center;
+    font-weight: $font-weight-medium;
+    animation: editProfileAlert 0.5s ease-out both;
+
+    &::before {
+      content: '✓';
+      margin-right: $spacing-sm;
+      font-size: $font-size-lg;
+      font-weight: $font-weight-bold;
+    }
+  }
+
+  &__error {
+    background-color: #f8d7da;
+    border: 1px solid #f5c6cb;
+    color: #721c24;
+    padding: $spacing-md;
+    border-radius: $border-radius-md;
+    margin-bottom: $spacing-lg;
+    display: flex;
+    align-items: center;
+    font-weight: $font-weight-medium;
+    animation: editProfileAlert 0.5s ease-out both;
+
+    &::before {
+      content: '⚠';
+      margin-right: $spacing-sm;
+      font-size: $font-size-lg;
+      font-weight: $font-weight-bold;
+    }
+  }
+
   &__form {
     background-color: white;
     border-radius: $border-radius-lg;
     padding: $spacing-2xl;
     box-shadow: $shadow-md;
+    position: relative;
+    overflow: hidden;
+    animation: editProfileCardPop 0.55s ease-out 0.05s both;
 
     @include respond-to(md) {
       padding: $spacing-3xl;
@@ -67,6 +112,8 @@
 
   &__form-group {
     margin-bottom: $spacing-xl;
+    animation: editProfileRowStagger 0.45s ease-out both;
+    animation-delay: clamp(0.02s, 0.015s * var(--row-index, 1), 0.25s);
   }
 
   &__password-toggle {
@@ -94,11 +141,80 @@
     }
   }
 
+  &__password-requirements {
+    background-color: color.adjust($background-color, $lightness: 3%);
+    border: 1px solid rgba($border-color, 0.6);
+    border-radius: $border-radius-md;
+    padding: $spacing-md;
+    font-size: $font-size-sm;
+    color: $text-secondary;
+    margin-top: -$spacing-md;
+    margin-bottom: $spacing-lg;
+    animation: editProfileFadeUp 0.45s ease-out both;
+
+    @include respond-to(md) {
+      font-size: $font-size-base;
+      padding: calc($spacing-md * 1.2);
+    }
+  }
+
+  &__password-requirements-title {
+    margin: 0 0 $spacing-xs;
+    font-weight: $font-weight-semibold;
+    color: $text-primary;
+  }
+
+  &__password-requirements-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: $spacing-xs;
+  }
+
+  &__password-requirement {
+    display: flex;
+    align-items: center;
+    gap: $spacing-xs;
+    transition: color $transition-fast;
+    color: $text-secondary;
+    position: relative;
+
+    &--met {
+      color: $success-color;
+
+      &::after {
+        width: 100%;
+      }
+    }
+
+    &::after {
+      content: '';
+      position: absolute;
+      left: 0;
+      bottom: -4px;
+      height: 2px;
+      width: 0;
+      background-color: rgba($success-color, 0.35);
+      transition: width $transition-fast;
+    }
+  }
+
+  &__password-requirement-icon {
+    width: 18px;
+    display: inline-flex;
+    justify-content: center;
+    align-items: center;
+    font-weight: $font-weight-bold;
+  }
+
   &__actions {
     display: flex;
     flex-direction: column;
     gap: $spacing-md;
     margin-top: $spacing-2xl;
+    animation: editProfileFadeUp 0.5s ease-out 0.1s both;
 
     @include respond-to(md) {
       flex-direction: row;
@@ -109,10 +225,21 @@
 
   &__save-button {
     width: 100%;
+    transition: transform $transition-fast, box-shadow $transition-fast;
+    animation: editProfileButtonBounce 0.6s ease-out 0.1s both;
 
     @include respond-to(md) {
       width: auto;
       min-width: 200px;
+    }
+
+    &:hover {
+      transform: translateY(-2px);
+      box-shadow: $shadow-lg;
+    }
+
+    &:active {
+      transform: translateY(0);
     }
   }
 
@@ -145,10 +272,86 @@
       border-color: $primary-color;
       color: $primary-color;
       background-color: $background-color;
+      transform: translateY(-1px);
     }
 
     &:focus-visible {
       @include focus-visible;
+    }
+
+    &--disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+      pointer-events: none;
+    }
+  }
+
+  @keyframes editProfileFadeDown {
+    from {
+      opacity: 0;
+      transform: translateY(-15px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @keyframes editProfileCardPop {
+    from {
+      opacity: 0;
+      transform: translateY(20px) scale(0.97);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+    }
+  }
+
+  @keyframes editProfileRowStagger {
+    from {
+      opacity: 0;
+      transform: translateY(12px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @keyframes editProfileFadeUp {
+    from {
+      opacity: 0;
+      transform: translateY(16px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @keyframes editProfileAlert {
+    from {
+      opacity: 0;
+      transform: translateY(-10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @keyframes editProfileButtonBounce {
+    0% {
+      opacity: 0;
+      transform: translateY(18px);
+    }
+    70% {
+      opacity: 1;
+      transform: translateY(-3px);
+    }
+    100% {
+      transform: translateY(0);
     }
   }
 }

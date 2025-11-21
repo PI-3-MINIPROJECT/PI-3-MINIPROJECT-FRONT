@@ -13,6 +13,7 @@
     grid-template-columns: 1fr;
     height: 100vh;
     width: 100%;
+    animation: loginFadeIn 0.5s ease-out both;
 
     @include respond-to(lg) {
       grid-template-columns: 1fr 1fr;
@@ -30,6 +31,7 @@
     padding-right: calc($spacing-md * 1.1);
     overflow-y: auto;
     overflow-x: hidden;
+    animation: loginSlideIn 0.55s ease-out both;
 
     @include respond-to(md) {
       padding-top: calc($spacing-2xl * 2.4);
@@ -53,6 +55,7 @@
     max-width: 450px;
     display: flex;
     flex-direction: column;
+    animation: loginContentPop 0.55s ease-out 0.05s both;
   }
 
   &__logo {
@@ -118,6 +121,7 @@
     flex-direction: column;
     gap: calc($spacing-sm * 1.2);
     margin-bottom: calc($spacing-md);
+    animation: loginFormReveal 0.55s ease-out 0.08s both;
 
     @include respond-to(md) {
       gap: calc($spacing-md * 1.2);
@@ -134,6 +138,7 @@
     color: #155724;
     text-align: center;
     margin-bottom: calc($spacing-sm);
+    animation: loginAlert 0.4s ease-out both;
 
     @include respond-to(md) {
       padding: calc($spacing-md);
@@ -150,6 +155,7 @@
     color: #721c24;
     text-align: center;
     margin-bottom: calc($spacing-sm);
+    animation: loginAlert 0.4s ease-out both;
 
     @include respond-to(md) {
       padding: calc($spacing-md);
@@ -188,6 +194,7 @@
     align-items: center;
     margin-top: calc($spacing-xs * -1);
     margin-bottom: calc($spacing-xs);
+    animation: loginFadeIn 0.45s ease-out 0.1s both;
   }
 
   &__checkbox-label {
@@ -222,6 +229,21 @@
   &__submit-button {
     margin-top: calc($spacing-sm);
     width: 100%;
+    animation: loginButtonBounce 0.55s ease-out 0.12s both;
+
+    &,
+    button {
+      transition: transform $transition-fast, box-shadow $transition-fast;
+    }
+
+    &:hover {
+      transform: translateY(-1px);
+      box-shadow: $shadow-md;
+    }
+
+    &:active {
+      transform: translateY(0);
+    }
   }
 
   &__register-text {
@@ -251,6 +273,7 @@
     align-items: center;
     margin: calc($spacing-sm) 0;
     text-align: center;
+    animation: loginFadeIn 0.5s ease-out 0.1s both;
 
     @include respond-to(md) {
       margin: calc($spacing-md) 0;
@@ -283,6 +306,7 @@
     gap: calc($spacing-md * 1.5);
     justify-content: center;
     margin-bottom: calc($spacing-sm);
+    animation: loginFadeIn 0.55s ease-out 0.15s both;
   }
 
   &__social-button {
@@ -328,6 +352,7 @@
     position: relative;
     overflow: hidden;
     height: 100vh;
+    animation: loginImageReveal 0.55s ease-out both;
 
     @include respond-to(lg) {
       display: flex;
@@ -343,6 +368,96 @@
     object-fit: contain;
     max-width: 100%;
     max-height: 100%;
+    animation: loginIllustrationFloat 6s ease-in-out infinite alternate;
+  }
+
+  @keyframes loginFadeIn {
+    from {
+      opacity: 0;
+      transform: translateY(18px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @keyframes loginSlideIn {
+    from {
+      opacity: 0;
+      transform: translateX(-25px);
+    }
+    to {
+      opacity: 1;
+      transform: translateX(0);
+    }
+  }
+
+  @keyframes loginContentPop {
+    from {
+      opacity: 0;
+      transform: translateY(20px) scale(0.98);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+    }
+  }
+
+  @keyframes loginFormReveal {
+    from {
+      opacity: 0;
+      transform: translateY(22px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @keyframes loginAlert {
+    from {
+      opacity: 0;
+      transform: translateY(-10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @keyframes loginButtonBounce {
+    0% {
+      opacity: 0;
+      transform: translateY(20px);
+    }
+    70% {
+      opacity: 1;
+      transform: translateY(-3px);
+    }
+    100% {
+      transform: translateY(0);
+    }
+  }
+
+  @keyframes loginImageReveal {
+    from {
+      opacity: 0;
+      transform: translateX(20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateX(0);
+    }
+  }
+
+  @keyframes loginIllustrationFloat {
+    from {
+      transform: translateY(0);
+    }
+    to {
+      transform: translateY(-12px);
+    }
   }
 }
 

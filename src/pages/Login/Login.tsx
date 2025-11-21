@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
-import { useAuth } from '../../contexts/AuthContext';
+import { useAuth } from '../../hooks/useAuth';
 import Input from '../../components/Input/Input';
 import Button from '../../components/Button/Button';
 import { login } from '../../utils/api';
@@ -24,11 +24,9 @@ export default function Login() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [successMessage, setSuccessMessage] = useState('');
 
-  // Mostrar mensaje de éxito del registro si viene desde la página de registro
   useEffect(() => {
     if (location.state?.message) {
       setSuccessMessage(location.state.message);
-      // Limpiar el mensaje después de 5 segundos
       const timer = setTimeout(() => setSuccessMessage(''), 5000);
       return () => clearTimeout(timer);
     }
@@ -66,8 +64,8 @@ export default function Login() {
     }
 
     setIsSubmitting(true);
-    setErrors({}); // Limpiar errores anteriores
-    setSuccessMessage(''); // Limpiar mensaje de éxito
+    setErrors({});
+    setSuccessMessage('');
     
     try {
       const loginData: LoginRequest = {
@@ -78,10 +76,7 @@ export default function Login() {
       const response = await login(loginData);
       
       if (response.success) {
-        console.log('Usuario logueado exitosamente:', response.data);
-        // Actualizar el contexto de autenticación (setUser ya guarda en cookies)
         setUser(response.data, rememberMe);
-        // Redirigir al dashboard
         navigate('/explore', { 
           state: { 
             user: response.data,
@@ -90,12 +85,14 @@ export default function Login() {
         });
       }
     } catch (error) {
-      console.error('Error en login:', error);
-      
       const errorMessage = handleAuthError(error);
       
-      // Si el error es de credenciales incorrectas, mostrarlo como error general
-      if (errorMessage.includes('Credenciales incorrectas') || errorMessage.includes('401')) {
+      if (
+        errorMessage.includes('Credenciales incorrectas') ||
+        errorMessage.includes('401') ||
+        errorMessage.includes('No autenticado') ||
+        errorMessage.includes('Sesión expirada')
+      ) {
         setErrors({ general: 'Correo electrónico o contraseña incorrectos' });
       } else {
         setErrors({ general: errorMessage });
@@ -230,7 +227,17 @@ export default function Login() {
               <button type="button" className="login__social-button login__social-button--facebook">
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
                   <circle cx="12" cy="12" r="10" fill="#1877F2"/>
-                  <text x="12" y="17" font-family="Arial, sans-serif" font-size="16" font-weight="bold" fill="white" text-anchor="middle">f</text>
+                  <text
+                    x="12"
+                    y="17"
+                    fontFamily="Arial, sans-serif"
+                    fontSize="16"
+                    fontWeight="bold"
+                    fill="white"
+                    textAnchor="middle"
+                  >
+                    f
+                  </text>
                 </svg>
               </button>
               <button 

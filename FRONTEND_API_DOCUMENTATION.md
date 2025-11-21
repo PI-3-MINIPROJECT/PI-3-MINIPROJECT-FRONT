@@ -111,7 +111,39 @@ El sistema utiliza **cookies de sesión HTTP-only** para autenticación:
 
 **Nota:** Limpia automáticamente la cookie de sesión y revoca tokens.
 
-### 4. Recuperar Contraseña
+### 4. Actualizar Contraseña
+**Endpoint:** `PUT /api/auth/update-password`
+**Autenticación:** Requerida
+
+**Body:**
+```json
+{
+  "currentPassword": "contraseñaActual123",
+  "newPassword": "nuevaContraseña123",
+  "confirmPassword": "nuevaContraseña123"
+}
+```
+
+**Validaciones:**
+- `currentPassword`: Requerida, debe coincidir con la contraseña actual del usuario
+- `newPassword`: Mínimo 6 caracteres
+- `confirmPassword`: Debe coincidir exactamente con `newPassword`
+
+**Respuesta Exitosa (200):**
+```json
+{
+  "success": true,
+  "message": "Contraseña actualizada exitosamente"
+}
+```
+
+**Errores Comunes:**
+- 400: Contraseña actual incorrecta
+- 400: Las contraseñas no coinciden
+- 400: Nueva contraseña muy débil
+- 401: Usuario no autenticado
+
+### 5. Recuperar Contraseña
 **Endpoint:** `POST /api/auth/reset-password`
 
 **Body:**
@@ -130,7 +162,7 @@ El sistema utiliza **cookies de sesión HTTP-only** para autenticación:
 }
 ```
 
-### 5. OAuth con Google
+### 6. OAuth con Google
 **Endpoint:** `GET /api/auth/oauth/google`
 
 **Flujo:**
