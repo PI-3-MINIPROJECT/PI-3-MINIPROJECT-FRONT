@@ -1,12 +1,35 @@
-import { Link } from 'react-router-dom';
+import { useEffect, useState } from 'react';
+import { Link, useLocation } from 'react-router-dom';
+import { useAuth } from '../../contexts/AuthContext';
 import './Dashboard.scss';
 
 export default function Dashboard() {
+  const { user } = useAuth();
+  const location = useLocation();
+  const [welcomeMessage, setWelcomeMessage] = useState('');
+
+  useEffect(() => {
+    if (location.state?.message) {
+      setWelcomeMessage(location.state.message);
+      // Limpiar el mensaje después de 5 segundos
+      const timer = setTimeout(() => setWelcomeMessage(''), 5000);
+      return () => clearTimeout(timer);
+    }
+  }, [location.state]);
+
   return (
     <main className="dashboard" role="main">
       <div className="dashboard__container">
+        {welcomeMessage && (
+          <div className="dashboard__welcome-message" role="alert">
+            {welcomeMessage}
+          </div>
+        )}
+        
         <div className="dashboard__greeting">
-          <h1 className="dashboard__title">Hola, John</h1>
+          <h1 className="dashboard__title">
+            Hola, {user?.name || 'Usuario'}
+          </h1>
           <p className="dashboard__subtitle">
             Gestiona tus reuniones y conecta con tu equipo
           </p>

@@ -131,5 +131,98 @@
       @include focus-visible;
     }
   }
+
+  &__user {
+    position: relative;
+    display: inline-block;
+
+    &:hover &-dropdown {
+      opacity: 1;
+      visibility: visible;
+      transform: translateY(0);
+    }
+  }
+
+  &__user-avatar {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    border-radius: $border-radius-full;
+    background-color: $primary-color;
+    color: white;
+    text-decoration: none;
+    transition: all $transition-fast;
+    cursor: pointer;
+
+    &:hover {
+      background-color: #3654d1;
+      transform: translateY(-1px);
+      box-shadow: $shadow-md;
+    }
+
+    &:focus-visible {
+      @include focus-visible;
+    }
+  }
+
+  &__user-initials {
+    font-size: $font-size-sm;
+    font-weight: $font-weight-bold;
+    text-transform: uppercase;
+  }
+
+  &__user-dropdown {
+    position: absolute;
+    top: calc(100% + $spacing-xs);
+    right: 0;
+    background-color: white;
+    border-radius: $border-radius-lg;
+    box-shadow: $shadow-lg;
+    border: 1px solid $border-color;
+    min-width: 180px;
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(-$spacing-xs);
+    transition: all $transition-fast;
+    z-index: $z-index-dropdown;
+    overflow: hidden;
+  }
+
+  &__user-dropdown-item {
+    display: block;
+    padding: $spacing-sm $spacing-md;
+    color: $text-primary;
+    text-decoration: none;
+    border: none;
+    background: none;
+    width: 100%;
+    text-align: left;
+    font-size: $font-size-sm;
+    font-weight: $font-weight-medium;
+    cursor: pointer;
+    transition: background-color $transition-fast;
+
+    &:hover {
+      background-color: $background-color;
+      color: $primary-color;
+    }
+
+    &--logout {
+      border-top: 1px solid $border-color;
+      color: $error-color;
+
+      &:hover {
+        background-color: #f8d7da;
+        color: #c82333;
+      }
+    }
+
+    &:focus-visible {
+      @include focus-visible;
+      outline-offset: -2px;
+    }
+  }
 }
 

@@ -1,15 +1,34 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../../contexts/AuthContext';
+import { deleteAccount } from '../../utils/api';
+import { handleAuthError } from '../../utils/auth';
 import Button from '../../components/Button/Button';
 import Input from '../../components/Input/Input';
 import './Profile.scss';
 
 export default function Profile() {
   const navigate = useNavigate();
+  const { user, isLoading, refreshUser, logout } = useAuth();
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [error, setError] = useState('');
+
+  // Redirigir si no está autenticado
+  useEffect(() => {
+    if (!isLoading && !user) {
+      navigate('/login');
+    }
+  }, [user, isLoading, navigate]);
+
+  // Recargar datos del usuario al montar el componente
+  useEffect(() => {
+    if (user) {
+      refreshUser();
+    }
+  }, [user, refreshUser]);
 
   const handleDeleteAccount = () => {
     setShowDeleteModal(true);
@@ -19,24 +38,40 @@ export default function Profile() {
     setShowDeleteModal(false);
     setPassword('');
     setShowPassword(false);
+    setError('');
   };
 
   const handleConfirmDelete = async () => {
     if (!password.trim()) {
+      setError('La contraseña es requerida');
       return;
     }
 
     setIsDeleting(true);
+    setError('');
+    
     try {
-      console.log('Eliminar cuenta con contraseña:', password);
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      // Aquí iría la lógica para eliminar la cuenta
-      navigate('/');
+      await deleteAccount();
+      logout(); // Limpiar estado de autenticación
+      navigate('/', { 
+        state: { 
+          message: 'Cuenta eliminada exitosamente' 
+        } 
+      });
     } catch (error) {
       console.error('Error al eliminar cuenta:', error);
+      const errorMessage = handleAuthError(error);
+      setError(errorMessage);
     } finally {
       setIsDeleting(false);
     }
+  };
+
+  const getUserInitials = () => {
+    if (!user) return 'U';
+    const firstName = user.name || '';
+    const lastName = user.last_name || '';
+    return `${firstName.charAt(0)}${lastName.charAt(0)}`.toUpperCase();
   };
 
   const PasswordToggleIcon = ({ show }: { show: boolean }) => (
@@ -51,6 +86,24 @@ export default function Profile() {
       </svg>
     )
   );
+
+  // Mostrar loading mientras se cargan los datos
+  if (isLoading) {
+    return (
+      <main className="profile" role="main">
+        <div className="profile__container">
+          <div className="profile__loading">
+            <p>Cargando perfil...</p>
+          </div>
+        </div>
+      </main>
+    );
+  }
+
+  // Si no hay usuario, no mostrar nada (el useEffect ya redirige)
+  if (!user) {
+    return null;
+  }
 
   return (
     <main className="profile" role="main">
@@ -67,30 +120,30 @@ export default function Profile() {
         <div className="profile__card">
           <div className="profile__card-header">
             <div className="profile__avatar">
-              <span className="profile__avatar-initials">JG</span>
+              <span className="profile__avatar-initials">{getUserInitials()}</span>
             </div>
             <div className="profile__user-info">
-              <h2 className="profile__user-name">John Green</h2>
-              <p className="profile__username">Jhon Green</p>
+              <h2 className="profile__user-name">{user.name} {user.last_name}</h2>
+              <p className="profile__username">{user.email}</p>
             </div>
           </div>
 
           <div className="profile__details">
             <div className="profile__details-row">
               <div className="profile__detail-label">Nombres</div>
-              <div className="profile__detail-value">John</div>
+              <div className="profile__detail-value">{user.name}</div>
             </div>
             <div className="profile__details-row">
               <div className="profile__detail-label">Apellidos</div>
-              <div className="profile__detail-value">Green</div>
+              <div className="profile__detail-value">{user.last_name}</div>
             </div>
             <div className="profile__details-row">
               <div className="profile__detail-label">Edad</div>
-              <div className="profile__detail-value">28</div>
+              <div className="profile__detail-value">{user.age}</div>
             </div>
             <div className="profile__details-row">
               <div className="profile__detail-label">Correo</div>
-              <div className="profile__detail-value">example@gmail.com</div>
+              <div className="profile__detail-value">{user.email}</div>
             </div>
           </div>
 
@@ -127,6 +180,13 @@ export default function Profile() {
             <p className="profile__modal-text">
               Ingresa tu contraseña para confirmar la eliminación. Esta acción no puede deshacerse.
             </p>
+            
+            {error && (
+              <div className="profile__modal-error" role="alert">
+                {error}
+              </div>
+            )}
+            
             <div className="profile__modal-form">
               <Input
                 id="delete-password"

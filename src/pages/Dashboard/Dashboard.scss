@@ -1,3 +1,4 @@
+@use 'sass:color';
 @use '../../styles/variables' as *;
 @use '../../styles/mixins' as *;
 
@@ -14,6 +15,21 @@
     @include container;
     max-width: 800px;
     margin: 0 auto;
+  }
+
+  &__welcome-message {
+    background-color: #d4edda;
+    border: 1px solid $success-color;
+    border-radius: $border-radius-md;
+    padding: $spacing-md;
+    font-size: $font-size-base;
+    color: #155724;
+    text-align: center;
+    margin-bottom: $spacing-xl;
+
+    @include respond-to(md) {
+      font-size: $font-size-lg;
+    }
   }
 
   &__greeting {

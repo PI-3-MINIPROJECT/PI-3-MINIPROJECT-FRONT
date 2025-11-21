@@ -51,6 +51,13 @@
     }
   }
 
+  &__loading {
+    text-align: center;
+    padding: $spacing-3xl;
+    color: $text-secondary;
+    font-size: $font-size-lg;
+  }
+
   &__card {
     background-color: white;
     border-radius: $border-radius-lg;
@@ -278,6 +285,21 @@
     @include respond-to(md) {
       font-size: $font-size-lg;
       margin-bottom: $spacing-2xl;
+    }
+  }
+
+  &__modal-error {
+    background-color: #f8d7da;
+    border: 1px solid $error-color;
+    border-radius: $border-radius-md;
+    padding: $spacing-sm $spacing-md;
+    font-size: $font-size-sm;
+    color: #721c24;
+    text-align: center;
+    margin-bottom: $spacing-lg;
+
+    @include respond-to(md) {
+      font-size: $font-size-base;
     }
   }
 

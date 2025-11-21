@@ -6,8 +6,11 @@ export async function apiRequest<T>(
   endpoint: string,
   options: RequestInit = {}
 ): Promise<ApiResponse<T>> {
+  const fullUrl = `${API_URL}${endpoint}`;
+  
   try {
-    const response = await fetch(`${API_URL}${endpoint}`, {
+    const response = await fetch(fullUrl, {
+      credentials: 'include', // Importante para cookies de sesión
       headers: {
         'Content-Type': 'application/json',
         ...options.headers,
@@ -63,5 +66,95 @@ export async function put<T>(
 
 export async function del<T>(endpoint: string): Promise<ApiResponse<T>> {
   return apiRequest<T>(endpoint, { method: 'DELETE' });
+}
+
+// Funciones de autenticación
+export async function register(userData: import('../types').RegisterRequest): Promise<import('../types').AuthResponse> {
+  const response = await post<import('../types').User>('/api/auth/register', userData);
+  
+  if (response.success && response.data) {
+    return {
+      success: true,
+      message: 'Usuario registrado exitosamente',
+      data: response.data
+    };
+  }
+  
+  throw new Error(response.error || response.message || 'Error en el registro');
+}
+
+export async function login(credentials: import('../types').LoginRequest): Promise<import('../types').AuthResponse> {
+  const response = await post<import('../types').User>('/api/auth/login', credentials);
+  
+  if (response.success && response.data) {
+    return {
+      success: true,
+      message: 'Inicio de sesión exitoso',
+      data: response.data
+    };
+  }
+  
+  throw new Error(response.error || response.message || 'Error en el login');
+}
+
+export async function logout(): Promise<{ success: boolean; message: string }> {
+  const response = await post<void>('/api/auth/logout', {});
+  
+  if (response.success) {
+    return {
+      success: true,
+      message: 'Cierre de sesión exitoso'
+    };
+  }
+  
+  throw new Error(response.error || response.message || 'Error al cerrar sesión');
+}
+
+export async function resetPassword(email: string): Promise<{ success: boolean; message: string; resetLink?: string }> {
+  const response = await post<{ resetLink: string }>('/api/auth/reset-password', { email });
+  
+  if (response.success && response.data) {
+    return {
+      success: true,
+      message: 'Enlace de recuperación generado',
+      resetLink: response.data.resetLink
+    };
+  }
+  
+  throw new Error(response.error || response.message || 'Error al generar enlace de recuperación');
+}
+
+// Funciones de gestión de usuarios
+export async function getCurrentUser(): Promise<import('../types').User> {
+  const response = await get<{ success: boolean; data: import('../types').User }>('/api/users/profile');
+  
+  if (response.success && response.data && response.data.data) {
+    return response.data.data;
+  }
+  
+  throw new Error(response.error || response.message || 'Error al obtener perfil');
+}
+
+export async function updateProfile(updates: Partial<Omit<import('../types').User, 'uid' | 'createdAt' | 'updatedAt'>>): Promise<import('../types').User> {
+  const response = await put<{ success: boolean; data: import('../types').User }>('/api/users/profile', updates);
+  
+  if (response.success && response.data && response.data.data) {
+    return response.data.data;
+  }
+  
+  throw new Error(response.error || response.message || 'Error al actualizar perfil');
+}
+
+export async function deleteAccount(): Promise<{ success: boolean; message: string }> {
+  const response = await del<void>('/api/users/profile');
+  
+  if (response.success) {
+    return {
+      success: true,
+      message: 'Cuenta eliminada exitosamente'
+    };
+  }
+  
+  throw new Error(response.error || response.message || 'Error al eliminar cuenta');
 }
 
