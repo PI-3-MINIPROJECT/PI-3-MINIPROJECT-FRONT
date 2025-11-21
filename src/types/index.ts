@@ -1,10 +1,11 @@
 export interface User {
-  id: string;
+  uid: string;
   email: string;
-  displayName: string;
-  photoURL?: string;
-  createdAt: Date;
-  updatedAt: Date;
+  name: string;
+  last_name: string;
+  age: number;
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 export interface Meeting {
@@ -21,5 +22,24 @@ export interface ApiResponse<T> {
   data?: T;
   error?: string;
   message?: string;
+}
+
+export interface RegisterRequest {
+  email: string;
+  password: string;
+  name: string;
+  last_name: string;
+  age: number;
+}
+
+export interface LoginRequest {
+  email: string;
+  password: string;
+}
+
+export interface AuthResponse {
+  success: boolean;
+  message: string;
+  data: User;
 }
 
