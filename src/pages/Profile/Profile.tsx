@@ -4,15 +4,12 @@ import { useAuth } from '../../contexts/AuthContext';
 import { deleteAccount } from '../../utils/api';
 import { handleAuthError } from '../../utils/auth';
 import Button from '../../components/Button/Button';
-import Input from '../../components/Input/Input';
 import './Profile.scss';
 
 export default function Profile() {
   const navigate = useNavigate();
   const { user, isLoading, refreshUser, logout } = useAuth();
   const [showDeleteModal, setShowDeleteModal] = useState(false);
-  const [password, setPassword] = useState('');
-  const [showPassword, setShowPassword] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [error, setError] = useState('');
 
@@ -36,17 +33,10 @@ export default function Profile() {
 
   const handleCloseModal = () => {
     setShowDeleteModal(false);
-    setPassword('');
-    setShowPassword(false);
     setError('');
   };
 
   const handleConfirmDelete = async () => {
-    if (!password.trim()) {
-      setError('La contraseña es requerida');
-      return;
-    }
-
     setIsDeleting(true);
     setError('');
     
@@ -74,18 +64,7 @@ export default function Profile() {
     return `${firstName.charAt(0)}${lastName.charAt(0)}`.toUpperCase();
   };
 
-  const PasswordToggleIcon = ({ show }: { show: boolean }) => (
-    show ? (
-      <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <path d="M10 3C5 3 1.73 7.11 1 10C1.73 12.89 5 17 10 17C15 17 18.27 12.89 19 10C18.27 7.11 15 3 10 3ZM10 15C7.24 15 5 12.76 5 10C5 7.24 7.24 5 10 5C12.76 5 15 7.24 15 10C15 12.76 12.76 15 10 15ZM10 7C8.34 7 7 8.34 7 10C7 11.66 8.34 13 10 13C11.66 13 13 11.66 13 10C13 8.34 11.66 7 10 7Z" fill="currentColor"/>
-        <path d="M2.5 2.5L17.5 17.5" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
-      </svg>
-    ) : (
-      <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <path d="M10 3C5 3 1.73 7.11 1 10C1.73 12.89 5 17 10 17C15 17 18.27 12.89 19 10C18.27 7.11 15 3 10 3ZM10 15C7.24 15 5 12.76 5 10C5 7.24 7.24 5 10 5C12.76 5 15 7.24 15 10C15 12.76 12.76 15 10 15ZM10 7C8.34 7 7 8.34 7 10C7 11.66 8.34 13 10 13C11.66 13 13 11.66 13 10C13 8.34 11.66 7 10 7Z" fill="currentColor"/>
-      </svg>
-    )
-  );
+
 
   // Mostrar loading mientras se cargan los datos
   if (isLoading) {
@@ -178,7 +157,7 @@ export default function Profile() {
               Eliminar cuenta
             </h2>
             <p className="profile__modal-text">
-              Ingresa tu contraseña para confirmar la eliminación. Esta acción no puede deshacerse.
+              ¿Estás seguro de que deseas eliminar tu cuenta? Esta acción no puede deshacerse y perderás todos tus datos.
             </p>
             
             {error && (
@@ -187,26 +166,6 @@ export default function Profile() {
               </div>
             )}
             
-            <div className="profile__modal-form">
-              <Input
-                id="delete-password"
-                type={showPassword ? 'text' : 'password'}
-                label="Contraseña"
-                placeholder="••••••••"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                icon={
-                  <button
-                    type="button"
-                    className="profile__modal-password-toggle"
-                    onClick={() => setShowPassword(!showPassword)}
-                    aria-label={showPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'}
-                  >
-                    <PasswordToggleIcon show={showPassword} />
-                  </button>
-                }
-              />
-            </div>
             <div className="profile__modal-actions">
               <button
                 type="button"
@@ -218,7 +177,7 @@ export default function Profile() {
               <button
                 type="button"
                 onClick={handleConfirmDelete}
-                disabled={!password.trim() || isDeleting}
+                disabled={isDeleting}
                 className="profile__modal-delete-button"
               >
                 {isDeleting ? 'Eliminando...' : 'Eliminar definitivamente'}
