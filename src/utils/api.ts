@@ -79,7 +79,6 @@ export async function apiRequest<T>(
     }
 
     if (!response.ok) {
-      // Mensajes de error priorizando la respuesta del backend
       let friendlyMessage: string | undefined;
       if (isJsonRecord(data)) {
         if (typeof data.message === 'string') {
@@ -278,9 +277,9 @@ export async function resetPassword(email: string): Promise<{ success: boolean; 
 }
 
 /**
- * Confirma el restablecimiento de contraseña con el código del email
- * @param {string} oobCode - Código de verificación del email
- * @param {string} newPassword - Nueva contraseña
+ * Confirms password reset with the verification code from email
+ * @param {string} oobCode - Email verification code
+ * @param {string} newPassword - New password
  * @returns {Promise<{success: boolean; message: string; data?: unknown}>} Promise resolving to confirmation response
  * @throws {Error} Throws error if code is invalid or password reset fails
  */

@@ -16,7 +16,6 @@ export default function Dashboard() {
   useEffect(() => {
     if (location.state?.message) {
       setWelcomeMessage(location.state.message);
-      // Limpiar el mensaje después de 5 segundos
       const timer = setTimeout(() => setWelcomeMessage(''), 5000);
       return () => clearTimeout(timer);
     }

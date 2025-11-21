@@ -24,12 +24,10 @@ export default function ResetPassword() {
   const [searchParams] = useSearchParams();
 
   useEffect(() => {
-    // Verificar parámetros de la URL
     const mode = searchParams.get('mode');
     const oobCode = searchParams.get('oobCode');
     
     if (mode !== 'resetPassword' || !oobCode) {
-      // Redirigir a error o login si no hay parámetros válidos
       navigate('/login?error=invalid_reset_link');
     }
   }, [navigate, searchParams]);
@@ -73,13 +71,11 @@ export default function ResetPassword() {
       await confirmPasswordReset(oobCode, newPassword);
       setIsSuccess(true);
       
-      // Redirigir después de un breve delay
       setTimeout(() => {
         navigate('/login?success=password_reset');
       }, 3000);
       
     } catch (error) {
-      console.error('Error al restablecer contraseña:', error);
       const errorMessage = handleAuthError(error);
       setErrors({ general: errorMessage });
     } finally {

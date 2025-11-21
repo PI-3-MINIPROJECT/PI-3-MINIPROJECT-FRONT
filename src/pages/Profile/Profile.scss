@@ -296,6 +296,55 @@
       font-size: $font-size-lg;
       margin-bottom: $spacing-2xl;
     }
+
+    strong {
+      color: $error-color;
+      font-weight: $font-weight-bold;
+    }
+  }
+
+  &__modal-confirmation-input {
+    margin-bottom: $spacing-xl;
+
+    @include respond-to(md) {
+      margin-bottom: $spacing-2xl;
+    }
+  }
+
+  &__modal-input {
+    width: 100%;
+    padding: calc($spacing-md * 1.1) calc($spacing-lg * 1.1);
+    border: 2px solid $border-color;
+    border-radius: $border-radius-md;
+    font-size: $font-size-base;
+    font-family: $font-family-primary;
+    color: $text-primary;
+    background-color: white;
+    transition: all $transition-fast;
+    min-height: 48px;
+    box-sizing: border-box;
+
+    @include respond-to(md) {
+      font-size: $font-size-lg;
+      padding: calc($spacing-md * 1.2) calc($spacing-xl * 1.1);
+      min-height: 54px;
+    }
+
+    &:focus {
+      outline: none;
+      border-color: $error-color;
+      box-shadow: 0 0 0 3px rgba($error-color, 0.1);
+    }
+
+    &:disabled {
+      background-color: $background-color;
+      cursor: not-allowed;
+      opacity: 0.6;
+    }
+
+    &::placeholder {
+      color: $text-secondary;
+    }
   }
 
   &__modal-error {
