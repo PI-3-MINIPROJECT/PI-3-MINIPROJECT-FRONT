@@ -6,6 +6,7 @@ on:
       - main
       - master
   pull_request:
+    types: [opened, synchronize, reopened, closed]
     branches:
       - main
       - master
@@ -38,33 +39,11 @@ jobs:
       - name: Build project
         run: npm run build
 
-  # Job para desplegar a Vercel (Producción)
-  deploy-prod:
-    name: Deploy to Vercel (Production)
+  # Job para desplegar a Vercel - Siempre se ejecuta
+  deploy:
+    name: Deploy to Vercel
     runs-on: ubuntu-latest
     needs: validate
-    # Solo desplegar en push a main/master, nunca en pull requests
-    if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master')
-    
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Deploy to Vercel (Production)
-        uses: amondnet/vercel-action@v25
-        with:
-          vercel-token: ${{ secrets.VERCEL_TOKEN }}
-          vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
-          vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID }}
-          vercel-args: '--prod'
-
-  # Job para desplegar Preview en Pull Requests
-  deploy-preview:
-    name: Deploy to Vercel (Preview)
-    runs-on: ubuntu-latest
-    needs: validate
-    # Solo desplegar en pull requests
-    if: github.event_name == 'pull_request'
     
     steps:
       - name: Checkout code
@@ -72,18 +51,18 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Deploy to Vercel (Preview)
+      - name: Deploy to Vercel
         id: vercel-deploy
         uses: amondnet/vercel-action@v25
         with:
           vercel-token: ${{ secrets.VERCEL_TOKEN }}
           vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
           vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID }}
-          vercel-args: '--yes'
+          vercel-args: ${{ (github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master')) && '--prod' || '--yes' }}
           github-comment: true
           github-token: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Output Preview URL
+      - name: Output Deployment URL
         run: |
-          echo "Preview URL: ${{ steps.vercel-deploy.outputs.preview-url }}"
+          echo "Deployment URL: ${{ steps.vercel-deploy.outputs.preview-url }}"
 
