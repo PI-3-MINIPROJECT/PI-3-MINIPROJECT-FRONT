@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
 import { deleteAccount } from '../../utils/api';
@@ -13,6 +13,7 @@ export default function Profile() {
   const [isDeleting, setIsDeleting] = useState(false);
   const [error, setError] = useState('');
   const userId = user?.uid;
+  const cancelButtonRef = useRef<HTMLButtonElement>(null);
 
   useEffect(() => {
     if (!isLoading && !user) {
@@ -27,6 +28,30 @@ export default function Profile() {
 
     refreshUser();
   }, [refreshUser, userId]);
+
+  useEffect(() => {
+    if (showDeleteModal && cancelButtonRef.current) {
+      cancelButtonRef.current.focus();
+    }
+  }, [showDeleteModal]);
+
+  useEffect(() => {
+    const handleEscape = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && showDeleteModal) {
+        handleCloseModal();
+      }
+    };
+
+    if (showDeleteModal) {
+      document.addEventListener('keydown', handleEscape);
+      document.body.style.overflow = 'hidden';
+    }
+
+    return () => {
+      document.removeEventListener('keydown', handleEscape);
+      document.body.style.overflow = 'unset';
+    };
+  }, [showDeleteModal]);
 
   const handleDeleteAccount = () => {
     setShowDeleteModal(true);
@@ -150,7 +175,12 @@ export default function Profile() {
             onClick={handleCloseModal}
             aria-hidden="true"
           />
-          <div className="profile__modal" role="dialog" aria-labelledby="delete-modal-title">
+          <div 
+            className="profile__modal" 
+            role="dialog" 
+            aria-labelledby="delete-modal-title"
+            aria-modal="true"
+          >
             <h2 id="delete-modal-title" className="profile__modal-title">
               Eliminar cuenta
             </h2>
@@ -166,6 +196,7 @@ export default function Profile() {
             
             <div className="profile__modal-actions">
               <button
+                ref={cancelButtonRef}
                 type="button"
                 onClick={handleCloseModal}
                 className="profile__modal-cancel-button"
