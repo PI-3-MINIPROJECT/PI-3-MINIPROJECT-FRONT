@@ -30,47 +30,55 @@ export default function Login() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [successMessage, setSuccessMessage] = useState('');
 
+  // Detectar cuando vuelve de OAuth
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     
     if (params.get('oauth_success') === 'true') {
-      const sessionCookie = document.cookie.split('; ').find(row => row.startsWith('session='));
+      console.log('✅ Login exitoso con Google - Parámetro detectado');
       
-      if (sessionCookie) {
-        const fetchUserProfile = async () => {
-          try {
-            const response = await getCurrentUser();
+      // Intentar obtener el perfil del usuario
+      // La cookie httpOnly se envía automáticamente, no necesitamos verificarla manualmente
+      const fetchUserProfile = async () => {
+        try {
+          console.log('🔄 Obteniendo perfil de usuario...');
+          const response = await getCurrentUser();
+          
+          if (response.success && response.data) {
+            console.log('✅ Perfil de usuario obtenido:', response.data);
+            setUser(response.data, true);
             
-            if (response.success && response.data) {
-              setUser(response.data, true);
-              
-              navigate('/explore', { 
-                state: { 
-                  message: '¡Bienvenido! Has iniciado sesión con Google exitosamente.' 
-                } 
-              });
-            } else {
-              throw new Error('No se pudo obtener el perfil del usuario');
-            }
-          } catch {
-            setErrors({ general: 'Error al obtener tu información. Intenta de nuevo.' });
+            // Redirigir a dashboard/explore
+            navigate('/explore', { 
+              state: { 
+                message: '¡Bienvenido! Has iniciado sesión con Google exitosamente.' 
+              } 
+            });
+          } else {
+            throw new Error('No se pudo obtener el perfil del usuario');
           }
-        };
-        
+        } catch (error) {
+          console.error('❌ Error al obtener perfil de usuario:', error);
+          setErrors({ general: 'Error al obtener tu información. Por favor, intenta iniciar sesión nuevamente.' });
+        }
+      };
+      
+      // Pequeño delay para asegurar que la cookie se haya establecido
+      setTimeout(() => {
         fetchUserProfile();
-      } else {
-        setErrors({ general: 'Error en la autenticación con Google. Intenta de nuevo.' });
-      }
+      }, 100);
     }
   }, [navigate, setUser]);
 
   useEffect(() => {
+    // Manejar mensajes del estado de navegación
     if (location.state?.message) {
       setSuccessMessage(location.state.message);
       const timer = setTimeout(() => setSuccessMessage(''), 5000);
       return () => clearTimeout(timer);
     }
 
+    // Manejar mensajes de parámetros URL
     const success = searchParams.get('success');
     const error = searchParams.get('error');
 
