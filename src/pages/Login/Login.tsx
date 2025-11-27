@@ -4,7 +4,7 @@ import { useAuth } from '../../hooks/useAuth';
 import Input from '../../components/Input/Input';
 import Button from '../../components/Button/Button';
 import { login } from '../../utils/api';
-import { handleAuthError, redirectToGoogleOAuth, getCurrentUser } from '../../utils/auth';
+import { handleAuthError, redirectToGoogleOAuth, redirectToGitHubOAuth, getCurrentUser } from '../../utils/auth';
 import type { LoginRequest } from '../../types';
 import './Login.scss';
 
@@ -285,20 +285,14 @@ export default function Login() {
             </div>
 
             <div className="login__social">
-              <button type="button" className="login__social-button login__social-button--facebook">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-                  <circle cx="12" cy="12" r="10" fill="#1877F2"/>
-                  <text
-                    x="12"
-                    y="17"
-                    fontFamily="Arial, sans-serif"
-                    fontSize="16"
-                    fontWeight="bold"
-                    fill="white"
-                    textAnchor="middle"
-                  >
-                    f
-                  </text>
+              <button 
+                type="button" 
+                className="login__social-button login__social-button--github"
+                onClick={redirectToGitHubOAuth}
+                title="Iniciar sesión con GitHub"
+              >
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+                  <path fillRule="evenodd" d="M12 2C6.477 2 2 6.477 2 12c0 4.419 2.865 8.165 6.839 9.48.5.092.682-.217.682-.483 0-.237-.009-.868-.014-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.531 1.032 1.531 1.032.892 1.525 2.341 1.085 2.916.828.092-.643.35-1.085.636-1.337-2.22-.253-4.555-1.11-4.555-4.943 0-1.09.39-1.984 1.029-2.682-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.025A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.295 2.747-1.025 2.747-1.025.546 1.379.202 2.398.099 2.65.64.698 1.028 1.592 1.028 2.682 0 3.841-2.339 4.681-4.566 4.934.359.309.678.92.678 1.855 0 1.337-.012 2.419-.012 2.747 0 .268.18.579.688.481C21.137 20.16 24 16.419 24 12c0-5.523-4.477-10-10-10z" clipRule="evenodd" />
                 </svg>
               </button>
               <button 
