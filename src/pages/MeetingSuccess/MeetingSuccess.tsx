@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
+import { useAuth } from '../../hooks/useAuth';
 import Button from '../../components/Button/Button';
 import type { Meeting } from '../../types';
 import './MeetingSuccess.scss';
@@ -17,6 +18,7 @@ interface LocationState {
 export default function MeetingSuccess() {
   const location = useLocation();
   const navigate = useNavigate();
+  const { user } = useAuth();
   const state = location.state as LocationState;
   const [meeting] = useState<Meeting | null>(state?.meeting || null);
   const [copied, setCopied] = useState(false);
@@ -64,9 +66,12 @@ export default function MeetingSuccess() {
   };
 
   const handleJoinRoom = () => {
-    // Navegar a la sala de videoconferencia
+    // Navegar a la sala de videoconferencia con datos del usuario
     navigate('/meetings/room', { 
-      state: { meetingId: meeting.meetingId },
+      state: { 
+        meetingId: meeting.meetingId,
+        username: user?.name || 'Usuario'
+      },
       replace: true 
     });
   };

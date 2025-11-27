@@ -1,5 +1,7 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
+import { useAuth } from '../../hooks/useAuth';
+import ChatRoom from '../../components/ChatRoom/ChatRoom';
 import './VideoConference.scss';
 
 /**
@@ -9,10 +11,17 @@ import './VideoConference.scss';
  */
 export default function VideoConference() {
   const navigate = useNavigate();
+  const location = useLocation();
+  const { user } = useAuth();
   const [isMicOn, setIsMicOn] = useState(true);
   const [isCameraOn, setIsCameraOn] = useState(false);
-  const [message, setMessage] = useState('');
   const [showChat, setShowChat] = useState(true);
+
+  // Obtener datos de la reunión desde location.state
+  const meetingData = location.state as { meetingId?: string; username?: string } | null;
+  const meetingId = meetingData?.meetingId || 'demo-meeting';
+  const userId = user?.uid || 'demo-user';
+  const username = meetingData?.username || user?.displayName || 'Usuario';
 
   const participants = [
     { id: 1, name: 'John Green', initials: 'JG', isCameraOn: false },
@@ -23,13 +32,6 @@ export default function VideoConference() {
 
   const handleEndCall = () => {
     navigate('/explore');
-  };
-
-  const handleSendMessage = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (message.trim()) {
-      setMessage('');
-    }
   };
 
   return (
@@ -136,39 +138,11 @@ export default function VideoConference() {
 
       {showChat && (
         <div className="video-conference__chat">
-          <div className="video-conference__chat-header">
-            <h2 className="video-conference__chat-title">Mensajes</h2>
-          </div>
-
-          <div className="video-conference__chat-messages">
-            <div className="video-conference__empty-message">
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" className="video-conference__empty-icon">
-                <path d="M20 2H4C2.9 2 2 2.9 2 4V22L6 18H20C21.1 18 22 17.1 22 16V4C22 2.9 21.1 2 20 2ZM20 16H6L4 18V4H20V16Z" fill="#4169E1"/>
-              </svg>
-              <p className="video-conference__empty-text">
-                No hay mensajes aún, sé el primero en escribir
-              </p>
-            </div>
-          </div>
-
-          <form className="video-conference__chat-input" onSubmit={handleSendMessage}>
-            <input
-              type="text"
-              className="video-conference__chat-field"
-              placeholder="Envía un mensaje..."
-              value={message}
-              onChange={(e) => setMessage(e.target.value)}
-            />
-            <button
-              type="submit"
-              className="video-conference__chat-send"
-              aria-label="Enviar mensaje"
-            >
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M2.01 21L23 12L2.01 3L2 10L17 12L2 14L2.01 21Z" fill="currentColor"/>
-              </svg>
-            </button>
-          </form>
+          <ChatRoom
+            meetingId={meetingId}
+            userId={userId}
+            username={username}
+          />
         </div>
       )}
     </div>
