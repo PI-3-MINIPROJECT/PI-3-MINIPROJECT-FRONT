@@ -12,6 +12,7 @@ import ResetPassword from './pages/ResetPassword/ResetPassword';
 import Dashboard from './pages/Dashboard/Dashboard';
 import CreateMeeting from './pages/CreateMeeting/CreateMeeting';
 import JoinMeeting from './pages/JoinMeeting/JoinMeeting';
+import MeetingSuccess from './pages/MeetingSuccess/MeetingSuccess';
 import Profile from './pages/Profile/Profile';
 import EditProfile from './pages/EditProfile/EditProfile';
 import VideoConference from './pages/VideoConference/VideoConference';
@@ -59,6 +60,7 @@ function App() {
               <Route path="/explore" element={<Dashboard />} />
               <Route path="/meetings/create" element={<CreateMeeting />} />
               <Route path="/meetings/join" element={<JoinMeeting />} />
+              <Route path="/meetings/success" element={<MeetingSuccess />} />
               <Route path="/account" element={<Profile />} />
               <Route path="/account/edit" element={<EditProfile />} />
             </Routes>
