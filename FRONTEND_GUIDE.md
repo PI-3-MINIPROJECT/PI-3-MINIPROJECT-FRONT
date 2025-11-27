@@ -393,6 +393,18 @@ export const meetingService = {
     return response.data;
   },
 
+  // Obtener reuniones de hoy
+  async getTodayMeetings(userId) {
+    try {
+      const response = await chatAPI.get(`/api/meetings/today/${userId}`);
+      console.log(`✅ Encontradas ${response.data.data.count} reuniones para hoy`);
+      return response.data;
+    } catch (error) {
+      console.error('❌ Error obteniendo reuniones de hoy:', error.response?.data?.message || error.message);
+      throw error;
+    }
+  },
+
   // Verificar salud del servidor
   async healthCheck() {
     const response = await chatAPI.get('/health');

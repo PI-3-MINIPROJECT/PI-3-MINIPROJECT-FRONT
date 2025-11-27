@@ -13,6 +13,8 @@ import Dashboard from './pages/Dashboard/Dashboard';
 import CreateMeeting from './pages/CreateMeeting/CreateMeeting';
 import JoinMeeting from './pages/JoinMeeting/JoinMeeting';
 import MeetingSuccess from './pages/MeetingSuccess/MeetingSuccess';
+import MeetingDetails from './pages/MeetingDetails/MeetingDetails';
+import MyMeetings from './pages/MyMeetings/MyMeetings';
 import Profile from './pages/Profile/Profile';
 import EditProfile from './pages/EditProfile/EditProfile';
 import VideoConference from './pages/VideoConference/VideoConference';
@@ -58,9 +60,11 @@ function App() {
               <Route path="/about" element={<About />} />
               <Route path="/sitemap" element={<Sitemap />} />
               <Route path="/explore" element={<Dashboard />} />
+              <Route path="/my-meetings" element={<MyMeetings />} />
               <Route path="/meetings/create" element={<CreateMeeting />} />
               <Route path="/meetings/join" element={<JoinMeeting />} />
               <Route path="/meetings/success" element={<MeetingSuccess />} />
+              <Route path="/meetings/:meetingId" element={<MeetingDetails />} />
               <Route path="/account" element={<Profile />} />
               <Route path="/account/edit" element={<EditProfile />} />
             </Routes>

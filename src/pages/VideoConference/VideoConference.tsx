@@ -21,7 +21,7 @@ export default function VideoConference() {
   const meetingData = location.state as { meetingId?: string; username?: string } | null;
   const meetingId = meetingData?.meetingId || 'demo-meeting';
   const userId = user?.uid || 'demo-user';
-  const username = meetingData?.username || user?.displayName || 'Usuario';
+  const username = meetingData?.username || user?.name || 'Usuario';
 
   const participants = [
     { id: 1, name: 'John Green', initials: 'JG', isCameraOn: false },

@@ -115,19 +115,37 @@ export async function getMeetingById(meetingId: string): Promise<Meeting> {
 /**
  * Gets all meetings for a specific user
  * @param {string} userId - User ID
- * @returns {Promise<Meeting[]>} Promise resolving to array of meetings
+ * @returns {Promise<{ success: boolean; data: Meeting[] | { meetings: Meeting[] } }>} Promise resolving to meetings response
  * @throws {Error} Throws error if request fails
  */
-export async function getUserMeetings(userId: string): Promise<Meeting[]> {
-  const response = await chatApiRequest<{ success: boolean; data: Meeting[] }>(`/api/meetings/user/${userId}`, {
+export async function getUserMeetings(userId: string): Promise<{ success: boolean; data: any }> {
+  const response = await chatApiRequest<{ success: boolean; data: any }>(`/api/meetings/user/${userId}`, {
     method: 'GET',
   });
   
-  if (response.success && response.data) {
-    return response.data;
+  if (response.success) {
+    return response;
   }
   
   throw new Error('Error al obtener las reuniones');
+}
+
+/**
+ * Gets today's meetings for a specific user
+ * @param {string} userId - User ID
+ * @returns {Promise<{ success: boolean; data: { date: string; count: number; meetings: Meeting[] } }>} Promise resolving to today's meetings
+ * @throws {Error} Throws error if request fails
+ */
+export async function getTodayMeetings(userId: string): Promise<{ success: boolean; data: { date: string; count: number; meetings: Meeting[] } }> {
+  const response = await chatApiRequest<{ success: boolean; data: { date: string; count: number; meetings: Meeting[] } }>(`/api/meetings/today/${userId}`, {
+    method: 'GET',
+  });
+  
+  if (response.success) {
+    return response;
+  }
+  
+  throw new Error('Error al obtener las reuniones de hoy');
 }
 
 /**

@@ -168,6 +168,47 @@
     animation: dashboardFadeIn 0.45s ease-out 0.12s both;
   }
 
+  &__meetings-loading {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: $spacing-2xl;
+    color: $text-secondary;
+  }
+
+  &__meetings-spinner {
+    width: 40px;
+    height: 40px;
+    border: 3px solid rgba($primary-color, 0.2);
+    border-top-color: $primary-color;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin-bottom: $spacing-md;
+  }
+
+  &__meetings-empty {
+    text-align: center;
+    padding: $spacing-2xl;
+    color: $text-secondary;
+
+    p {
+      margin-bottom: $spacing-md;
+    }
+  }
+
+  &__meetings-create-link {
+    display: inline-block;
+    color: $primary-color;
+    text-decoration: none;
+    font-weight: $font-weight-semibold;
+    transition: all $transition-fast;
+
+    &:hover {
+      text-decoration: underline;
+    }
+  }
+
   &__meeting-item {
     display: flex;
     align-items: center;
@@ -207,13 +248,40 @@
     }
   }
 
+  &__meeting-info {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+  }
+
   &__meeting-name {
     font-size: $font-size-base;
     color: $text-primary;
-    flex: 1;
+    font-weight: $font-weight-semibold;
 
     @include respond-to(md) {
       font-size: $font-size-lg;
+    }
+  }
+
+  &__meeting-description {
+    font-size: $font-size-sm;
+    color: $text-secondary;
+    display: -webkit-box;
+    -webkit-line-clamp: 1;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  &__meeting-arrow {
+    color: $primary-color;
+    font-size: $font-size-xl;
+    font-weight: $font-weight-bold;
+    transition: transform $transition-fast;
+    
+    .dashboard__meeting-item:hover & {
+      transform: translateX(4px);
     }
   }
 
@@ -280,6 +348,12 @@
     to {
       opacity: 1;
       transform: translateX(0);
+    }
+  }
+
+  @keyframes spin {
+    to {
+      transform: rotate(360deg);
     }
   }
 }
