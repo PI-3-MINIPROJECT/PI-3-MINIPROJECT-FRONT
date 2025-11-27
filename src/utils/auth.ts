@@ -24,6 +24,11 @@ export function redirectToGoogleOAuth(): void {
   window.location.href = `${baseUrl}/api/auth/oauth/google`;
 }
 
+export function redirectToGitHubOAuth(): void {
+  const baseUrl = import.meta.env.VITE_API_URL || 'http://localhost:3000';
+  window.location.href = `${baseUrl}/api/auth/oauth/github`;
+}
+
 /**
  * Retrieves the current authenticated user's profile
  * @returns {Promise<import('./api').ApiResponse<User>>} Promise resolving to user profile response
