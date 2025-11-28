@@ -1,6 +1,6 @@
 # WCAG Accessibility Implementation
 
-This document describes the WCAG 2.1 Operable guideline implemented in the VideoConference Platform frontend for Sprint 1.
+This document describes the WCAG 2.1 guidelines implemented in the VideoConference Platform frontend for Sprint 1, including both Operable and Understandable principles.
 
 ---
 
@@ -247,10 +247,255 @@ To verify keyboard accessibility:
 
 ---
 
+---
+
+## WCAG 3.3.1 Error Identification (Level A)
+
+**WCAG Principle**: Understandable  
+**Guideline**: 3.3 Input Assistance  
+**Success Criterion**: 3.3.1 Error Identification  
+**Level**: A (Minimum level)
+
+### Requirement
+
+"If an input error is automatically detected, the error is identified and the error is described to the user in text."
+
+### Implementation
+
+The application clearly identifies and describes input errors to users through multiple mechanisms:
+
+#### 1. Inline Error Messages
+
+All form fields display error messages directly below the input when validation fails:
+
+- **Field-Level Errors**: Each input field shows its specific error message
+  - Error appears immediately below the problematic field
+  - Error message is in text format (not just visual indicators)
+  - Error persists until the user corrects the input
+
+- **Error Styling**: Visual indicators combined with text messages
+  - Red border on input field when error exists
+  - Red error text below the field
+  - Clear visual distinction between valid and invalid states
+
+**Location**:
+- `src/components/Input/Input.tsx` - Error message display below input
+- All form pages display field-level errors
+
+**Code Example**:
+```tsx
+<Input
+  id="email"
+  type="email"
+  label="Correo electrónico"
+  value={email}
+  onChange={handleEmailChange}
+  error={errors.email}  // Error message displayed below input
+  required
+/>
+// Error renders as: <span className="input-error-message">{error}</span>
+```
+
+#### 2. General Error Messages
+
+Forms display general error messages at the top when there are form-wide issues:
+
+- **API Errors**: Errors from backend are displayed prominently
+  - General error banner at top of form
+  - User-friendly error messages (not technical jargon)
+  - Clear indication that action failed
+
+- **Validation Summary**: When multiple fields have errors, general message indicates form needs correction
+  - "Por favor corrige los campos marcados antes de continuar"
+  - Individual field errors still shown below each field
+
+**Location**:
+- `src/pages/Register/Register.tsx` - General error message display
+- `src/pages/Login/Login.tsx` - General error message display
+- `src/pages/EditProfile/EditProfile.tsx` - General error message display
+
+**Code Example**:
+```tsx
+{errors.general && (
+  <div className="register__error-message" role="alert">
+    {errors.general}
+  </div>
+)}
+```
+
+#### 3. Real-Time Error Identification
+
+Errors are identified as soon as they occur, not just on form submission:
+
+- **On Blur Validation**: Errors appear when user leaves a field
+  - Immediate feedback when field loses focus
+  - User knows about error before submitting form
+  - Reduces frustration from submission failures
+
+- **On Change Validation**: Errors clear when user corrects input
+  - Error disappears as soon as field becomes valid
+  - Positive feedback when error is resolved
+  - Encourages user to correct errors immediately
+
+**Location**:
+- `src/pages/Register/Register.tsx` - `handleFieldBlur()` function
+- `src/pages/EditProfile/EditProfile.tsx` - `handleFieldBlur()` function
+- All form pages validate on blur and change
+
+**Code Example**:
+```typescript
+const handleFieldBlur = (field: RegisterField) => {
+  const value = getFieldValue(field);
+  updateFieldError(field, validateField(field, value));
+};
+
+<Input
+  onBlur={() => handleFieldBlur('email')}  // Validates when field loses focus
+  onChange={(e) => {
+    handleEmailChange(e.target.value);
+    // Error clears when user corrects input
+  }}
+/>
+```
+
+#### 4. Specific Error Descriptions
+
+Error messages are specific and actionable, not generic:
+
+- **Email Validation**: "Ingrese un correo electrónico válido" (not just "Invalid")
+- **Password Requirements**: "La contraseña debe cumplir con todos los requisitos"
+- **Required Fields**: "El correo electrónico es requerido" (not just "Required")
+- **Password Match**: "Las contraseñas no coinciden"
+- **Age Range**: "La edad debe estar entre 1 y 120"
+
+**Location**:
+- `src/pages/Register/Register.tsx` - `validateField()` function with specific messages
+- `src/pages/EditProfile/EditProfile.tsx` - `validateField()` function with specific messages
+- `src/pages/Login/Login.tsx` - `validateForm()` function with specific messages
+
+**Code Example**:
+```typescript
+const validateField = (field: RegisterField, value: string): string | undefined => {
+  const trimmed = value.trim();
+  switch (field) {
+    case 'email':
+      if (!trimmed) return 'El correo electrónico es requerido';
+      if (!emailRegex.test(trimmed)) {
+        return 'Ingrese un correo electrónico válido';  // Specific error message
+      }
+      return undefined;
+    case 'password': {
+      if (!trimmed) return 'La contraseña es requerida';
+      const checks = getPasswordChecks(trimmed);
+      if (!Object.values(checks).every(Boolean)) {
+        return 'La contraseña debe cumplir con todos los requisitos.';  // Specific message
+      }
+      return undefined;
+    }
+    // More specific validations...
+  }
+};
+```
+
+#### 5. ARIA Attributes for Error Announcement
+
+Error messages use ARIA attributes to ensure screen readers announce them:
+
+- **role="alert"**: General error messages use `role="alert"` for immediate announcement
+- **aria-live**: Password requirements use `aria-live="polite"` for updates
+- **Error Association**: Inputs are associated with error messages through DOM structure
+
+**Location**:
+- All error message containers use `role="alert"`
+- `src/pages/Register/Register.tsx` - Error messages with ARIA
+- `src/pages/EditProfile/EditProfile.tsx` - Error messages with ARIA
+
+**Code Example**:
+```tsx
+{errors.general && (
+  <div className="register__error-message" role="alert">
+    {errors.general}
+  </div>
+)}
+
+<div className="register__password-requirements" aria-live="polite">
+  {/* Password requirements that update in real-time */}
+</div>
+```
+
+#### 6. Error Message Persistence
+
+Errors remain visible until corrected:
+
+- **Error Display**: Error messages stay visible until user fixes the issue
+- **No Auto-Dismiss**: Errors don't disappear automatically (unlike success messages)
+- **Clear on Correction**: Errors clear immediately when field becomes valid
+
+**Location**:
+- All form validation logic maintains error state until correction
+- `src/pages/Register/Register.tsx` - Error state management
+- `src/pages/EditProfile/EditProfile.tsx` - Error state management
+
+### Testing
+
+To verify error identification:
+
+1. **Form Validation Test**:
+   - Submit a form with empty required fields
+   - Verify error messages appear below each empty field
+   - Verify error messages are in text format (not just visual)
+
+2. **Real-Time Validation Test**:
+   - Enter invalid email format
+   - Tab away from field (blur event)
+   - Verify error message appears immediately
+   - Correct the email
+   - Verify error message disappears
+
+3. **Specific Error Messages Test**:
+   - Enter invalid data in different fields
+   - Verify each error message is specific to that field
+   - Verify error messages are actionable (tell user what to fix)
+
+4. **Screen Reader Test**:
+   - Use screen reader to navigate form
+   - Submit form with errors
+   - Verify screen reader announces error messages
+   - Verify error messages are associated with their fields
+
+### Benefits
+
+- **Clear Communication**: Users understand exactly what went wrong
+- **Reduced Frustration**: Specific error messages help users fix issues quickly
+- **Accessibility**: Screen readers can announce errors to visually impaired users
+- **Better UX**: Real-time validation prevents submission of invalid forms
+- **Compliance**: Meets WCAG 2.1 Level A requirements for error identification
+
+### Code Locations Summary
+
+| Component | Location | Error Identification Feature |
+|-----------|----------|------------------------------|
+| Input Component | `src/components/Input/Input.tsx` | Error message display below input |
+| Register Form | `src/pages/Register/Register.tsx` | Field-level and general error messages |
+| Login Form | `src/pages/Login/Login.tsx` | Field-level and general error messages |
+| Edit Profile Form | `src/pages/EditProfile/EditProfile.tsx` | Field-level and general error messages |
+| Create Meeting Form | `src/pages/CreateMeeting/CreateMeeting.tsx` | Field-level and general error messages |
+| Validation Functions | All form pages | Specific error message generation |
+| Error Handling | `src/utils/auth.ts` | User-friendly error message conversion |
+
+---
+
 ## References
 
+### WCAG 2.1.1 Keyboard (Operable)
 - [WCAG 2.1 Success Criterion 2.1.1 Keyboard](https://www.w3.org/WAI/WCAG21/Understanding/keyboard.html)
 - [WCAG 2.1 Guidelines - Operable](https://www.w3.org/WAI/WCAG21/quickref/?currentsidebar=%23col_customize&levels=aaa&technologies=html%2Ccss%2Cjavascript)
 - [MDN: Keyboard Accessibility](https://developer.mozilla.org/en-US/docs/Web/Accessibility/Keyboard-navigable_JavaScript_widgets)
 - [WebAIM: Keyboard Accessibility](https://webaim.org/techniques/keyboard/)
+
+### WCAG 3.3.1 Error Identification (Understandable)
+- [WCAG 2.1 Success Criterion 3.3.1 Error Identification](https://www.w3.org/WAI/WCAG21/Understanding/error-identification.html)
+- [WCAG 2.1 Guidelines - Understandable](https://www.w3.org/WAI/WCAG21/quickref/?currentsidebar=%23col_customize&levels=aaa&technologies=html%2Ccss%2Cjavascript)
+- [MDN: Form Validation](https://developer.mozilla.org/en-US/docs/Learn/Forms/Form_validation)
+- [WebAIM: Form Labels](https://webaim.org/techniques/forms/)
 

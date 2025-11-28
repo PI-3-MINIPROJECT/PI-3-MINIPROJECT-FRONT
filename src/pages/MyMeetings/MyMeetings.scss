@@ -1,0 +1,322 @@
+@use 'sass:color';
+@use '../../styles/variables' as *;
+
+.my-meetings {
+  min-height: calc(100vh - 80px);
+  padding: 3rem 1.5rem;
+  background: linear-gradient(135deg, color.adjust($background-color, $lightness: -2%), $background-color);
+
+  &__container {
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+
+  &__header {
+    text-align: center;
+    margin-bottom: 3rem;
+  }
+
+  &__title {
+    font-size: 2.5rem;
+    font-weight: 700;
+    color: $text-primary;
+    margin-bottom: 0.5rem;
+
+    &-highlight {
+      color: $primary-color;
+    }
+  }
+
+  &__subtitle {
+    font-size: 1.1rem;
+    color: $text-secondary;
+  }
+
+  &__filters {
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+    margin-bottom: 2rem;
+    flex-wrap: wrap;
+  }
+
+  &__filter-btn {
+    padding: 0.75rem 1.5rem;
+    border: 2px solid color.adjust($background-color, $lightness: -15%);
+    background: white;
+    color: $text-primary;
+    border-radius: 25px;
+    font-size: 0.95rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s ease;
+
+    &:hover {
+      border-color: $primary-color;
+      transform: translateY(-2px);
+    }
+
+    &--active {
+      background: $primary-color;
+      color: white;
+      border-color: $primary-color;
+    }
+  }
+
+  &__error {
+    background: #fee;
+    color: #c33;
+    padding: 1rem;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 2rem;
+    
+    svg {
+      flex-shrink: 0;
+    }
+  }
+
+  &__loading {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 4rem 2rem;
+    color: $text-secondary;
+  }
+
+  &__spinner {
+    width: 50px;
+    height: 50px;
+    border: 4px solid color.adjust($primary-color, $alpha: -0.8);
+    border-top-color: $primary-color;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin-bottom: 1rem;
+  }
+
+  &__empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 4rem 2rem;
+    text-align: center;
+
+    svg {
+      margin-bottom: 1.5rem;
+      color: $text-secondary;
+    }
+
+    h2 {
+      font-size: 1.5rem;
+      color: $text-primary;
+      margin-bottom: 0.5rem;
+    }
+
+    p {
+      color: $text-secondary;
+      margin-bottom: 2rem;
+      max-width: 400px;
+    }
+  }
+
+  &__create-btn {
+    display: inline-block;
+    padding: 0.875rem 2rem;
+    background: $primary-color;
+    color: white;
+    text-decoration: none;
+    border-radius: 25px;
+    font-weight: 600;
+    transition: all 0.3s ease;
+
+    &:hover {
+      background: color.adjust($primary-color, $lightness: -10%);
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba($primary-color, 0.3);
+    }
+  }
+
+  &__list {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+    gap: 1.5rem;
+  }
+
+  &__card {
+    background: white;
+    border-radius: 12px;
+    padding: 1.5rem;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    cursor: pointer;
+    transition: all 0.3s ease;
+
+    &:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+    }
+
+    &:focus {
+      outline: 2px solid $primary-color;
+      outline-offset: 2px;
+    }
+  }
+
+  &__card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 0.75rem;
+    gap: 1rem;
+  }
+
+  &__card-title-section {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  &__card-title {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: $text-primary;
+    margin: 0;
+  }
+
+  &__card-status {
+    display: inline-block;
+    padding: 0.25rem 0.75rem;
+    border-radius: 12px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+
+    &--green {
+      background: #e8f5e9;
+      color: #2e7d32;
+    }
+
+    &--gray {
+      background: #f5f5f5;
+      color: #616161;
+    }
+
+    &--red {
+      background: #ffebee;
+      color: #c62828;
+    }
+
+    &--blue {
+      background: #e3f2fd;
+      color: #1565c0;
+    }
+  }
+
+  &__card-badge {
+    background: linear-gradient(135deg, $primary-color, color.adjust($primary-color, $lightness: -10%));
+    color: white;
+    padding: 0.375rem 0.875rem;
+    border-radius: 16px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    white-space: nowrap;
+  }
+
+  &__card-description {
+    color: $text-secondary;
+    font-size: 0.9rem;
+    line-height: 1.5;
+    margin-bottom: 1rem;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  &__card-info {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.75rem;
+    margin-bottom: 1rem;
+    padding: 1rem 0;
+    border-top: 1px solid color.adjust($background-color, $lightness: -10%);
+    border-bottom: 1px solid color.adjust($background-color, $lightness: -10%);
+  }
+
+  &__card-info-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: $text-secondary;
+    font-size: 0.85rem;
+
+    svg {
+      color: $primary-color;
+      flex-shrink: 0;
+    }
+  }
+
+  &__card-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1rem;
+  }
+
+  &__card-id {
+    font-size: 0.8rem;
+    color: $text-secondary;
+    font-family: monospace;
+  }
+
+  &__card-btn {
+    background: transparent;
+    border: none;
+    color: $primary-color;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-size: 0.9rem;
+
+    &:hover {
+      transform: translateX(4px);
+    }
+  }
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (max-width: 768px) {
+  .my-meetings {
+    padding: 2rem 1rem;
+
+    &__title {
+      font-size: 2rem;
+    }
+
+    &__list {
+      grid-template-columns: 1fr;
+    }
+
+    &__filters {
+      flex-direction: column;
+    }
+
+    &__filter-btn {
+      width: 100%;
+    }
+
+    &__card-info {
+      grid-template-columns: 1fr;
+    }
+  }
+}

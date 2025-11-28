@@ -43,9 +43,19 @@ export default function Register() {
 
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
+  /**
+   * Sanitizes numeric input by removing non-numeric characters and limiting length
+   * @param {string} value - Input value to sanitize
+   * @returns {string} Sanitized numeric string (max 3 characters)
+   */
   const sanitizeNumericInput = (value: string) =>
     value.replace(/[^0-9]/g, '').slice(0, 3);
 
+  /**
+   * Gets password validation checks
+   * @param {string} pwd - Password to check
+   * @returns {Object} Object with password validation checks
+   */
   const getPasswordChecks = (pwd: string) => ({
     length: pwd.length >= 6,
     lowercase: /[a-z]/.test(pwd),
@@ -56,6 +66,11 @@ export default function Register() {
 
   const passwordChecks = useMemo(() => getPasswordChecks(password), [password]);
 
+  /**
+   * Gets the current value of a form field
+   * @param {RegisterField} field - Field name to get value for
+   * @returns {string} Field value
+   */
   const getFieldValue = (field: RegisterField): string => {
     switch (field) {
       case 'firstName':
@@ -75,6 +90,14 @@ export default function Register() {
     }
   };
 
+  /**
+   * Validates a single form field
+   * @param {RegisterField} field - Field name to validate
+   * @param {string} value - Field value to validate
+   * @param {Object} [opts] - Optional validation options
+   * @param {string} [opts.passwordValue] - Password value for confirmation validation
+   * @returns {string | undefined} Error message or undefined if valid
+   */
   const validateField = (
     field: RegisterField,
     value: string,
@@ -128,6 +151,12 @@ export default function Register() {
     }
   };
 
+  /**
+   * Updates error state for a specific field
+   * @param {RegisterField} field - Field name to update error for
+   * @param {string} [errorMessage] - Error message to set, or undefined to clear
+   * @returns {void}
+   */
   const updateFieldError = (
     field: RegisterField,
     errorMessage?: string
@@ -143,11 +172,20 @@ export default function Register() {
     });
   };
 
+  /**
+   * Handles field blur event and validates the field
+   * @param {RegisterField} field - Field name that lost focus
+   * @returns {void}
+   */
   const handleFieldBlur = (field: RegisterField) => {
     const value = getFieldValue(field);
     updateFieldError(field, validateField(field, value));
   };
 
+  /**
+   * Clears the general error message
+   * @returns {void}
+   */
   const clearGeneralError = () => {
     setErrors((prev) => {
       if (!prev.general) return prev;
@@ -237,6 +275,11 @@ export default function Register() {
     return Object.keys(newErrors).length === 0;
   };
 
+  /**
+   * Handles form submission for user registration
+   * @param {React.FormEvent} e - Form submit event
+   * @returns {Promise<void>} Promise that resolves when registration is complete
+   */
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -278,6 +321,12 @@ export default function Register() {
     }
   };
 
+  /**
+   * Password toggle icon component
+   * @param {Object} props - Component props
+   * @param {boolean} props.show - Whether password is visible
+   * @returns {JSX.Element} Password toggle icon SVG
+   */
   const PasswordToggleIcon = ({ show }: { show: boolean }) => (
     show ? (
       <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">

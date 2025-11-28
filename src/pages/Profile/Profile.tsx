@@ -74,6 +74,10 @@ export default function Profile() {
     setShowDeleteModal(true);
   };
 
+  /**
+   * Closes the delete account modal and resets state
+   * @returns {void}
+   */
   const handleCloseModal = () => {
     setShowDeleteModal(false);
     setShowSecondConfirmation(false);
@@ -81,10 +85,18 @@ export default function Profile() {
     setError('');
   };
 
+  /**
+   * Shows the second confirmation step in delete account flow
+   * @returns {void}
+   */
   const handleFirstConfirm = () => {
     setShowSecondConfirmation(true);
   };
 
+  /**
+   * Handles final confirmation and deletion of user account
+   * @returns {Promise<void>} Promise that resolves when deletion is complete
+   */
   const handleConfirmDelete = async () => {
     if (confirmationText.trim().toUpperCase() !== 'ELIMINAR') {
       setError('Debes escribir "ELIMINAR" para confirmar la eliminación');
@@ -110,6 +122,10 @@ export default function Profile() {
     }
   };
 
+  /**
+   * Gets user initials from name and last name
+   * @returns {string} User initials (e.g., "JG" for John Green)
+   */
   const getUserInitials = () => {
     if (!user) return 'U';
     const firstName = user.name || '';

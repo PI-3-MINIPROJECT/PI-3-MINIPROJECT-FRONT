@@ -48,9 +48,19 @@ export default function EditProfile() {
 
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
+  /**
+   * Sanitizes numeric input by removing non-numeric characters and limiting length
+   * @param {string} value - Input value to sanitize
+   * @returns {string} Sanitized numeric string (max 3 characters)
+   */
   const sanitizeNumericInput = (value: string) =>
     value.replace(/[^0-9]/g, '').slice(0, 3);
 
+  /**
+   * Gets password validation checks
+   * @param {string} pwd - Password to check
+   * @returns {Object} Object with password validation checks
+   */
   const getPasswordChecks = (pwd: string) => ({
     length: pwd.length >= 6,
     lowercase: /[a-z]/.test(pwd),
@@ -66,6 +76,11 @@ export default function EditProfile() {
     currentPassword.trim() || newPassword.trim() || confirmPassword.trim()
   );
 
+  /**
+   * Gets the current value of a form field
+   * @param {EditField} field - Field name to get value for
+   * @returns {string} Field value
+   */
   const getFieldValue = (field: EditField): string => {
     switch (field) {
       case 'firstName':
@@ -87,6 +102,15 @@ export default function EditProfile() {
     }
   };
 
+  /**
+   * Validates a single form field
+   * @param {EditField} field - Field name to validate
+   * @param {string} value - Field value to validate
+   * @param {Object} [opts] - Optional validation options
+   * @param {boolean} [opts.validatePasswordGroup] - Whether to validate password group
+   * @param {string} [opts.passwordComparisonValue] - Password value for confirmation validation
+   * @returns {string | undefined} Error message or undefined if valid
+   */
   const validateField = (
     field: EditField,
     value: string,
@@ -158,6 +182,11 @@ export default function EditProfile() {
     });
   };
 
+  /**
+   * Handles field blur event and validates the field
+   * @param {EditField} field - Field name that lost focus
+   * @returns {void}
+   */
   const handleFieldBlur = (field: EditField) => {
     const value = getFieldValue(field);
     const shouldValidatePasswords =
@@ -333,6 +362,11 @@ export default function EditProfile() {
     return Object.keys(newErrors).length === 0;
   };
 
+  /**
+   * Handles form submission for profile update
+   * @param {React.FormEvent} e - Form submit event
+   * @returns {Promise<void>} Promise that resolves when update is complete
+   */
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -418,6 +452,12 @@ export default function EditProfile() {
     }
   };
 
+  /**
+   * Password toggle icon component
+   * @param {Object} props - Component props
+   * @param {boolean} props.show - Whether password is visible
+   * @returns {JSX.Element} Password toggle icon SVG
+   */
   const PasswordToggleIcon = ({ show }: { show: boolean }) => (
     show ? (
       <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">

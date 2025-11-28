@@ -339,7 +339,6 @@
       border-color: $secondary-color;
     }
 
-    // GitHub button styles
     &--github {
       background-color: white;
       border-color: rgba($secondary-color, 0.4);
@@ -359,7 +358,6 @@
       }
     }
 
-    // Google button styles with subtle hover
     &--google {
       &:hover {
         background-color: #f1f3f4;

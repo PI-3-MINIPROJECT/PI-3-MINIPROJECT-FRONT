@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
+import { getTodayMeetings } from '../../utils/meetingService';
+import type { Meeting } from '../../types';
 import './Dashboard.scss';
 
 /**
@@ -11,7 +13,10 @@ import './Dashboard.scss';
 export default function Dashboard() {
   const { user } = useAuth();
   const location = useLocation();
+  const navigate = useNavigate();
   const [welcomeMessage, setWelcomeMessage] = useState('');
+  const [todayMeetings, setTodayMeetings] = useState<Meeting[]>([]);
+  const [isLoadingMeetings, setIsLoadingMeetings] = useState(true);
 
   useEffect(() => {
     if (location.state?.message) {
@@ -20,6 +25,44 @@ export default function Dashboard() {
       return () => clearTimeout(timer);
     }
   }, [location.state]);
+
+  useEffect(() => {
+    const loadTodayMeetings = async () => {
+      if (!user?.uid) {
+        setIsLoadingMeetings(false);
+        return;
+      }
+
+      try {
+        const response = await getTodayMeetings(user.uid);
+        setTodayMeetings(response.data.meetings || []);
+      } catch (error) {
+        console.error('Error loading today meetings:', error);
+      } finally {
+        setIsLoadingMeetings(false);
+      }
+    };
+
+    loadTodayMeetings();
+  }, [user?.uid]);
+
+  /**
+   * Handles clicking on a meeting card to view details
+   * @param {Meeting} meeting - Meeting object to navigate to
+   * @returns {void}
+   */
+  const handleMeetingClick = (meeting: Meeting) => {
+    navigate(`/meetings/${meeting.meetingId}`, { state: { meeting } });
+  };
+
+  /**
+   * Formats time string for display
+   * @param {string} timeStr - Time string in HH:mm format
+   * @returns {string} Formatted time string
+   */
+  const formatTime = (timeStr: string) => {
+    return timeStr;
+  };
 
   return (
     <main className="dashboard" role="main">
@@ -81,16 +124,40 @@ export default function Dashboard() {
 
         <section className="dashboard__meetings">
           <h2 className="dashboard__meetings-title">Próximas reuniones</h2>
-          <div className="dashboard__meetings-list">
-            <div className="dashboard__meeting-item">
-              <div className="dashboard__meeting-time">12:30 pm</div>
-              <div className="dashboard__meeting-name">Reunión de Equipo</div>
+          {isLoadingMeetings ? (
+            <div className="dashboard__meetings-loading">
+              <div className="dashboard__meetings-spinner"></div>
+              <p>Cargando reuniones...</p>
             </div>
-            <div className="dashboard__meeting-item">
-              <div className="dashboard__meeting-time">14:00 pm</div>
-              <div className="dashboard__meeting-name">Presentación del producto</div>
+          ) : todayMeetings.length === 0 ? (
+            <div className="dashboard__meetings-empty">
+              <p>No tienes reuniones programadas para hoy</p>
+              <Link to="/meetings/create" className="dashboard__meetings-create-link">
+                Crear una reunión
+              </Link>
             </div>
-          </div>
+          ) : (
+            <div className="dashboard__meetings-list">
+              {todayMeetings.map(meeting => (
+                <div 
+                  key={meeting.meetingId}
+                  className="dashboard__meeting-item"
+                  onClick={() => handleMeetingClick(meeting)}
+                  role="button"
+                  tabIndex={0}
+                >
+                  <div className="dashboard__meeting-time">{formatTime(meeting.time)}</div>
+                  <div className="dashboard__meeting-info">
+                    <div className="dashboard__meeting-name">{meeting.title}</div>
+                    {meeting.description && (
+                      <div className="dashboard__meeting-description">{meeting.description}</div>
+                    )}
+                  </div>
+                  <div className="dashboard__meeting-arrow">→</div>
+                </div>
+              ))}
+            </div>
+          )}
         </section>
       </div>
     </main>

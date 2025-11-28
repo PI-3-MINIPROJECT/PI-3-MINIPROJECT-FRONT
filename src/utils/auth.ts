@@ -62,6 +62,19 @@ export async function deleteAccount() {
 export function handleAuthError(error: unknown): string {
   if (error instanceof Error) {
     const status = getStatusCode(error);
+    const message = error.message.toLowerCase();
+    
+    if (
+      message.includes('github') ||
+      message.includes('oauth') ||
+      message.includes('social') ||
+      message.includes('provider') ||
+      message.includes('creada con') ||
+      message.includes('registered with')
+    ) {
+      return 'OAUTH_ERROR';
+    }
+    
     if (
       status === 401 ||
       error.message.includes('401') ||

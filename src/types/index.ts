@@ -14,15 +14,52 @@ export interface User {
 }
 
 /**
- * Meeting interface representing a video conference meeting
+ * Meeting interface representing a video conference meeting from chat backend
  */
 export interface Meeting {
-  id: string;
+  meetingId: string;
   hostId: string;
   title: string;
-  createdAt: Date;
+  description?: string;
+  date: string;
+  time: string;
+  estimatedDuration: number;
+  maxParticipants: number;
   participants: string[];
-  status: 'active' | 'ended';
+  activeParticipants: number;
+  createdAt: string;
+  updatedAt: string;
+  status: 'active' | 'completed' | 'cancelled';
+}
+
+/**
+ * Request interface for creating a new meeting
+ */
+export interface CreateMeetingData {
+  userId: string;
+  title: string;
+  description?: string;
+  date: string;
+  time: string;
+  estimatedDuration?: number;
+  maxParticipants?: number;
+}
+
+/**
+ * Request interface for joining a meeting
+ */
+export interface JoinMeetingData {
+  userId: string;
+  meetingId: string;
+}
+
+/**
+ * Response interface for meeting operations
+ */
+export interface MeetingResponse {
+  success: boolean;
+  message: string;
+  data: Meeting;
 }
 
 /**

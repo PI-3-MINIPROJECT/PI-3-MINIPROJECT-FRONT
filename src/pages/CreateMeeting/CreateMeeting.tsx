@@ -2,6 +2,9 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Input from '../../components/Input/Input';
 import Button from '../../components/Button/Button';
+import { useAuth } from '../../hooks/useAuth';
+import { createMeeting } from '../../utils/meetingService';
+import type { Meeting } from '../../types';
 import './CreateMeeting.scss';
 
 /**
@@ -11,22 +14,35 @@ import './CreateMeeting.scss';
  */
 export default function CreateMeeting() {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [date, setDate] = useState('');
   const [time, setTime] = useState('10:30');
-  const [duration, setDuration] = useState('45 minutes');
-  const [maxParticipants, setMaxParticipants] = useState('10 participants');
-  const [meetingId, setMeetingId] = useState('5f3a91e2');
+  const [duration, setDuration] = useState('45');
+  const [maxParticipants, setMaxParticipants] = useState('10');
   const [errors, setErrors] = useState<{ 
     title?: string; 
     date?: string; 
     time?: string;
+    duration?: string;
+    maxParticipants?: string;
+    general?: string;
   }>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  /**
+   * Validates the create meeting form
+   * @returns {boolean} True if form is valid
+   */
   const validateForm = (): boolean => {
-    const newErrors: { title?: string; date?: string; time?: string } = {};
+    const newErrors: { 
+      title?: string; 
+      date?: string; 
+      time?: string;
+      duration?: string;
+      maxParticipants?: string;
+    } = {};
 
     if (!title.trim()) {
       newErrors.title = 'El título de la reunión es requerido';
@@ -40,10 +56,27 @@ export default function CreateMeeting() {
       newErrors.time = 'La hora es requerida';
     }
 
+    const durationNum = parseInt(duration);
+    if (isNaN(durationNum) || durationNum < 5) {
+      newErrors.duration = 'La duración mínima es 5 minutos';
+    }
+
+    const maxParticipantsNum = parseInt(maxParticipants);
+    if (isNaN(maxParticipantsNum) || maxParticipantsNum < 2) {
+      newErrors.maxParticipants = 'Mínimo 2 participantes';
+    } else if (maxParticipantsNum > 50) {
+      newErrors.maxParticipants = 'Máximo 50 participantes';
+    }
+
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
+  /**
+   * Handles form submission for creating a meeting
+   * @param {React.FormEvent} e - Form submit event
+   * @returns {Promise<void>} Promise that resolves when creation is complete
+   */
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -51,12 +84,38 @@ export default function CreateMeeting() {
       return;
     }
 
+    if (!user?.uid) {
+      setErrors({ general: 'Debes iniciar sesión para crear una reunión' });
+      return;
+    }
+
     setIsSubmitting(true);
+    setErrors({});
+    
     try {
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      navigate('/meetings/room');
-    } catch {
-      setErrors({ title: 'No se pudo crear la reunión. Intenta nuevamente.' });
+      const meetingData = {
+        userId: user.uid,
+        title: title.trim(),
+        description: description.trim() || undefined,
+        date,
+        time,
+        estimatedDuration: parseInt(duration),
+        maxParticipants: parseInt(maxParticipants),
+      };
+
+      const createdMeeting: Meeting = await createMeeting(meetingData);
+      
+      navigate('/meetings/success', { 
+        state: { meeting: createdMeeting },
+        replace: true 
+      });
+    } catch (error) {
+      console.error('Error creating meeting:', error);
+      setErrors({ 
+        general: error instanceof Error 
+          ? error.message 
+          : 'No se pudo crear la reunión. Intenta nuevamente.' 
+      });
     } finally {
       setIsSubmitting(false);
     }
@@ -73,6 +132,12 @@ export default function CreateMeeting() {
             Configura tu videollamada y comienza a conectar
           </p>
         </div>
+
+        {errors.general && (
+          <div className="create-meeting__error-banner" role="alert">
+            {errors.general}
+          </div>
+        )}
 
         <form className="create-meeting__form" onSubmit={handleSubmit}>
           <div className="create-meeting__form-group">
@@ -132,36 +197,30 @@ export default function CreateMeeting() {
             <div className="create-meeting__form-group">
               <Input
                 id="duration"
-                type="text"
-                label="Duración estimada"
-                placeholder="45 minutos"
+                type="number"
+                label="Duración estimada (minutos)"
+                placeholder="45"
                 value={duration}
                 onChange={(e) => setDuration(e.target.value)}
+                error={errors.duration}
+                min="5"
+                max="480"
               />
             </div>
 
             <div className="create-meeting__form-group">
               <Input
                 id="maxParticipants"
-                type="text"
+                type="number"
                 label="Máximo de participantes"
-                placeholder="10 participantes"
+                placeholder="10"
                 value={maxParticipants}
                 onChange={(e) => setMaxParticipants(e.target.value)}
+                error={errors.maxParticipants}
+                min="2"
+                max="50"
               />
             </div>
-          </div>
-
-          <div className="create-meeting__form-group">
-            <Input
-              id="meetingId"
-              type="text"
-              label="ID de la reunión"
-              placeholder="5f3a91e2"
-              value={meetingId}
-              onChange={(e) => setMeetingId(e.target.value)}
-              readOnly
-            />
           </div>
 
           <div className="create-meeting__actions">

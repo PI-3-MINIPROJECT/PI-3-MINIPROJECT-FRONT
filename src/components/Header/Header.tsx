@@ -59,6 +59,17 @@ export default function Header() {
                 Explorar
               </Link>
             </li>
+            {isAuthenticated && (
+              <li>
+                <Link
+                  to="/my-meetings"
+                  className={`header__nav-link ${isActive('/my-meetings') ? 'header__nav-link--active' : ''}`}
+                  aria-current={isActive('/my-meetings') ? 'page' : undefined}
+                >
+                  Mis reuniones
+                </Link>
+              </li>
+            )}
             <li>
               <Link
                 to="/about"
