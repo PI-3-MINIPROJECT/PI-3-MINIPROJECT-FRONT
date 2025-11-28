@@ -30,7 +30,6 @@ class SocketService {
       reconnectionDelay: 1000,
     });
 
-    // Event listeners básicos
     this.socket.on('connect', () => {
       console.log('✅ Socket conectado:', this.socket?.id);
       this.isConnecting = false;
@@ -71,9 +70,9 @@ class SocketService {
   /**
    * Emit an event with data if socket is connected
    * @param {string} event - Event name
-   * @param {any} data - Data to send
+   * @param {unknown} data - Data to send
    */
-  emit(event: string, data: any): void {
+  emit(event: string, data: unknown): void {
     if (this.socket?.connected) {
       this.socket.emit(event, data);
     } else {
@@ -90,5 +89,4 @@ class SocketService {
   }
 }
 
-// Export singleton instance
 export default new SocketService();

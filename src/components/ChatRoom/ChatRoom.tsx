@@ -18,7 +18,6 @@ const ChatRoom: React.FC<ChatRoomProps> = ({ meetingId, userId, username }) => {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  // Hook personalizado para chat
   const {
     isConnected,
     onlineUsers,
@@ -31,12 +30,15 @@ const ChatRoom: React.FC<ChatRoomProps> = ({ meetingId, userId, username }) => {
     participantCount
   } = useChat(meetingId, userId, username);
 
-  // Auto-scroll al último mensaje
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
-  // Manejar envío de mensaje
+  /**
+   * Handles sending a chat message
+   * @param {React.FormEvent} e - Form submit event
+   * @returns {void}
+   */
   const handleSendMessage = (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -47,7 +49,11 @@ const ChatRoom: React.FC<ChatRoomProps> = ({ meetingId, userId, username }) => {
     }
   };
 
-  // Manejar cambio de input
+  /**
+   * Handles input change and typing indicators
+   * @param {React.ChangeEvent<HTMLInputElement>} e - Input change event
+   * @returns {void}
+   */
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setMessageInput(e.target.value);
     
@@ -58,7 +64,11 @@ const ChatRoom: React.FC<ChatRoomProps> = ({ meetingId, userId, username }) => {
     }
   };
 
-  // Formatear hora
+  /**
+   * Formats timestamp for display
+   * @param {string} timestamp - ISO timestamp string
+   * @returns {string} Formatted time string (HH:mm)
+   */
   const formatTime = (timestamp: string) => {
     const date = new Date(timestamp);
     return date.toLocaleTimeString('es-ES', {
@@ -69,7 +79,6 @@ const ChatRoom: React.FC<ChatRoomProps> = ({ meetingId, userId, username }) => {
 
   return (
     <div className="chat-room">
-      {/* Header */}
       <div className="chat-header">
         <div className="chat-title">
           <h3>Chat</h3>
@@ -82,14 +91,12 @@ const ChatRoom: React.FC<ChatRoomProps> = ({ meetingId, userId, username }) => {
         </div>
       </div>
 
-      {/* Error de conexión */}
       {connectionError && (
         <div className="connection-error">
           ⚠️ Error: {connectionError}
         </div>
       )}
 
-      {/* Lista de usuarios online */}
       {onlineUsers.length > 0 && (
         <div className="online-users">
           <div className="online-users-list">
@@ -105,7 +112,6 @@ const ChatRoom: React.FC<ChatRoomProps> = ({ meetingId, userId, username }) => {
         </div>
       )}
 
-      {/* Mensajes */}
       <div className="messages-container">
         {messages.length === 0 ? (
           <div className="no-messages">
@@ -136,7 +142,6 @@ const ChatRoom: React.FC<ChatRoomProps> = ({ meetingId, userId, username }) => {
           </>
         )}
 
-        {/* Indicador de escritura */}
         {isTyping.length > 0 && (
           <div className="typing-indicator">
             <span className="typing-dots">
@@ -149,7 +154,6 @@ const ChatRoom: React.FC<ChatRoomProps> = ({ meetingId, userId, username }) => {
         )}
       </div>
 
-      {/* Input de mensaje */}
       <form className="message-input-container" onSubmit={handleSendMessage}>
         <input
           ref={inputRef}

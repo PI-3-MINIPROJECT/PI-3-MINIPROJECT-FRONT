@@ -26,7 +26,6 @@ export default function MeetingSuccess() {
   const isJoining = state?.isJoining || false;
 
   useEffect(() => {
-    // Si no hay información de reunión después de un delay, redirigir al explore
     if (!meeting) {
       const timer = setTimeout(() => {
         setIsLoading(false);
@@ -37,7 +36,6 @@ export default function MeetingSuccess() {
     }
   }, [meeting, navigate]);
 
-  // Mostrar estado de carga mientras se verifica
   if (isLoading && !meeting) {
     return (
       <main className="meeting-success" role="main">
@@ -65,8 +63,11 @@ export default function MeetingSuccess() {
     }
   };
 
+  /**
+   * Navigates to the video conference room
+   * @returns {void}
+   */
   const handleJoinRoom = () => {
-    // Navegar a la sala de videoconferencia con datos del usuario
     navigate('/meetings/room', { 
       state: { 
         meetingId: meeting.meetingId,
@@ -76,10 +77,19 @@ export default function MeetingSuccess() {
     });
   };
 
+  /**
+   * Navigates to the dashboard/explore page
+   * @returns {void}
+   */
   const handleGoToDashboard = () => {
     navigate('/explore');
   };
 
+  /**
+   * Formats date string for display
+   * @param {string} dateStr - Date string to format
+   * @returns {string} Formatted date string (e.g., "lunes, 1 de diciembre de 2024")
+   */
   const formatDate = (dateStr: string) => {
     const date = new Date(dateStr);
     return date.toLocaleDateString('es-ES', { 
@@ -90,8 +100,13 @@ export default function MeetingSuccess() {
     });
   };
 
+  /**
+   * Formats time string for display
+   * @param {string} timeStr - Time string in HH:mm format
+   * @returns {string} Formatted time string
+   */
   const formatTime = (timeStr: string) => {
-    return timeStr; // Ya viene en formato HH:mm
+    return timeStr;
   };
 
   return (

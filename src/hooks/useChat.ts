@@ -46,18 +46,15 @@ export const useChat = (
   userId: string | undefined,
   username: string | undefined
 ): UseChatReturn => {
-  // Estados
   const [isConnected, setIsConnected] = useState(false);
   const [onlineUsers, setOnlineUsers] = useState<OnlineUser[]>([]);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [isTyping, setIsTyping] = useState<TypingUser[]>([]);
   const [connectionError, setConnectionError] = useState<string | null>(null);
   
-  // Referencias
   const socketRef = useRef<Socket | null>(null);
   const typingTimeoutRef = useRef<number | null>(null);
 
-  // Función para unirse a la reunión
   const joinMeeting = useCallback(() => {
     if (socketRef.current?.connected && meetingId && userId && username) {
       console.log('🔄 Uniéndose a la reunión:', meetingId);
@@ -70,7 +67,6 @@ export const useChat = (
     }
   }, [meetingId, userId, username]);
 
-  // Función para enviar mensaje
   const sendMessage = useCallback((messageText: string) => {
     if (!messageText.trim()) return;
     
@@ -88,7 +84,6 @@ export const useChat = (
     }
   }, [meetingId, userId, username]);
 
-  // Función para indicadores de escritura
   const startTypingBase = useCallback(() => {
     if (socketRef.current?.connected && meetingId && userId && username) {
       socketRef.current.emit('typing:start', {
@@ -109,33 +104,27 @@ export const useChat = (
     }
   }, [meetingId, userId, username]);
 
-  // Función con debounce para typing
   const handleTyping = useCallback(() => {
     startTypingBase();
     
-    // Limpiar timeout anterior
     if (typingTimeoutRef.current) {
       clearTimeout(typingTimeoutRef.current);
     }
     
-    // Establecer nuevo timeout
     typingTimeoutRef.current = setTimeout(() => {
       stopTypingBase();
     }, 1000);
   }, [startTypingBase, stopTypingBase]);
 
-  // Hook principal
   useEffect(() => {
     if (!meetingId || !userId || !username) {
       console.warn('⚠️ Faltan datos para conectar al chat');
       return;
     }
 
-    // Conectar socket
     const socket = socketService.connect();
     socketRef.current = socket;
 
-    // Event listeners
     const handleConnect = () => {
       console.log('✅ Conectado al chat');
       setIsConnected(true);
@@ -190,7 +179,6 @@ export const useChat = (
       setConnectionError(error.message);
     };
 
-    // Registrar listeners
     socket.on('connect', handleConnect);
     socket.on('disconnect', handleDisconnect);
     socket.on('connect_error', handleConnectError);
@@ -202,16 +190,13 @@ export const useChat = (
     socket.on('typing:stop', handleTypingStop);
     socket.on('error', handleError);
 
-    // Cleanup
     return () => {
       console.log('🧹 Limpiando conexión de chat');
       
-      // Salir de la reunión
       if (socket.connected) {
         socket.emit('leave:meeting', meetingId);
       }
 
-      // Remover listeners
       socket.off('connect', handleConnect);
       socket.off('disconnect', handleDisconnect);
       socket.off('connect_error', handleConnectError);
@@ -223,10 +208,8 @@ export const useChat = (
       socket.off('typing:stop', handleTypingStop);
       socket.off('error', handleError);
 
-      // Desconectar
       socketService.disconnect();
       
-      // Limpiar timeouts
       if (typingTimeoutRef.current) {
         clearTimeout(typingTimeoutRef.current);
       }

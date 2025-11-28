@@ -46,10 +46,20 @@ export default function Dashboard() {
     loadTodayMeetings();
   }, [user?.uid]);
 
+  /**
+   * Handles clicking on a meeting card to view details
+   * @param {Meeting} meeting - Meeting object to navigate to
+   * @returns {void}
+   */
   const handleMeetingClick = (meeting: Meeting) => {
     navigate(`/meetings/${meeting.meetingId}`, { state: { meeting } });
   };
 
+  /**
+   * Formats time string for display
+   * @param {string} timeStr - Time string in HH:mm format
+   * @returns {string} Formatted time string
+   */
   const formatTime = (timeStr: string) => {
     return timeStr;
   };

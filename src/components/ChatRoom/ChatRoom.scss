@@ -11,7 +11,6 @@
   overflow: hidden;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 
-  // Header
   .chat-header {
     background: linear-gradient(135deg, $primary-color, color.adjust($primary-color, $lightness: -10%));
     color: white;
@@ -47,7 +46,6 @@
     }
   }
 
-  // Error de conexión
   .connection-error {
     background-color: #fee;
     color: #c33;
@@ -57,7 +55,6 @@
     border-bottom: 1px solid #fcc;
   }
 
-  // Usuarios online
   .online-users {
     background-color: color.adjust($background-color, $lightness: -2%);
     border-bottom: 1px solid color.adjust($background-color, $lightness: -10%);
@@ -92,7 +89,6 @@
     }
   }
 
-  // Contenedor de mensajes
   .messages-container {
     flex: 1;
     overflow-y: auto;
@@ -225,7 +221,6 @@
     }
   }
 
-  // Input de mensaje
   .message-input-container {
     display: flex;
     gap: 0.5rem;
@@ -293,7 +288,6 @@
     }
   }
 
-  // Scrollbar personalizada
   .messages-container::-webkit-scrollbar,
   .online-users::-webkit-scrollbar {
     width: 6px;
@@ -315,7 +309,6 @@
   }
 }
 
-// Animaciones
 @keyframes fadeIn {
   from {
     opacity: 0;
@@ -345,7 +338,6 @@
   }
 }
 
-// Responsive
 @media (max-width: 768px) {
   .chat-room {
     max-height: 500px;

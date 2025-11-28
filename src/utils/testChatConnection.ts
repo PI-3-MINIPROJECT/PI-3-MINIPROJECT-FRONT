@@ -1,14 +1,18 @@
+import type { Meeting } from '../types';
+
 /**
  * Script de prueba para validar conexión con backend de chat
  * Ejecutar en la consola del navegador cuando el frontend esté corriendo
  */
 
-// 1. Verificar que las variables de entorno estén configuradas
 console.log('🔍 Verificando configuración...');
 console.log('VITE_CHAT_SERVER_URL:', import.meta.env.VITE_CHAT_SERVER_URL || 'http://localhost:4000');
 console.log('VITE_API_URL:', import.meta.env.VITE_API_URL || 'http://localhost:3000');
 
-// 2. Verificar salud del servidor de chat
+/**
+ * Verifies the health status of the chat server
+ * @returns {Promise<boolean>} Promise resolving to true if server is healthy, false otherwise
+ */
 async function testChatServerHealth() {
   console.log('\n🏥 Probando health check del servidor de chat...');
   try {
@@ -22,8 +26,12 @@ async function testChatServerHealth() {
   }
 }
 
-// 3. Probar creación de reunión (requiere userId válido)
-async function testCreateMeeting(userId = 'test-user-123') {
+/**
+ * Tests meeting creation functionality
+ * @param {string} [userId='test-user-123'] - User ID for testing
+ * @returns {Promise<Meeting | null>} Promise resolving to created meeting data or null
+ */
+async function testCreateMeeting(userId = 'test-user-123'): Promise<Meeting | null> {
   console.log('\n📝 Probando creación de reunión...');
   try {
     const meetingData = {
@@ -63,8 +71,13 @@ async function testCreateMeeting(userId = 'test-user-123') {
   }
 }
 
-// 4. Probar unirse a reunión
-async function testJoinMeeting(meetingId: string, userId: string = 'test-user-456') {
+/**
+ * Tests joining a meeting functionality
+ * @param {string} meetingId - Meeting ID to join
+ * @param {string} [userId='test-user-456'] - User ID for testing
+ * @returns {Promise<Meeting | null>} Promise resolving to meeting data or null
+ */
+async function testJoinMeeting(meetingId: string, userId: string = 'test-user-456'): Promise<Meeting | null> {
   console.log('\n👥 Probando unirse a reunión...');
   try {
     const response = await fetch(`http://localhost:4000/api/meetings/${meetingId}/join`, {
@@ -91,12 +104,14 @@ async function testJoinMeeting(meetingId: string, userId: string = 'test-user-45
   }
 }
 
-// 5. Ejecutar todas las pruebas
+/**
+ * Runs all integration tests for chat functionality
+ * @returns {Promise<void>} Promise that resolves when all tests complete
+ */
 async function runAllTests() {
   console.log('🚀 Iniciando pruebas de integración...\n');
   console.log('=' . repeat(60));
   
-  // Test 1: Health check
   const isHealthy = await testChatServerHealth();
   if (!isHealthy) {
     console.log('\n⚠️  El servidor de chat no está corriendo.');
@@ -106,7 +121,6 @@ async function runAllTests() {
 
   console.log('=' . repeat(60));
 
-  // Test 2: Crear reunión
   const meeting = await testCreateMeeting();
   if (!meeting) {
     console.log('\n⚠️  No se pudo crear la reunión.');
@@ -115,7 +129,6 @@ async function runAllTests() {
 
   console.log('=' . repeat(60));
 
-  // Test 3: Unirse a reunión
   await testJoinMeeting(meeting.meetingId);
 
   console.log('=' . repeat(60));
@@ -127,14 +140,13 @@ async function runAllTests() {
   console.log('\n🎉 ¡Todo funciona correctamente!');
 }
 
-// Exportar funciones para uso manual
 declare global {
   interface Window {
     chatTests: {
       runAllTests: () => Promise<void>;
       testChatServerHealth: () => Promise<boolean>;
-      testCreateMeeting: (userId?: string) => Promise<any>;
-      testJoinMeeting: (meetingId: string, userId?: string) => Promise<any>;
+      testCreateMeeting: (userId?: string) => Promise<Meeting | null>;
+      testJoinMeeting: (meetingId: string, userId?: string) => Promise<Meeting | null>;
     };
   }
 }

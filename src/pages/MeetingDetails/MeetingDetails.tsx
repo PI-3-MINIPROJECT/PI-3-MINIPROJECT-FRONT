@@ -25,6 +25,10 @@ export default function MeetingDetails() {
   const [isActionLoading, setIsActionLoading] = useState(false);
 
   useEffect(() => {
+    /**
+     * Loads meeting data from API
+     * @returns {Promise<void>} Promise that resolves when meeting is loaded
+     */
     const loadMeeting = async () => {
       if (!meetingId || meeting) return;
 
@@ -45,6 +49,10 @@ export default function MeetingDetails() {
     loadMeeting();
   }, [meetingId, meeting]);
 
+  /**
+   * Handles joining the meeting room
+   * @returns {void}
+   */
   const handleJoinRoom = () => {
     if (!meeting) return;
     
@@ -56,6 +64,10 @@ export default function MeetingDetails() {
     });
   };
 
+  /**
+   * Handles leaving the meeting
+   * @returns {Promise<void>} Promise that resolves when leave is complete
+   */
   const handleLeaveMeeting = async () => {
     if (!meeting || !user?.uid) return;
 
@@ -73,6 +85,10 @@ export default function MeetingDetails() {
     }
   };
 
+  /**
+   * Handles deleting the meeting (only host can delete)
+   * @returns {Promise<void>} Promise that resolves when deletion is complete
+   */
   const handleDeleteMeeting = async () => {
     if (!meeting || !user?.uid) return;
 
@@ -93,6 +109,11 @@ export default function MeetingDetails() {
     }
   };
 
+  /**
+   * Formats date string for display
+   * @param {string} dateStr - Date string to format
+   * @returns {string} Formatted date string (e.g., "lunes, 1 de diciembre de 2024")
+   */
   const formatDate = (dateStr: string) => {
     const date = new Date(dateStr);
     return date.toLocaleDateString('es-ES', {
@@ -103,6 +124,11 @@ export default function MeetingDetails() {
     });
   };
 
+  /**
+   * Formats time string for display
+   * @param {string} timeStr - Time string in HH:mm format
+   * @returns {string} Formatted time string
+   */
   const formatTime = (timeStr: string) => {
     return timeStr;
   };

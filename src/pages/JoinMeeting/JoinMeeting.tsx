@@ -18,6 +18,10 @@ export default function JoinMeeting() {
   const [errors, setErrors] = useState<{ meetingId?: string; general?: string }>({});
   const [isJoining, setIsJoining] = useState(false);
 
+  /**
+   * Validates the join meeting form
+   * @returns {boolean} True if form is valid
+   */
   const validateForm = (): boolean => {
     const newErrors: { meetingId?: string } = {};
 
@@ -29,6 +33,11 @@ export default function JoinMeeting() {
     return Object.keys(newErrors).length === 0;
   };
 
+  /**
+   * Handles form submission for joining a meeting
+   * @param {React.FormEvent} e - Form submit event
+   * @returns {Promise<void>} Promise that resolves when join is complete
+   */
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -47,7 +56,6 @@ export default function JoinMeeting() {
     try {
       const meeting = await joinMeeting(meetingId.trim(), user.uid);
       
-      // Redirigir a la sala de reunión o a la página de éxito
       navigate('/meetings/success', { 
         state: { meeting, isJoining: true },
         replace: true 

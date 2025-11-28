@@ -17,7 +17,6 @@ export default function VideoConference() {
   const [isCameraOn, setIsCameraOn] = useState(false);
   const [showChat, setShowChat] = useState(true);
 
-  // Obtener datos de la reunión desde location.state
   const meetingData = location.state as { meetingId?: string; username?: string } | null;
   const meetingId = meetingData?.meetingId || 'demo-meeting';
   const userId = user?.uid || 'demo-user';
@@ -30,6 +29,10 @@ export default function VideoConference() {
     { id: 4, name: 'Ana García', initials: 'AG', isCameraOn: false },
   ];
 
+  /**
+   * Handles ending the video call and navigating back to explore page
+   * @returns {void}
+   */
   const handleEndCall = () => {
     navigate('/explore');
   };

@@ -31,6 +31,10 @@ export default function CreateMeeting() {
   }>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  /**
+   * Validates the create meeting form
+   * @returns {boolean} True if form is valid
+   */
   const validateForm = (): boolean => {
     const newErrors: { 
       title?: string; 
@@ -68,6 +72,11 @@ export default function CreateMeeting() {
     return Object.keys(newErrors).length === 0;
   };
 
+  /**
+   * Handles form submission for creating a meeting
+   * @param {React.FormEvent} e - Form submit event
+   * @returns {Promise<void>} Promise that resolves when creation is complete
+   */
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -96,7 +105,6 @@ export default function CreateMeeting() {
 
       const createdMeeting: Meeting = await createMeeting(meetingData);
       
-      // Redirigir a la página de éxito con los datos de la reunión
       navigate('/meetings/success', { 
         state: { meeting: createdMeeting },
         replace: true 

@@ -32,12 +32,11 @@ export default function MyMeetings() {
       try {
         const response = await getUserMeetings(user.uid);
         
-        // Manejar diferentes estructuras de respuesta
         let meetingsData: Meeting[] = [];
-        if (response.data.meetings) {
-          meetingsData = response.data.meetings;
-        } else if (Array.isArray(response.data)) {
+        if (Array.isArray(response.data)) {
           meetingsData = response.data;
+        } else if (response.data && typeof response.data === 'object' && 'meetings' in response.data && Array.isArray(response.data.meetings)) {
+          meetingsData = response.data.meetings;
         }
         
         setMeetings(meetingsData);
@@ -62,6 +61,11 @@ export default function MyMeetings() {
     navigate(`/meetings/${meeting.meetingId}`, { state: { meeting } });
   };
 
+  /**
+   * Formats date string for display
+   * @param {string} dateStr - Date string to format
+   * @returns {string} Formatted date string (e.g., "lun, 1 dic")
+   */
   const formatDate = (dateStr: string) => {
     const date = new Date(dateStr);
     return date.toLocaleDateString('es-ES', { 
@@ -71,10 +75,20 @@ export default function MyMeetings() {
     });
   };
 
+  /**
+   * Formats time string for display
+   * @param {string} timeStr - Time string in HH:mm format
+   * @returns {string} Formatted time string
+   */
   const formatTime = (timeStr: string) => {
     return timeStr;
   };
 
+  /**
+   * Gets color class name for meeting status
+   * @param {string} status - Meeting status ('active', 'completed', 'cancelled')
+   * @returns {string} Color class name
+   */
   const getMeetingStatusColor = (status: string) => {
     switch (status) {
       case 'active': return 'green';

@@ -1,6 +1,6 @@
 # Usability Heuristics Implementation
 
-This document describes the two Nielsen's Usability Heuristics implemented in the VideoConference Platform frontend for Sprint 1.
+This document describes the four Nielsen's Usability Heuristics implemented in the VideoConference Platform frontend for Sprint 1.
 
 ---
 
@@ -189,13 +189,307 @@ const getPasswordChecks = (pwd: string) => ({
 
 ---
 
+---
+
+## Heuristic 3: Consistency and Standards
+
+**Nielsen's Principle**: "Users should not have to wonder whether different words, situations, or actions mean the same thing. Follow platform conventions."
+
+### Implementation
+
+The application maintains consistency across all interfaces through standardized components, patterns, and conventions:
+
+#### 1. Reusable Component Library
+
+- **Button Component**: Single `Button` component used throughout the application with consistent styling and behavior
+  - Primary buttons: Blue gradient background, white text
+  - Secondary buttons: White background, border, primary color text
+  - Same hover effects, focus states, and disabled states everywhere
+  - Consistent sizing and spacing across all pages
+
+- **Input Component**: Standardized `Input` component ensures uniform form field appearance and behavior
+  - Consistent label positioning (above input)
+  - Uniform error message display (below input, red text)
+  - Same placeholder styling across all forms
+  - Consistent icon placement and behavior
+
+**Location**:
+- `src/components/Button/Button.tsx` - Reusable button component
+- `src/components/Input/Input.tsx` - Reusable input component
+- All form pages use these components consistently
+
+#### 2. Navigation Consistency
+
+- **Header Navigation**: Same navigation structure across all pages
+  - Logo always links to home page
+  - Navigation items in same order and position
+  - Active page indicator uses consistent styling
+  - User menu appears in same location when authenticated
+
+- **Footer Navigation**: Consistent footer with same links and structure on all pages
+  - Same link organization
+  - Consistent styling and layout
+
+**Location**:
+- `src/components/Header/Header.tsx` - Consistent header navigation
+- `src/components/Footer/Footer.tsx` - Consistent footer navigation
+- All pages include Header and Footer components
+
+#### 3. Form Patterns
+
+- **Form Layout**: Consistent form structure across all forms
+  - Same spacing between fields
+  - Consistent error message placement
+  - Uniform submit button positioning
+  - Same validation feedback patterns
+
+- **Field Ordering**: Logical and consistent field ordering
+  - Personal info forms: First name → Last name → Email → Age
+  - Authentication forms: Email → Password
+  - Consistent required field indicators
+
+**Location**:
+- `src/pages/Register/Register.tsx` - Registration form pattern
+- `src/pages/Login/Login.tsx` - Login form pattern
+- `src/pages/EditProfile/EditProfile.tsx` - Profile edit form pattern
+- `src/pages/CreateMeeting/CreateMeeting.tsx` - Meeting creation form pattern
+
+#### 4. Visual Design Consistency
+
+- **Color Scheme**: Consistent color usage throughout
+  - Primary color (blue gradient) for primary actions
+  - Red for errors and destructive actions
+  - Green for success states
+  - Gray for disabled states
+
+- **Typography**: Consistent font usage and sizing
+  - Same font family across all pages
+  - Consistent heading hierarchy (h1, h2, h3)
+  - Uniform text sizes for labels, body text, and buttons
+
+- **Spacing**: Consistent spacing system
+  - Same padding and margins for similar elements
+  - Uniform gaps between form fields
+  - Consistent card and container spacing
+
+**Location**:
+- `src/styles/_variables.scss` - Design tokens (colors, fonts, spacing)
+- `src/styles/main.scss` - Global styles
+- All component SCSS files use consistent variables
+
+#### 5. Interaction Patterns
+
+- **Button States**: Consistent button behavior
+  - Hover effects: Same transform and shadow effects
+  - Focus states: Same focus-visible styling
+  - Disabled states: Same opacity and cursor changes
+  - Loading states: Same text change pattern ("Action..." → "Actioning...")
+
+- **Form Submission**: Consistent form submission patterns
+  - Same loading indicators
+  - Uniform success/error message placement
+  - Consistent redirect behavior after actions
+
+**Location**:
+- `src/components/Button/Button.scss` - Consistent button styling
+- All form pages use same submission patterns
+
+### Code Examples
+
+```typescript
+// Consistent Button component usage
+<Button variant="primary" type="submit" disabled={isSubmitting}>
+  {isSubmitting ? 'Registrando...' : 'Regístrate'}
+</Button>
+
+// Consistent Input component usage
+<Input
+  id="email"
+  type="email"
+  label="Correo electrónico"
+  placeholder="example@gmail.com"
+  value={email}
+  onChange={handleEmailChange}
+  error={errors.email}
+  required
+/>
+
+// Consistent navigation structure
+<nav className="header__nav" role="navigation" aria-label="Main navigation">
+  <Link to="/" className={isActive('/') ? 'active' : ''}>Inicio</Link>
+  <Link to="/about" className={isActive('/about') ? 'active' : ''}>Sobre nosotros</Link>
+</nav>
+```
+
+### Benefits
+
+- **Reduced Learning Curve**: Users learn the interface once and can apply that knowledge everywhere
+- **Faster Task Completion**: Users don't need to figure out different patterns on each page
+- **Increased Confidence**: Consistent patterns build user trust and confidence
+- **Lower Error Rate**: Users make fewer mistakes when patterns are predictable
+- **Better Maintainability**: Consistent code is easier to maintain and update
+
+---
+
+## Heuristic 4: Recognition rather than Recall
+
+**Nielsen's Principle**: "Minimize the user's memory load by making objects, actions, and options visible. The user should not have to remember information from one part of the dialogue to another."
+
+### Implementation
+
+The application reduces cognitive load by making information visible and accessible rather than requiring users to remember details:
+
+#### 1. Visible Labels and Placeholders
+
+- **Clear Field Labels**: All form fields have visible labels above the input
+  - Labels describe exactly what information is needed
+  - No hidden or ambiguous field requirements
+  - Labels remain visible even after user starts typing
+
+- **Helpful Placeholders**: Placeholders provide examples and guidance
+  - Email: "example@gmail.com"
+  - Name: "e.g. John"
+  - Age: "28"
+  - Meeting ID: "e.g. 5f3a91e2"
+
+**Location**:
+- `src/components/Input/Input.tsx` - Label always visible
+- All form pages (`Register.tsx`, `Login.tsx`, `EditProfile.tsx`, etc.) use descriptive placeholders
+
+#### 2. Visual Indicators and Icons
+
+- **Password Visibility Toggle**: Eye icon allows users to see password without remembering it
+  - Toggle between visible and hidden password
+  - Clear visual feedback of current state
+  - No need to remember what was typed
+
+- **Status Indicators**: Visual indicators show current state
+  - Connection status in chat (🟢 connected, 🔴 disconnected)
+  - Online users list in chat room
+  - Active page indicator in navigation
+  - Loading spinners show processing state
+
+**Location**:
+- `src/pages/Login/Login.tsx` - Password toggle button
+- `src/components/ChatRoom/ChatRoom.tsx` - Connection status indicators
+- `src/components/Header/Header.tsx` - Active navigation indicators
+
+#### 3. Contextual Information Display
+
+- **Password Requirements**: Password requirements visible as user types
+  - Real-time checklist showing which requirements are met
+  - Visual checkmarks (✔) for completed requirements
+  - No need to remember password rules
+
+- **User Information**: User data visible in profile without needing to recall
+  - Full name, email, age displayed in profile
+  - User initials shown in avatar
+  - No need to remember account details
+
+**Location**:
+- `src/pages/Register/Register.tsx` - Password requirements checklist
+- `src/pages/EditProfile/EditProfile.tsx` - Password requirements checklist
+- `src/pages/Profile/Profile.tsx` - User information display
+
+#### 4. Inline Help and Guidance
+
+- **Error Messages**: Error messages appear inline with fields
+  - Errors shown directly below the problematic field
+  - No need to remember which field had an error
+  - Clear, specific error descriptions
+
+- **Form Instructions**: Instructions visible where needed
+  - "La contraseña debe incluir:" checklist visible
+  - Meeting creation form shows field descriptions
+  - No hidden requirements or instructions
+
+**Location**:
+- `src/components/Input/Input.tsx` - Error messages below inputs
+- `src/pages/Register/Register.tsx` - Password requirements visible
+- `src/pages/CreateMeeting/CreateMeeting.tsx` - Form field descriptions
+
+#### 5. Navigation Breadcrumbs and Context
+
+- **Active Page Indicators**: Current page clearly indicated in navigation
+  - Active link highlighted with different color
+  - `aria-current="page"` attribute for screen readers
+  - Users always know where they are
+
+- **Page Titles**: Clear page titles show current context
+  - "Iniciar Sesión", "Regístrate", "Mi Perfil" clearly visible
+  - Consistent title pattern across pages
+  - No ambiguity about current page
+
+**Location**:
+- `src/components/Header/Header.tsx` - Active navigation indicators
+- All page components have clear h1 titles
+
+#### 6. Visible Options and Actions
+
+- **Action Buttons**: All actions clearly visible
+  - "Crear reunión" button always visible in header
+  - "Editar Perfil" button visible in profile
+  - No hidden menus for common actions
+
+- **User Menu**: User options visible when authenticated
+  - Avatar shows user is logged in
+  - Dropdown shows available options
+  - No need to remember how to access profile
+
+**Location**:
+- `src/components/Header/Header.tsx` - Visible action buttons and user menu
+- `src/pages/Profile/Profile.tsx` - Visible action buttons
+
+### Code Examples
+
+```typescript
+// Visible password requirements
+<div className="register__password-requirements" aria-live="polite">
+  <p className="register__password-requirements-title">La contraseña debe incluir:</p>
+  <ul className="register__password-requirements-list">
+    <li className={passwordChecks.length ? 'met' : ''}>
+      <span>{passwordChecks.length ? '✔' : '•'}</span>
+      Al menos 6 caracteres
+    </li>
+    {/* More requirements... */}
+  </ul>
+</div>
+
+// Visible labels and placeholders
+<Input
+  id="email"
+  type="email"
+  label="Correo electrónico"
+  placeholder="example@gmail.com"
+  value={email}
+  error={errors.email}
+/>
+
+// Visible status indicators
+<span className={`status-indicator ${isConnected ? 'connected' : 'disconnected'}`}>
+  {isConnected ? '🟢' : '🔴'}
+</span>
+```
+
+### Benefits
+
+- **Reduced Cognitive Load**: Users don't need to remember information
+- **Faster Task Completion**: Information is immediately available
+- **Fewer Errors**: Users can verify information before submitting
+- **Better User Experience**: Less frustration from having to recall details
+- **Accessibility**: Screen readers can announce visible information
+
+---
+
 ## Summary
 
-These two heuristics work together to create a user-friendly experience:
+These four heuristics work together to create a user-friendly experience:
 - **Visibility of System Status** ensures users are always informed about what's happening
 - **Error Prevention** reduces the likelihood of errors occurring in the first place
+- **Consistency and Standards** makes the interface predictable and easy to learn
+- **Recognition rather than Recall** reduces cognitive load by making information visible
 
-Both heuristics are implemented throughout the application, with particular emphasis on authentication flows, form submissions, and user profile management.
+All heuristics are implemented throughout the application, with particular emphasis on authentication flows, form submissions, user profile management, and navigation patterns.
 
 ---
 

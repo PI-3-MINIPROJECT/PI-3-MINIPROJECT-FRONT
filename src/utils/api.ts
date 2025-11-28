@@ -65,7 +65,7 @@ export async function apiRequest<T>(
 
     const fetchOptions: RequestInit = {
       ...options,
-      credentials: 'include', // Importante para cookies de sesión
+      credentials: 'include',
       headers,
     };
 

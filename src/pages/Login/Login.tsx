@@ -30,15 +30,12 @@ export default function Login() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [successMessage, setSuccessMessage] = useState('');
 
-  // Detectar cuando vuelve de OAuth
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     
     if (params.get('oauth_success') === 'true') {
       console.log('✅ Login exitoso con Google - Parámetro detectado');
       
-      // Intentar obtener el perfil del usuario
-      // La cookie httpOnly se envía automáticamente, no necesitamos verificarla manualmente
       const fetchUserProfile = async () => {
         try {
           console.log('🔄 Obteniendo perfil de usuario...');
@@ -48,7 +45,6 @@ export default function Login() {
             console.log('✅ Perfil de usuario obtenido:', response.data);
             setUser(response.data, true);
             
-            // Redirigir a dashboard/explore
             navigate('/explore', { 
               state: { 
                 message: '¡Bienvenido! Has iniciado sesión con Google exitosamente.' 
@@ -63,7 +59,6 @@ export default function Login() {
         }
       };
       
-      // Pequeño delay para asegurar que la cookie se haya establecido
       setTimeout(() => {
         fetchUserProfile();
       }, 100);
@@ -71,14 +66,12 @@ export default function Login() {
   }, [navigate, setUser]);
 
   useEffect(() => {
-    // Manejar mensajes del estado de navegación
     if (location.state?.message) {
       setSuccessMessage(location.state.message);
       const timer = setTimeout(() => setSuccessMessage(''), 5000);
       return () => clearTimeout(timer);
     }
 
-    // Manejar mensajes de parámetros URL
     const success = searchParams.get('success');
     const error = searchParams.get('error');
 
@@ -93,11 +86,20 @@ export default function Login() {
     }
   }, [location.state, searchParams]);
 
+  /**
+   * Validates email format
+   * @param {string} email - Email string to validate
+   * @returns {boolean} True if email format is valid
+   */
   const validateEmail = (email: string): boolean => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     return emailRegex.test(email);
   };
 
+  /**
+   * Validates the login form
+   * @returns {boolean} True if form is valid
+   */
   const validateForm = (): boolean => {
     const newErrors: { email?: string; password?: string } = {};
 
@@ -117,6 +119,11 @@ export default function Login() {
     return Object.keys(newErrors).length === 0;
   };
 
+  /**
+   * Handles form submission for login
+   * @param {React.FormEvent} e - Form submit event
+   * @returns {Promise<void>} Promise that resolves when login is complete
+   */
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -147,8 +154,21 @@ export default function Login() {
       }
     } catch (error) {
       const errorMessage = handleAuthError(error);
+      const originalMessage = error instanceof Error ? error.message.toLowerCase() : '';
       
       if (
+        errorMessage === 'OAUTH_ERROR' ||
+        originalMessage.includes('github') ||
+        originalMessage.includes('oauth') ||
+        originalMessage.includes('social') ||
+        originalMessage.includes('provider') ||
+        originalMessage.includes('creada con') ||
+        originalMessage.includes('registered with')
+      ) {
+        setErrors({ 
+          general: 'Esta cuenta fue registrada con GitHub. Por favor, inicia sesión usando el botón de GitHub.' 
+        });
+      } else if (
         errorMessage.includes('Credenciales incorrectas') ||
         errorMessage.includes('401') ||
         errorMessage.includes('No autenticado') ||

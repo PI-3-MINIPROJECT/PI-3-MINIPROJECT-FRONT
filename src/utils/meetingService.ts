@@ -118,8 +118,8 @@ export async function getMeetingById(meetingId: string): Promise<Meeting> {
  * @returns {Promise<{ success: boolean; data: Meeting[] | { meetings: Meeting[] } }>} Promise resolving to meetings response
  * @throws {Error} Throws error if request fails
  */
-export async function getUserMeetings(userId: string): Promise<{ success: boolean; data: any }> {
-  const response = await chatApiRequest<{ success: boolean; data: any }>(`/api/meetings/user/${userId}`, {
+export async function getUserMeetings(userId: string): Promise<{ success: boolean; data: Meeting[] | { meetings: Meeting[] } }> {
+  const response = await chatApiRequest<{ success: boolean; data: Meeting[] | { meetings: Meeting[] } }>(`/api/meetings/user/${userId}`, {
     method: 'GET',
   });
   
