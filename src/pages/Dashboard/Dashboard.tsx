@@ -38,6 +38,9 @@ export default function Dashboard() {
         setTodayMeetings(response.data.meetings || []);
       } catch (error) {
         console.error('Error loading today meetings:', error);
+        if (error instanceof Error && error.message.includes('VITE_CHAT_SERVER_URL')) {
+          console.warn('⚠️ VITE_CHAT_SERVER_URL no está configurada. Configura esta variable de entorno en Vercel.');
+        }
       } finally {
         setIsLoadingMeetings(false);
       }

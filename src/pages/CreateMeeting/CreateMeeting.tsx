@@ -103,7 +103,17 @@ export default function CreateMeeting() {
         maxParticipants: parseInt(maxParticipants),
       };
 
-      const createdMeeting: Meeting = await createMeeting(meetingData);
+      let createdMeeting: Meeting;
+      try {
+        createdMeeting = await createMeeting(meetingData);
+      } catch (error) {
+        if (error instanceof Error && error.message.includes('VITE_CHAT_SERVER_URL')) {
+          setErrors({ general: 'Error de configuración: VITE_CHAT_SERVER_URL no está configurada. Por favor, contacta al administrador.' });
+          setIsSubmitting(false);
+          return;
+        }
+        throw error;
+      }
       
       navigate('/meetings/success', { 
         state: { meeting: createdMeeting },

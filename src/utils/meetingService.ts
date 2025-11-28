@@ -1,6 +1,6 @@
 import type { Meeting, CreateMeetingData, MeetingResponse } from '../types';
 
-const CHAT_SERVER_URL = import.meta.env.VITE_CHAT_SERVER_URL || 'http://localhost:4000';
+const CHAT_SERVER_URL = import.meta.env.VITE_CHAT_SERVER_URL || (import.meta.env.PROD ? '' : 'http://localhost:4000');
 
 /**
  * Makes an HTTP request to the chat server API
@@ -14,6 +14,10 @@ async function chatApiRequest<T>(
   endpoint: string,
   options: RequestInit = {}
 ): Promise<T> {
+  if (!CHAT_SERVER_URL) {
+    throw new Error('VITE_CHAT_SERVER_URL no está configurada. Por favor, configura esta variable de entorno.');
+  }
+  
   const fullUrl = `${CHAT_SERVER_URL}${endpoint}`;
   
   try {

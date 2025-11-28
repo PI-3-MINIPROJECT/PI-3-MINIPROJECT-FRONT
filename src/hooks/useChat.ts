@@ -122,7 +122,18 @@ export const useChat = (
       return;
     }
 
-    const socket = socketService.connect();
+    let socket: Socket;
+    try {
+      socket = socketService.connect();
+    } catch (error) {
+      if (error instanceof Error && error.message.includes('VITE_CHAT_SERVER_URL')) {
+        setConnectionError('Error de configuración: El servidor de chat no está configurado. Por favor, contacta al administrador.');
+        console.error('❌ Error de configuración:', error.message);
+        return;
+      }
+      throw error;
+    }
+    
     socketRef.current = socket;
 
     const handleConnect = () => {

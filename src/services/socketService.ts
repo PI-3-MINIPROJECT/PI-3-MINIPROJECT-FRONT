@@ -1,6 +1,6 @@
 import { io, Socket } from 'socket.io-client';
 
-const SOCKET_URL = import.meta.env.VITE_CHAT_SERVER_URL || 'http://localhost:4000';
+const SOCKET_URL = import.meta.env.VITE_CHAT_SERVER_URL || (import.meta.env.PROD ? '' : 'http://localhost:4000');
 
 /**
  * Socket service for managing WebSocket connections
@@ -15,12 +15,16 @@ class SocketService {
    * @returns {Socket} Socket instance
    */
   connect(): Socket {
+    if (!SOCKET_URL) {
+      throw new Error('VITE_CHAT_SERVER_URL no está configurada. Por favor, configura esta variable de entorno.');
+    }
+    
     if (this.socket?.connected || this.isConnecting) {
       return this.socket!;
     }
 
     this.isConnecting = true;
-    
+
     this.socket = io(SOCKET_URL, {
       autoConnect: true,
       transports: ['websocket', 'polling'],
