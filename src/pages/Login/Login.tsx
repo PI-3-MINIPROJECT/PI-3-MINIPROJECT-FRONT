@@ -32,6 +32,33 @@ export default function Login() {
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
+    const oauthError = params.get('oauth_error');
+    const errorMessage = params.get('error');
+    
+    if (oauthError || errorMessage) {
+      const errorMsg = oauthError || errorMessage || '';
+      const lowerError = errorMsg.toLowerCase();
+      
+      if (
+        lowerError.includes('github') ||
+        lowerError.includes('oauth') ||
+        lowerError.includes('social') ||
+        lowerError.includes('provider') ||
+        lowerError.includes('creada con') ||
+        lowerError.includes('registered with') ||
+        lowerError.includes('already registered')
+      ) {
+        setErrors({ 
+          general: 'Esta cuenta fue registrada con GitHub. Por favor, inicia sesión usando el botón de GitHub.' 
+        });
+      } else {
+        setErrors({ general: decodeURIComponent(errorMsg) || 'Error al iniciar sesión con Google. Por favor, intenta nuevamente.' });
+      }
+      
+      const newUrl = window.location.pathname;
+      window.history.replaceState({}, '', newUrl);
+      return;
+    }
     
     if (params.get('oauth_success') === 'true') {
       console.log('✅ Login exitoso con Google - Parámetro detectado');
@@ -55,7 +82,28 @@ export default function Login() {
           }
         } catch (error) {
           console.error('❌ Error al obtener perfil de usuario:', error);
-          setErrors({ general: 'Error al obtener tu información. Por favor, intenta iniciar sesión nuevamente.' });
+          const errorMsg = handleAuthError(error);
+          const originalMessage = error instanceof Error ? error.message.toLowerCase() : '';
+          const statusCode = error instanceof Error && 'status' in error ? (error as { status?: number }).status : undefined;
+          
+          if (
+            errorMsg === 'OAUTH_ERROR' ||
+            errorMsg.includes('OAUTH_PROVIDER_CONFLICT') ||
+            originalMessage.includes('github') ||
+            originalMessage.includes('oauth') ||
+            originalMessage.includes('social') ||
+            originalMessage.includes('provider') ||
+            originalMessage.includes('creada con') ||
+            originalMessage.includes('registered with') ||
+            originalMessage.includes('oauth_provider_conflict') ||
+            statusCode === 404
+          ) {
+            setErrors({ 
+              general: 'Esta cuenta fue registrada con GitHub. Por favor, inicia sesión usando el botón de GitHub.' 
+            });
+          } else {
+            setErrors({ general: 'Error al obtener tu información. Por favor, intenta iniciar sesión nuevamente.' });
+          }
         }
       };
       

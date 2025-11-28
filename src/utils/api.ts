@@ -90,7 +90,12 @@ export async function apiRequest<T>(
 
       if (!friendlyMessage) {
         if (response.status === 404) {
-          friendlyMessage = 'Recurso no encontrado';
+          const lowerEndpoint = endpoint.toLowerCase();
+          if (lowerEndpoint.includes('/profile') || lowerEndpoint.includes('/users/profile')) {
+            friendlyMessage = 'OAUTH_PROVIDER_CONFLICT';
+          } else {
+            friendlyMessage = 'Recurso no encontrado';
+          }
         } else if (response.status === 401) {
           friendlyMessage = 'No autenticado';
         } else if (response.status === 409) {
