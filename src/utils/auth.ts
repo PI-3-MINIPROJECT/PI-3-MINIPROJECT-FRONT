@@ -65,6 +65,7 @@ export function handleAuthError(error: unknown): string {
     const message = error.message.toLowerCase();
     
     if (
+      message.includes('oauth_provider_conflict') ||
       message.includes('github') ||
       message.includes('oauth') ||
       message.includes('social') ||
@@ -73,6 +74,13 @@ export function handleAuthError(error: unknown): string {
       message.includes('registered with')
     ) {
       return 'OAUTH_ERROR';
+    }
+    
+    if (
+      status === 404 &&
+      (message.includes('profile') || message.includes('users/profile'))
+    ) {
+      return 'OAUTH_PROVIDER_CONFLICT';
     }
     
     if (
