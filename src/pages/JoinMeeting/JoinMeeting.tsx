@@ -4,6 +4,7 @@ import Input from '../../components/Input/Input';
 import Button from '../../components/Button/Button';
 import { useAuth } from '../../hooks/useAuth';
 import { joinMeeting } from '../../utils/meetingService';
+import { getErrorMessage } from '../../utils/errorMessages';
 import './JoinMeeting.scss';
 
 /**
@@ -62,10 +63,9 @@ export default function JoinMeeting() {
       });
     } catch (error) {
       console.error('Error joining meeting:', error);
+      const errorDetails = getErrorMessage(error);
       setErrors({ 
-        general: error instanceof Error 
-          ? error.message 
-          : 'No se pudo unir a la reunión. Verifica el ID e intenta más tarde.' 
+        general: errorDetails.message
       });
     } finally {
       setIsJoining(false);

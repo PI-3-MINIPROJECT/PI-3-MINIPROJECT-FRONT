@@ -1,6 +1,7 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
+import { useChat } from '../../hooks/useChat';
 import ChatRoom from '../../components/ChatRoom/ChatRoom';
 import './VideoConference.scss';
 
@@ -22,12 +23,40 @@ export default function VideoConference() {
   const userId = user?.uid || 'demo-user';
   const username = meetingData?.username || user?.name || 'Usuario';
 
-  const participants = [
-    { id: 1, name: 'John Green', initials: 'JG', isCameraOn: false },
-    { id: 2, name: 'María López', initials: 'ML', isCameraOn: false },
-    { id: 3, name: 'Carlos Ruiz', initials: 'CR', isCameraOn: false },
-    { id: 4, name: 'Ana García', initials: 'AG', isCameraOn: false },
-  ];
+  const { onlineUsers } = useChat(meetingId, userId, username);
+
+  /**
+   * Gets user initials from name
+   * @param {string} name - User full name
+   * @returns {string} User initials (e.g., "JG" for John Green)
+   */
+  const getUserInitials = (name: string): string => {
+    const parts = name.trim().split(' ');
+    if (parts.length >= 2) {
+      return `${parts[0][0]}${parts[1][0]}`.toUpperCase();
+    }
+    return name.substring(0, 2).toUpperCase();
+  };
+
+  const participants = useMemo(() => {
+    const allUsers = [...onlineUsers];
+    
+    const currentUserInList = allUsers.find(u => u.userId === userId);
+    if (!currentUserInList) {
+      allUsers.push({
+        userId: userId,
+        username: username,
+        joinedAt: new Date().toISOString()
+      });
+    }
+
+    return allUsers.map((user) => ({
+      id: user.userId,
+      name: user.username,
+      initials: getUserInitials(user.username),
+      isCameraOn: false
+    }));
+  }, [onlineUsers, userId, username]);
 
   /**
    * Handles ending the video call and navigating back to explore page
@@ -42,14 +71,26 @@ export default function VideoConference() {
       <div className="video-conference__main">
         <div className="video-conference__video-area">
           <div className="video-conference__participants">
-            {participants.map((participant) => (
-              <div key={participant.id} className="video-conference__participant">
-                <div className="video-conference__avatar">
-                  <span className="video-conference__avatar-initials">{participant.initials}</span>
+            {participants.length > 0 ? (
+              participants.map((participant) => (
+                <div key={participant.id} className="video-conference__participant">
+                  <div className="video-conference__avatar">
+                    <span className="video-conference__avatar-initials">{participant.initials}</span>
+                  </div>
+                  <div className="video-conference__participant-name">
+                    {participant.name}
+                    {participant.id === userId && ' (tú)'}
+                  </div>
                 </div>
-                <div className="video-conference__participant-name">{participant.name}</div>
+              ))
+            ) : (
+              <div className="video-conference__participant">
+                <div className="video-conference__avatar">
+                  <span className="video-conference__avatar-initials">{getUserInitials(username)}</span>
+                </div>
+                <div className="video-conference__participant-name">{username} (tú)</div>
               </div>
-            ))}
+            )}
           </div>
         </div>
 

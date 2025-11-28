@@ -4,6 +4,7 @@ import Input from '../../components/Input/Input';
 import Button from '../../components/Button/Button';
 import { useAuth } from '../../hooks/useAuth';
 import { createMeeting } from '../../utils/meetingService';
+import { getErrorMessage } from '../../utils/errorMessages';
 import type { Meeting } from '../../types';
 import './CreateMeeting.scss';
 
@@ -121,10 +122,9 @@ export default function CreateMeeting() {
       });
     } catch (error) {
       console.error('Error creating meeting:', error);
+      const errorDetails = getErrorMessage(error);
       setErrors({ 
-        general: error instanceof Error 
-          ? error.message 
-          : 'No se pudo crear la reunión. Intenta nuevamente.' 
+        general: errorDetails.message
       });
     } finally {
       setIsSubmitting(false);

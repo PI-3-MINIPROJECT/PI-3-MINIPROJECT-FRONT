@@ -1,5 +1,6 @@
 import type { ApiResponse } from '../types';
 import { getSessionToken } from './cookies';
+import { extractErrorMessage } from './errorMessages';
 
 type ApiErrorWithStatus = Error & {
   status?: number;
@@ -79,38 +80,37 @@ export async function apiRequest<T>(
     }
 
     if (!response.ok) {
-      let friendlyMessage: string | undefined;
+      let errorMessage: string | undefined;
+      
       if (isJsonRecord(data)) {
-        if (typeof data.message === 'string') {
-          friendlyMessage = data.message;
-        } else if (typeof data.error === 'string') {
-          friendlyMessage = data.error;
-        }
+        errorMessage = extractErrorMessage(data);
       }
-
-      if (!friendlyMessage) {
+      
+      if (!errorMessage) {
         if (response.status === 404) {
           const lowerEndpoint = endpoint.toLowerCase();
           if (lowerEndpoint.includes('/profile') || lowerEndpoint.includes('/users/profile')) {
-            friendlyMessage = 'OAUTH_PROVIDER_CONFLICT';
+            errorMessage = 'OAUTH_PROVIDER_CONFLICT';
           } else {
-            friendlyMessage = 'Recurso no encontrado';
+            errorMessage = 'Recurso no encontrado';
           }
         } else if (response.status === 401) {
-          friendlyMessage = 'No autenticado';
+          errorMessage = 'No autenticado';
         } else if (response.status === 409) {
-          friendlyMessage = 'Conflicto en la solicitud';
+          errorMessage = 'Conflicto en la solicitud';
         } else if (response.status === 400) {
-          friendlyMessage = 'Solicitud inválida';
+          errorMessage = 'Solicitud inválida';
         } else if (response.status >= 500) {
-          friendlyMessage = 'Error del servidor. Inténtalo más tarde';
+          errorMessage = 'Error del servidor. Inténtalo más tarde';
+        } else {
+          errorMessage = 'Ha ocurrido un error';
         }
       }
       
       return {
         success: false,
-        error: friendlyMessage || 'Ha ocurrido un error',
-        message: friendlyMessage,
+        error: errorMessage,
+        message: errorMessage,
         status: response.status,
         raw: data,
       };

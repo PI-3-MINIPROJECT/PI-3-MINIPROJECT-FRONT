@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
 import { deleteAccount } from '../../utils/api';
-import { handleAuthError } from '../../utils/auth';
+import { getAuthErrorDetails } from '../../utils/auth';
 import Button from '../../components/Button/Button';
 import './Profile.scss';
 
@@ -115,8 +115,8 @@ export default function Profile() {
         } 
       });
     } catch (error) {
-      const errorMessage = handleAuthError(error);
-      setError(errorMessage);
+      const errorDetails = getAuthErrorDetails(error);
+      setError(errorDetails.message);
     } finally {
       setIsDeleting(false);
     }

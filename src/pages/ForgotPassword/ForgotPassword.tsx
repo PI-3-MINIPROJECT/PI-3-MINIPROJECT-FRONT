@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { resetPassword } from '../../utils/api';
-import { handleAuthError } from '../../utils/auth';
+import { getAuthErrorDetails } from '../../utils/auth';
 import Input from '../../components/Input/Input';
 import Button from '../../components/Button/Button';
 import './ForgotPassword.scss';
@@ -13,7 +13,7 @@ import './ForgotPassword.scss';
  */
 export default function ForgotPassword() {
   const [email, setEmail] = useState('');
-  const [errors, setErrors] = useState<{ email?: string }>({});
+  const [errors, setErrors] = useState<{ email?: string; general?: string }>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
 
@@ -23,7 +23,7 @@ export default function ForgotPassword() {
   };
 
   const validateForm = (): boolean => {
-    const newErrors: { email?: string } = {};
+    const newErrors: { email?: string; general?: string } = {};
 
     if (!email.trim()) {
       newErrors.email = 'El correo electrónico es requerido';
@@ -47,8 +47,12 @@ export default function ForgotPassword() {
       await resetPassword(email);
       setIsSubmitted(true);
     } catch (error) {
-      const errorMessage = handleAuthError(error);
-      setErrors({ email: errorMessage });
+      const errorDetails = getAuthErrorDetails(error);
+      if (errorDetails.field === 'email') {
+        setErrors({ email: errorDetails.message });
+      } else {
+        setErrors({ general: errorDetails.message });
+      }
     } finally {
       setIsSubmitting(false);
     }
