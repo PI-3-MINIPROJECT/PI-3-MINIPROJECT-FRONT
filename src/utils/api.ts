@@ -32,7 +32,28 @@ function isJsonRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null;
 }
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
+/**
+ * Gets the API URL from environment variables with validation
+ * @returns {string} API URL
+ * @throws {Error} Throws error if VITE_API_URL is not configured in production
+ */
+const getApiUrl = (): string => {
+  const envUrl = import.meta.env.VITE_API_URL;
+  
+  if (envUrl && envUrl.trim() !== '') {
+    return envUrl.trim();
+  }
+  
+  if (import.meta.env.PROD) {
+    const errorMsg = 'VITE_API_URL is not configured in production. Please set it in Vercel environment variables.';
+    console.error('❌', errorMsg);
+    throw new Error(errorMsg);
+  }
+  
+  return 'http://localhost:3000';
+};
+
+const API_URL = getApiUrl();
 
 /**
  * Makes an HTTP request to the API endpoint with authentication headers

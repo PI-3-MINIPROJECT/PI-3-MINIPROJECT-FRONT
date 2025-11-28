@@ -3,25 +3,26 @@
 @use '../../styles/mixins' as *;
 
 .register {
-  height: 100vh;
-  width: 100vw;
+  min-height: 100vh;
+  width: 100%;
   background-color: $background-color;
-  overflow: hidden;
+  overflow-x: hidden;
 
   &__container {
     display: grid;
     grid-template-columns: 1fr;
-    height: 100vh;
+    min-height: 100vh;
     width: 100%;
 
     @include respond-to(lg) {
       grid-template-columns: 1fr 1fr;
+      height: 100vh;
     }
   }
 
   &__left {
     background: linear-gradient(135deg, $secondary-color 0%, color.adjust($secondary-color, $lightness: -10%) 100%);
-    display: flex;
+    display: none;
     align-items: center;
     justify-content: center;
     position: relative;
@@ -29,8 +30,14 @@
     padding: $spacing-xl;
     order: 2;
 
+    @include respond-to(md) {
+      display: flex;
+      min-height: 300px;
+    }
+
     @include respond-to(lg) {
       order: 1;
+      min-height: 100vh;
     }
   }
 
@@ -46,30 +53,21 @@
     background-color: white;
     display: flex;
     align-items: flex-start;
-    justify-content: flex-end;
-    padding-top: calc($spacing-3xl * 6.5);
-    padding-bottom: calc($spacing-md);
-    padding-left: calc($spacing-md * 1.1);
-    padding-right: calc($spacing-md * 1.1);
+    justify-content: center;
+    padding: $spacing-xl $spacing-md;
     overflow-y: auto;
     overflow-x: hidden;
     order: 1;
 
     @include respond-to(md) {
-      padding-top: calc($spacing-3xl * 7);
-      padding-bottom: calc($spacing-lg);
-      padding-left: calc($spacing-xl * 1.5);
-      padding-right: calc($spacing-xl * 1.5);
+      padding: $spacing-2xl $spacing-xl;
       align-items: center;
       justify-content: center;
     }
 
     @include respond-to(lg) {
       order: 2;
-      padding-top: calc($spacing-3xl * 7.5);
-      padding-bottom: calc($spacing-xl);
-      padding-left: calc($spacing-2xl * 1.5);
-      padding-right: calc($spacing-2xl * 1.5);
+      padding: $spacing-3xl $spacing-2xl;
     }
   }
 
@@ -79,6 +77,10 @@
     display: flex;
     flex-direction: column;
     animation: registerContentSlide 0.6s ease-out both;
+
+    @media (max-width: $breakpoint-sm - 1px) {
+      max-width: 100%;
+    }
   }
 
   &__logo {
@@ -112,40 +114,44 @@
   }
 
   &__title {
-    font-size: calc($font-size-2xl * 1.1);
-    margin: 0 0 calc($spacing-xs);
+    font-size: $font-size-2xl;
+    margin: 0 0 $spacing-xs;
     color: $text-primary;
     font-weight: $font-weight-bold;
     line-height: 1.2;
+    text-align: center;
 
     @include respond-to(md) {
-      font-size: calc($font-size-3xl * 1.1);
-      margin-bottom: calc($spacing-sm);
+      font-size: $font-size-3xl;
+      margin-bottom: $spacing-sm;
+      text-align: left;
     }
   }
 
   &__subtitle {
-    font-size: calc($font-size-sm * 1.05);
-    margin: 0 0 calc($spacing-md);
+    font-size: $font-size-sm;
+    margin: 0 0 $spacing-md;
     color: $text-secondary;
     line-height: 1.5;
+    text-align: center;
 
     @include respond-to(md) {
-      font-size: calc($font-size-base * 1.05);
-      margin-bottom: calc($spacing-lg);
+      font-size: $font-size-base;
+      margin-bottom: $spacing-lg;
+      text-align: left;
     }
   }
 
   &__form {
     display: flex;
     flex-direction: column;
-    gap: calc($spacing-sm * 1.2);
-    margin-bottom: calc($spacing-md);
+    gap: $spacing-md;
+    margin-bottom: $spacing-md;
     animation: registerFormPop 0.55s ease-out 0.05s both;
 
     @include respond-to(md) {
-      gap: calc($spacing-md * 1.2);
-      margin-bottom: calc($spacing-lg);
+      gap: $spacing-lg;
+      margin-bottom: $spacing-lg;
     }
   }
 
@@ -168,12 +174,12 @@
   &__form-row {
     display: grid;
     grid-template-columns: 1fr;
-    gap: calc($spacing-sm * 1.2);
+    gap: $spacing-md;
     animation: registerRowStagger 0.55s ease-out both;
 
     @include respond-to(md) {
       grid-template-columns: 1fr 1fr;
-      gap: calc($spacing-md * 1.2);
+      gap: $spacing-lg;
     }
   }
 
@@ -279,17 +285,22 @@
 
   &__social {
     display: flex;
-    gap: calc($spacing-md * 1.5);
+    gap: $spacing-md;
     justify-content: center;
-    margin-bottom: calc($spacing-sm);
+    margin-bottom: $spacing-sm;
+    flex-wrap: wrap;
     animation: registerFadeIn 0.65s ease-out 0.18s both;
+
+    @include respond-to(md) {
+      gap: $spacing-lg;
+    }
   }
 
   &__social-button {
     flex: 1;
-    max-width: 350px;
-    min-width: 150px;
-    height: 52px;
+    min-width: 120px;
+    max-width: 200px;
+    height: 48px;
     border-radius: $border-radius-lg;
     border: 1px solid rgba($secondary-color, 0.4);
     background-color: white;
@@ -299,6 +310,12 @@
     cursor: pointer;
     transition: all $transition-fast;
     padding: 0;
+
+    @include respond-to(md) {
+      min-width: 150px;
+      max-width: 350px;
+      height: 52px;
+    }
 
     &:hover {
       border-color: rgba($secondary-color, 0.6);

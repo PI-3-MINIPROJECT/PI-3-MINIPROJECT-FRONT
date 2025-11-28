@@ -1,5 +1,6 @@
 @use 'sass:color';
 @use '../../styles/variables' as *;
+@use '../../styles/mixins' as *;
 
 .my-meetings {
   min-height: calc(100vh - 80px);
@@ -295,7 +296,7 @@
   }
 }
 
-@media (max-width: 768px) {
+@media (max-width: $breakpoint-md - 1px) {
   .my-meetings {
     padding: 2rem 1rem;
 
