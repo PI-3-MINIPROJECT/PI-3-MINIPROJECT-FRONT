@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { confirmPasswordReset } from '../../utils/api';
-import { handleAuthError } from '../../utils/auth';
+import { getAuthErrorDetails } from '../../utils/auth';
 import Input from '../../components/Input/Input';
 import Button from '../../components/Button/Button';
 import './ResetPassword.scss';
@@ -76,8 +76,17 @@ export default function ResetPassword() {
       }, 3000);
       
     } catch (error) {
-      const errorMessage = handleAuthError(error);
-      setErrors({ general: errorMessage });
+      const errorDetails = getAuthErrorDetails(error);
+      
+      if (errorDetails.field === 'code') {
+        setErrors({ general: errorDetails.message });
+      } else if (errorDetails.field === 'newPassword') {
+        setErrors({ newPassword: errorDetails.message });
+      } else if (errorDetails.field === 'confirmPassword') {
+        setErrors({ confirmPassword: errorDetails.message });
+      } else {
+        setErrors({ general: errorDetails.message });
+      }
     } finally {
       setIsSubmitting(false);
     }

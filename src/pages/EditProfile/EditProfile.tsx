@@ -2,6 +2,7 @@ import { useState, useEffect, useMemo } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
 import { updateProfile, updatePassword } from '../../utils/api';
+import { getAuthErrorDetails } from '../../utils/auth';
 import Input from '../../components/Input/Input';
 import Button from '../../components/Button/Button';
 import './EditProfile.scss';
@@ -431,22 +432,39 @@ export default function EditProfile() {
         });
       }, 1500);
     } catch (error) {
-      let errorMessage = 'Error al actualizar el perfil';
-      if (error instanceof Error) {
-        errorMessage = error.message;
-        
-        if (errorMessage.includes('Credenciales incorrectas') || 
-            errorMessage.includes('No autenticado') || 
-            errorMessage.includes('401')) {
-          errorMessage = 'Tu sesión ha expirado. Por favor, inicia sesión nuevamente.';
-          
-          setTimeout(() => {
-            navigate('/login');
-          }, 3000);
-        }
+      const errorDetails = getAuthErrorDetails(error);
+      
+      if (errorDetails.action === 'clear') {
+        setTimeout(() => {
+          navigate('/login');
+        }, 3000);
       }
       
-      setErrors({ general: errorMessage });
+      const newErrors: typeof errors = {};
+      
+      if (errorDetails.field) {
+        const fieldMap: Record<string, keyof typeof errors> = {
+          'firstName': 'firstName',
+          'lastName': 'lastName',
+          'email': 'email',
+          'age': 'age',
+          'currentPassword': 'currentPassword',
+          'newPassword': 'newPassword',
+          'confirmPassword': 'confirmPassword',
+          'password': 'currentPassword'
+        };
+        
+        const fieldKey = fieldMap[errorDetails.field];
+        if (fieldKey) {
+          newErrors[fieldKey] = errorDetails.message;
+        } else {
+          newErrors.general = errorDetails.message;
+        }
+      } else {
+        newErrors.general = errorDetails.message;
+      }
+      
+      setErrors(newErrors);
     } finally {
       setIsSubmitting(false);
     }

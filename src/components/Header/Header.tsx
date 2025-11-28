@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
 import { logout } from '../../utils/api';
@@ -11,9 +12,31 @@ import './Header.scss';
 export default function Header() {
   const location = useLocation();
   const { user, isAuthenticated, logout: authLogout } = useAuth();
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   const isActive = (path: string): boolean => {
     return location.pathname === path;
+  };
+
+  const toggleMobileMenu = () => {
+    setIsMobileMenuOpen(!isMobileMenuOpen);
+  };
+
+  const closeMobileMenu = () => {
+    setIsMobileMenuOpen(false);
+  };
+
+  const handleOverlayClick = (e: React.MouseEvent<HTMLDivElement>) => {
+    // Solo cerrar el menú si el clic no fue en el header o sus elementos
+    const target = e.target as HTMLElement;
+    if (!target.closest('.header')) {
+      closeMobileMenu();
+    }
+  };
+
+  const handleHeaderClick = (e: React.MouseEvent<HTMLElement>) => {
+    // Prevenir que el clic en el header cierre el menú móvil
+    e.stopPropagation();
   };
 
   const handleLogout = async () => {
@@ -33,19 +56,47 @@ export default function Header() {
   };
 
   return (
-    <header className="header" role="banner">
-      <div className="header__container">
-        <Link to="/" className="header__logo" aria-label="Home">
-          <img src="/logo-menu.png" alt="konned logo" className="header__logo-img" />
-        </Link>
+    <>
+      <div 
+        className="header__overlay" 
+        onClick={handleOverlayClick}
+        aria-hidden={!isMobileMenuOpen}
+      />
+      <header className="header" role="banner" onClick={handleHeaderClick}>
+        <div className="header__container">
+        <div className="header__logo-section">
+          <Link to="/" className="header__logo" aria-label="Home" onClick={closeMobileMenu}>
+            <img src="/logo-menu.png" alt="konned logo" className="header__logo-img" />
+          </Link>
+          
+          <button
+            className="header__mobile-menu-button"
+            onClick={toggleMobileMenu}
+            aria-label="Toggle navigation menu"
+            aria-expanded={isMobileMenuOpen}
+            aria-controls="mobile-menu"
+          >
+            <span className={`header__mobile-menu-icon ${isMobileMenuOpen ? 'header__mobile-menu-icon--open' : ''}`}>
+              <span></span>
+              <span></span>
+              <span></span>
+            </span>
+          </button>
+        </div>
 
-        <nav className="header__nav" role="navigation" aria-label="Main navigation">
+        <nav 
+          className={`header__nav ${isMobileMenuOpen ? 'header__nav--open' : ''}`} 
+          role="navigation" 
+          aria-label="Main navigation"
+          id="mobile-menu"
+        >
           <ul className="header__nav-list">
             <li>
               <Link
                 to="/"
                 className={`header__nav-link ${isActive('/') ? 'header__nav-link--active' : ''}`}
                 aria-current={isActive('/') ? 'page' : undefined}
+                onClick={closeMobileMenu}
               >
                 Inicio
               </Link>
@@ -55,6 +106,7 @@ export default function Header() {
                 to="/explore"
                 className={`header__nav-link ${isActive('/explore') ? 'header__nav-link--active' : ''}`}
                 aria-current={isActive('/explore') ? 'page' : undefined}
+                onClick={closeMobileMenu}
               >
                 Explorar
               </Link>
@@ -65,6 +117,7 @@ export default function Header() {
                   to="/my-meetings"
                   className={`header__nav-link ${isActive('/my-meetings') ? 'header__nav-link--active' : ''}`}
                   aria-current={isActive('/my-meetings') ? 'page' : undefined}
+                  onClick={closeMobileMenu}
                 >
                   Mis reuniones
                 </Link>
@@ -75,8 +128,18 @@ export default function Header() {
                 to="/about"
                 className={`header__nav-link ${isActive('/about') ? 'header__nav-link--active' : ''}`}
                 aria-current={isActive('/about') ? 'page' : undefined}
+                onClick={closeMobileMenu}
               >
                 Sobre nosotros
+              </Link>
+            </li>
+            <li className="header__nav-mobile-actions">
+              <Link
+                to="/meetings/create"
+                className={`header__nav-link header__nav-link--button ${isActive('/meetings/create') ? 'header__nav-link--active' : ''}`}
+                onClick={closeMobileMenu}
+              >
+                Crear reunión
               </Link>
             </li>
           </ul>
@@ -87,6 +150,7 @@ export default function Header() {
             to="/meetings/create"
             className={`header__button header__button--create ${isActive('/meetings/create') ? 'header__button--active' : ''}`}
             aria-current={isActive('/meetings/create') ? 'page' : undefined}
+            onClick={closeMobileMenu}
           >
             Crear reunión
           </Link>
@@ -121,6 +185,7 @@ export default function Header() {
         </div>
       </div>
     </header>
+    </>
   );
 }
 

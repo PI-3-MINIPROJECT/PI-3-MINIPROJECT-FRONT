@@ -7,8 +7,39 @@
   box-shadow: $shadow-sm;
   position: sticky;
   top: 0;
-  z-index: $z-index-sticky;
+  z-index: $z-index-modal + 15;
   border-bottom: 1px solid $border-color;
+
+  &__container {
+    position: relative;
+    z-index: $z-index-modal + 15;
+    pointer-events: auto;
+  }
+
+  &__overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.5);
+    z-index: $z-index-modal;
+    display: block;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity $transition-base;
+    visibility: hidden;
+
+    @include respond-to(md) {
+      display: none;
+    }
+  }
+
+  &__overlay[aria-hidden="false"] {
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
+  }
 
   &__container {
     @include container;
@@ -18,11 +49,22 @@
     padding-top: $spacing-md;
     padding-bottom: $spacing-md;
     gap: $spacing-lg;
+    position: relative;
+    z-index: $z-index-modal + 15;
+    pointer-events: auto;
 
     @include respond-to(md) {
       padding-top: $spacing-lg;
       padding-bottom: $spacing-lg;
     }
+  }
+
+  &__logo-section {
+    display: flex;
+    align-items: center;
+    gap: $spacing-md;
+    position: relative;
+    z-index: $z-index-modal + 25;
   }
 
   &__logo {
@@ -46,28 +88,136 @@
     }
   }
 
-  &__nav {
-    flex: 1;
-    display: none;
+  &__mobile-menu-button {
+    @include button-reset;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    border-radius: $border-radius-md;
+    background-color: transparent;
+    cursor: pointer;
+    transition: background-color $transition-fast;
+    z-index: $z-index-modal + 25;
+    position: relative;
 
     @include respond-to(md) {
+      display: none;
+    }
+
+    &:hover {
+      background-color: $background-color;
+    }
+
+    &:focus-visible {
+      @include focus-visible;
+    }
+  }
+
+  &__mobile-menu-icon {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-around;
+    width: 24px;
+    height: 18px;
+    position: relative;
+
+    span {
       display: block;
+      height: 2px;
+      width: 100%;
+      background-color: $text-primary;
+      border-radius: 2px;
+      transition: all $transition-fast;
+      transform-origin: center;
+    }
+
+    &--open {
+      span {
+        &:nth-child(1) {
+          transform: rotate(45deg) translate(6px, 6px);
+        }
+
+        &:nth-child(2) {
+          opacity: 0;
+          transform: translateX(-10px);
+        }
+
+        &:nth-child(3) {
+          transform: rotate(-45deg) translate(6px, -6px);
+        }
+      }
+    }
+  }
+
+  &__nav {
+    flex: 1;
+    display: block;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    max-width: 320px;
+    height: 100vh;
+    background-color: white;
+    box-shadow: $shadow-xl;
+    border-right: 1px solid $border-color;
+    z-index: $z-index-modal + 20;
+    overflow-y: auto;
+    transition: transform $transition-base;
+    pointer-events: auto;
+    transform: translateX(-100%);
+
+    @include respond-to(md) {
+      position: static;
+      display: block;
+      max-width: none;
+      height: auto;
+      box-shadow: none;
+      border-right: none;
+      border-bottom: none;
+      background-color: transparent;
+      z-index: auto;
+      overflow: visible;
+      transform: none;
+    }
+
+    &--open {
+      transform: translateX(0);
     }
 
     &-list {
       display: flex;
+      flex-direction: column;
       list-style: none;
-      gap: $spacing-lg;
+      gap: 0;
       margin: 0;
-      padding: 0;
+      padding: $spacing-xl $spacing-md $spacing-md;
+      padding-top: calc(60px + $spacing-md);
+
+      @include respond-to(md) {
+        flex-direction: row;
+        gap: $spacing-lg;
+        padding: 0;
+        padding-top: 0;
+      }
     }
 
     &-link {
       color: $text-primary;
       font-weight: $font-weight-medium;
-      padding: $spacing-sm $spacing-md;
+      padding: $spacing-md $spacing-lg;
       border-radius: $border-radius-md;
       transition: background-color $transition-fast;
+      display: block;
+      text-decoration: none;
+      width: 100%;
+
+      @include respond-to(md) {
+        padding: $spacing-sm $spacing-md;
+        width: auto;
+      }
 
       &:hover {
         background-color: $background-color;
@@ -85,10 +235,45 @@
     }
   }
 
+  &__nav-mobile-actions {
+    border-top: 1px solid $border-color;
+    margin-top: $spacing-sm;
+    padding-top: $spacing-sm;
+
+    @include respond-to(md) {
+      display: none;
+    }
+
+    .header__nav-link--button {
+      background-color: $primary-color;
+      color: white;
+      text-align: center;
+      font-weight: $font-weight-semibold;
+
+      &:hover {
+        background-color: color.adjust($primary-color, $lightness: -10%);
+        color: white;
+      }
+
+      &--active {
+        background-color: color.adjust($primary-color, $lightness: -10%);
+        color: white;
+      }
+    }
+  }
+
   &__actions {
     display: flex;
     gap: $spacing-sm;
     align-items: center;
+    margin-left: auto;
+    position: relative;
+    z-index: $z-index-modal + 25;
+    pointer-events: auto;
+
+    @include respond-to(md) {
+      z-index: auto;
+    }
   }
 
   &__button {
@@ -96,10 +281,11 @@
     border-radius: $border-radius-md;
     font-weight: $font-weight-medium;
     transition: all $transition-fast;
-    display: inline-block;
+    display: none;
     text-decoration: none;
 
     @include respond-to(md) {
+      display: inline-block;
       padding: $spacing-sm $spacing-lg;
     }
 
@@ -135,6 +321,8 @@
   &__user {
     position: relative;
     display: inline-block;
+    z-index: $z-index-modal + 35;
+    pointer-events: auto;
 
     &:hover &-dropdown {
       opacity: 1;
@@ -155,6 +343,8 @@
     text-decoration: none;
     transition: all $transition-fast;
     cursor: pointer;
+    position: relative;
+    z-index: $z-index-modal + 35;
 
     &:hover {
       background-color: #3654d1;
@@ -186,8 +376,9 @@
     visibility: hidden;
     transform: translateY(-$spacing-xs);
     transition: all $transition-fast;
-    z-index: $z-index-dropdown;
+    z-index: $z-index-modal + 50;
     overflow: hidden;
+    pointer-events: auto;
   }
 
   &__user-dropdown-item {

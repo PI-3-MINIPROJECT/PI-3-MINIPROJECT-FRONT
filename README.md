@@ -38,6 +38,7 @@ cp .env.example .env
 Editar `.env` con las configuraciones necesarias:
 ```
 VITE_API_URL=http://localhost:3000
+VITE_CHAT_SERVER_URL=http://localhost:4000
 VITE_FIREBASE_API_KEY=your_api_key
 VITE_FIREBASE_AUTH_DOMAIN=your_auth_domain
 VITE_FIREBASE_PROJECT_ID=your_project_id
@@ -135,6 +136,7 @@ El proyecto está configurado para desplegarse en **Vercel** con despliegue auto
 2. Agrega todas las variables de entorno necesarias:
    ```
    VITE_API_URL=https://tu-backend-url.com
+   VITE_CHAT_SERVER_URL=https://tu-chat-server-url.com
    VITE_FIREBASE_API_KEY=tu_api_key
    VITE_FIREBASE_AUTH_DOMAIN=tu_auth_domain
    VITE_FIREBASE_PROJECT_ID=tu_project_id
@@ -142,6 +144,8 @@ El proyecto está configurado para desplegarse en **Vercel** con despliegue auto
    VITE_FIREBASE_MESSAGING_SENDER_ID=tu_sender_id
    VITE_FIREBASE_APP_ID=tu_app_id
    ```
+   
+   **IMPORTANTE**: Asegúrate de configurar `VITE_CHAT_SERVER_URL` con la URL de tu servidor de chat en producción. Si no está configurada, la aplicación intentará conectarse a `localhost:4000` y fallará.
 3. Asegúrate de configurarlas para los entornos: **Production**, **Preview** y **Development**
 
 #### Paso 5: Verificar el Workflow

@@ -1,5 +1,6 @@
 import { useEffect, useState, useCallback, useRef } from 'react';
 import socketService from '../services/socketService';
+import { getErrorMessage } from '../utils/errorMessages';
 import type { Socket } from 'socket.io-client';
 
 interface ChatMessage {
@@ -69,8 +70,14 @@ export const useChat = (
 
   const sendMessage = useCallback((messageText: string) => {
     if (!messageText.trim()) return;
-    
-    if (socketRef.current?.connected && meetingId && userId && username) {
+
+    if (!meetingId || !userId || !username) {
+      const errorDetails = getErrorMessage({ message: 'Meeting ID, User ID, and message are required' });
+      setConnectionError(errorDetails.message);
+      return;
+    }
+
+    if (socketRef.current?.connected) {
       console.log('📤 Enviando mensaje:', messageText);
       
       socketRef.current.emit('chat:message', {
@@ -80,6 +87,8 @@ export const useChat = (
         message: messageText.trim()
       });
     } else {
+      const errorDetails = getErrorMessage({ message: 'Failed to send message' });
+      setConnectionError(errorDetails.message);
       console.error('❌ No se puede enviar mensaje: Socket desconectado');
     }
   }, [meetingId, userId, username]);
@@ -122,7 +131,18 @@ export const useChat = (
       return;
     }
 
-    const socket = socketService.connect();
+    let socket: Socket;
+    try {
+      socket = socketService.connect();
+    } catch (error) {
+      if (error instanceof Error && error.message.includes('VITE_CHAT_SERVER_URL')) {
+        setConnectionError('Error de configuración: El servidor de chat no está configurado. Por favor, contacta al administrador.');
+        console.error('❌ Error de configuración:', error.message);
+        return;
+      }
+      throw error;
+    }
+    
     socketRef.current = socket;
 
     const handleConnect = () => {
@@ -139,7 +159,8 @@ export const useChat = (
 
     const handleConnectError = (error: Error) => {
       console.error('❌ Error de conexión:', error);
-      setConnectionError(error.message);
+      const errorDetails = getErrorMessage(error);
+      setConnectionError(errorDetails.message);
       setIsConnected(false);
     };
 
@@ -176,7 +197,14 @@ export const useChat = (
 
     const handleError = (error: { message: string }) => {
       console.error('❌ Error del socket:', error);
-      setConnectionError(error.message);
+      const errorDetails = getErrorMessage(error);
+      setConnectionError(errorDetails.message);
+      
+      if (errorDetails.action === 'redirect') {
+        setTimeout(() => {
+          window.location.href = '/meetings';
+        }, 3000);
+      }
     };
 
     socket.on('connect', handleConnect);

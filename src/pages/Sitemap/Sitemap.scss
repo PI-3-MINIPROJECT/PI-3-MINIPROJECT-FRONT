@@ -5,6 +5,10 @@
   min-height: calc(100vh - 200px);
   padding: $spacing-2xl $spacing-md;
 
+  @media (max-width: $breakpoint-md - 1px) {
+    padding: $spacing-xl $spacing-sm;
+  }
+
   &__container {
     @include container;
     max-width: 900px;
@@ -15,6 +19,10 @@
     font-size: $font-size-4xl;
     margin-bottom: $spacing-lg;
     text-align: center;
+
+    @media (max-width: $breakpoint-md - 1px) {
+      font-size: $font-size-3xl;
+    }
   }
 
   &__intro {
@@ -24,6 +32,11 @@
     margin-bottom: $spacing-3xl;
     line-height: $line-height-relaxed;
     animation: sitemapFade 0.55s ease-out 0.05s both;
+
+    @media (max-width: $breakpoint-md - 1px) {
+      font-size: $font-size-base;
+      padding: 0 $spacing-md;
+    }
   }
 
   &__section {

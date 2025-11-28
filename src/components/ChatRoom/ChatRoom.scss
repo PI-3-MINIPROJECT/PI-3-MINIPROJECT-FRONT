@@ -1,5 +1,6 @@
 @use 'sass:color';
 @use '../../styles/variables' as *;
+@use '../../styles/mixins' as *;
 
 .chat-room {
   display: flex;
@@ -338,7 +339,7 @@
   }
 }
 
-@media (max-width: 768px) {
+@media (max-width: $breakpoint-md - 1px) {
   .chat-room {
     max-height: 500px;
 

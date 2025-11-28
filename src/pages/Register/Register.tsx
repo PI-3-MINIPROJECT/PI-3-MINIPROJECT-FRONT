@@ -3,7 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import Input from '../../components/Input/Input';
 import Button from '../../components/Button/Button';
 import { register } from '../../utils/api';
-import { handleAuthError, redirectToGoogleOAuth, redirectToGitHubOAuth } from '../../utils/auth';
+import { getAuthErrorDetails, redirectToGoogleOAuth, redirectToGitHubOAuth } from '../../utils/auth';
 import type { RegisterRequest } from '../../types';
 import './Register.scss';
 
@@ -309,12 +309,26 @@ export default function Register() {
         });
       }
     } catch (error) {
-      const errorMessage = handleAuthError(error);
+      const errorDetails = getAuthErrorDetails(error);
       
-      if (errorMessage.includes('ya está registrado')) {
-        setErrors({ email: errorMessage });
+      if (errorDetails.field) {
+        const fieldMap: Record<string, keyof typeof errors> = {
+          'firstName': 'firstName',
+          'lastName': 'lastName',
+          'email': 'email',
+          'age': 'age',
+          'password': 'password',
+          'confirmPassword': 'confirmPassword'
+        };
+        
+        const fieldKey = fieldMap[errorDetails.field];
+        if (fieldKey) {
+          setErrors({ [fieldKey]: errorDetails.message });
+        } else {
+          setErrors({ general: errorDetails.message });
+        }
       } else {
-        setErrors({ general: errorMessage });
+        setErrors({ general: errorDetails.message });
       }
     } finally {
       setIsSubmitting(false);

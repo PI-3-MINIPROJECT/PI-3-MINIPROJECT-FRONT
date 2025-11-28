@@ -4,7 +4,7 @@ import { useAuth } from '../../hooks/useAuth';
 import Input from '../../components/Input/Input';
 import Button from '../../components/Button/Button';
 import { login } from '../../utils/api';
-import { handleAuthError, redirectToGoogleOAuth, redirectToGitHubOAuth, getCurrentUser } from '../../utils/auth';
+import { getAuthErrorDetails, redirectToGoogleOAuth, redirectToGitHubOAuth, getCurrentUser } from '../../utils/auth';
 import type { LoginRequest } from '../../types';
 import './Login.scss';
 
@@ -82,27 +82,19 @@ export default function Login() {
           }
         } catch (error) {
           console.error('❌ Error al obtener perfil de usuario:', error);
-          const errorMsg = handleAuthError(error);
-          const originalMessage = error instanceof Error ? error.message.toLowerCase() : '';
-          const statusCode = error instanceof Error && 'status' in error ? (error as { status?: number }).status : undefined;
+          const errorDetails = getAuthErrorDetails(error);
           
           if (
-            errorMsg === 'OAUTH_ERROR' ||
-            errorMsg.includes('OAUTH_PROVIDER_CONFLICT') ||
-            originalMessage.includes('github') ||
-            originalMessage.includes('oauth') ||
-            originalMessage.includes('social') ||
-            originalMessage.includes('provider') ||
-            originalMessage.includes('creada con') ||
-            originalMessage.includes('registered with') ||
-            originalMessage.includes('oauth_provider_conflict') ||
-            statusCode === 404
+            errorDetails.message === 'OAUTH_ERROR' ||
+            errorDetails.message.includes('OAUTH_PROVIDER_CONFLICT') ||
+            errorDetails.message.includes('GitHub') ||
+            errorDetails.message.includes('OAuth')
           ) {
             setErrors({ 
               general: 'Esta cuenta fue registrada con GitHub. Por favor, inicia sesión usando el botón de GitHub.' 
             });
           } else {
-            setErrors({ general: 'Error al obtener tu información. Por favor, intenta iniciar sesión nuevamente.' });
+            setErrors({ general: errorDetails.message || 'Error al obtener tu información. Por favor, intenta iniciar sesión nuevamente.' });
           }
         }
       };
@@ -201,30 +193,14 @@ export default function Login() {
         });
       }
     } catch (error) {
-      const errorMessage = handleAuthError(error);
-      const originalMessage = error instanceof Error ? error.message.toLowerCase() : '';
+      const errorDetails = getAuthErrorDetails(error);
       
-      if (
-        errorMessage === 'OAUTH_ERROR' ||
-        originalMessage.includes('github') ||
-        originalMessage.includes('oauth') ||
-        originalMessage.includes('social') ||
-        originalMessage.includes('provider') ||
-        originalMessage.includes('creada con') ||
-        originalMessage.includes('registered with')
-      ) {
+      if (errorDetails.message === 'OAUTH_ERROR') {
         setErrors({ 
           general: 'Esta cuenta fue registrada con GitHub. Por favor, inicia sesión usando el botón de GitHub.' 
         });
-      } else if (
-        errorMessage.includes('Credenciales incorrectas') ||
-        errorMessage.includes('401') ||
-        errorMessage.includes('No autenticado') ||
-        errorMessage.includes('Sesión expirada')
-      ) {
-        setErrors({ general: 'Correo electrónico o contraseña incorrectos' });
       } else {
-        setErrors({ general: errorMessage });
+        setErrors({ general: errorDetails.message });
       }
     } finally {
       setIsSubmitting(false);

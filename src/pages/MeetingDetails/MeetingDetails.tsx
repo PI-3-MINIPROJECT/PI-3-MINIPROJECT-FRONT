@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useParams, useLocation, useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
 import { getMeetingById, leaveMeeting, deleteMeeting } from '../../utils/meetingService';
+import { getErrorMessage } from '../../utils/errorMessages';
 import Button from '../../components/Button/Button';
 import type { Meeting } from '../../types';
 import './MeetingDetails.scss';
@@ -40,14 +41,21 @@ export default function MeetingDetails() {
         setMeeting(data);
       } catch (err) {
         console.error('Error loading meeting:', err);
-        setError(err instanceof Error ? err.message : 'Error al cargar la reunión');
+        const errorDetails = getErrorMessage(err);
+        setError(errorDetails.message);
+        
+        if (errorDetails.action === 'redirect') {
+          setTimeout(() => {
+            navigate('/meetings');
+          }, 3000);
+        }
       } finally {
         setIsLoading(false);
       }
     };
 
     loadMeeting();
-  }, [meetingId, meeting]);
+  }, [meetingId, meeting, navigate]);
 
   /**
    * Handles joining the meeting room
@@ -79,7 +87,8 @@ export default function MeetingDetails() {
       });
     } catch (err) {
       console.error('Error leaving meeting:', err);
-      alert(err instanceof Error ? err.message : 'Error al salir de la reunión');
+      const errorDetails = getErrorMessage(err);
+      alert(errorDetails.message);
     } finally {
       setIsActionLoading(false);
     }
@@ -103,7 +112,12 @@ export default function MeetingDetails() {
       });
     } catch (err) {
       console.error('Error deleting meeting:', err);
-      alert(err instanceof Error ? err.message : 'Error al eliminar la reunión');
+      const errorDetails = getErrorMessage(err);
+      alert(errorDetails.message);
+      
+      if (errorDetails.action === 'clear') {
+        navigate('/explore');
+      }
     } finally {
       setIsActionLoading(false);
     }

@@ -1,5 +1,6 @@
 import { get, put, del } from './api';
 import type { User } from '../types';
+import { getErrorMessage } from './errorMessages';
 
 type ErrorWithStatus = Error & { status?: number };
 
@@ -60,57 +61,24 @@ export async function deleteAccount() {
  * @returns {string} User-friendly error message in Spanish
  */
 export function handleAuthError(error: unknown): string {
-  if (error instanceof Error) {
-    const status = getStatusCode(error);
-    const message = error.message.toLowerCase();
-    
-    if (
-      message.includes('oauth_provider_conflict') ||
-      message.includes('github') ||
-      message.includes('oauth') ||
-      message.includes('social') ||
-      message.includes('provider') ||
-      message.includes('creada con') ||
-      message.includes('registered with')
-    ) {
-      return 'OAUTH_ERROR';
-    }
-    
-    if (
-      status === 404 &&
-      (message.includes('profile') || message.includes('users/profile'))
-    ) {
-      return 'OAUTH_PROVIDER_CONFLICT';
-    }
-    
-    if (
-      status === 401 ||
-      error.message.includes('401') ||
-      error.message.includes('No autenticado')
-    ) {
-      return 'Sesión expirada. Por favor, inicia sesión de nuevo.';
-    }
-    
-    if (error.message.includes('403') || error.message.includes('No autorizado')) {
-      return 'No tienes permisos para realizar esta acción.';
-    }
-    
-    if (error.message.includes('409') || error.message.includes('ya registrado') || error.message.includes('already')) {
-      return 'Este correo electrónico ya está registrado.';
-    }
-    
-    if (error.message.includes('400') || error.message.includes('inválid')) {
-      return 'Los datos proporcionados no son válidos.';
-    }
-    
-    if (error.message.includes('500') || error.message.includes('servidor')) {
-      return 'Error interno del servidor. Intenta de nuevo más tarde.';
-    }
-    
-    return error.message;
+  const status = getStatusCode(error);
+  const errorDetails = getErrorMessage(error, status);
+  
+  if (errorDetails.message === 'OAUTH_ERROR' || errorDetails.message === 'OAUTH_PROVIDER_CONFLICT') {
+    return 'OAUTH_ERROR';
   }
   
-  return 'Error de conexión. Verifica tu conexión a internet.';
+  return errorDetails.message;
+}
+
+/**
+ * Gets error details including field and action
+ * @param {unknown} error - Error object to handle
+ * @returns {{ message: string; field?: string; action?: string }} Error details
+ */
+export function getAuthErrorDetails(error: unknown): { message: string; field?: string; action?: string } {
+  const status = getStatusCode(error);
+  return getErrorMessage(error, status);
 }
 
 /**

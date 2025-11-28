@@ -19,7 +19,7 @@
     box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
     text-align: center;
 
-    @include respond-to('tablet') {
+    @media (max-width: $breakpoint-md - 1px) {
       padding: 2rem 1.5rem;
     }
   }
@@ -47,7 +47,7 @@
     color: $text-primary;
     margin-bottom: 0.75rem;
 
-    @include respond-to('tablet') {
+    @media (max-width: $breakpoint-md - 1px) {
       font-size: 1.75rem;
     }
   }
@@ -57,7 +57,7 @@
     color: $text-secondary;
     margin-bottom: 2.5rem;
 
-    @include respond-to('tablet') {
+    @media (max-width: $breakpoint-md - 1px) {
       font-size: 1rem;
     }
   }
@@ -76,7 +76,7 @@
     padding: 2rem;
     border: 1px solid rgba($primary-color, 0.1);
 
-    @include respond-to('tablet') {
+    @media (max-width: $breakpoint-md - 1px) {
       padding: 1.5rem;
     }
   }
@@ -121,7 +121,7 @@
     gap: 1.5rem;
     margin-bottom: 1.25rem;
 
-    @include respond-to('mobile') {
+    @media (max-width: $breakpoint-sm - 1px) {
       grid-template-columns: 1fr;
       gap: 1rem;
     }
@@ -139,7 +139,7 @@
     gap: 0.75rem;
     margin-top: 0.5rem;
 
-    @include respond-to('mobile') {
+    @media (max-width: $breakpoint-sm - 1px) {
       flex-direction: column;
       align-items: stretch;
     }
@@ -165,7 +165,7 @@
     font-size: 0.875rem;
     white-space: nowrap;
 
-    @include respond-to('mobile') {
+    @media (max-width: $breakpoint-sm - 1px) {
       width: 100%;
     }
   }
@@ -184,7 +184,7 @@
     padding: 1.5rem;
     border: 1px solid rgba($primary-color, 0.1);
 
-    @include respond-to('tablet') {
+    @media (max-width: $breakpoint-md - 1px) {
       padding: 1.25rem;
     }
   }
@@ -239,7 +239,7 @@
     justify-content: center;
     flex-wrap: wrap;
 
-    @include respond-to('mobile') {
+    @media (max-width: $breakpoint-sm - 1px) {
       flex-direction: column;
     }
   }
@@ -250,7 +250,7 @@
     padding: 1rem 2rem !important;
     font-size: 1rem;
 
-    @include respond-to('mobile') {
+    @media (max-width: $breakpoint-sm - 1px) {
       width: 100%;
     }
   }

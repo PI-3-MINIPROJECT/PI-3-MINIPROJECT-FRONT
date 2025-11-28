@@ -1,6 +1,7 @@
 import type { Meeting, CreateMeetingData, MeetingResponse } from '../types';
+import { getErrorMessage, extractErrorMessage } from './errorMessages';
 
-const CHAT_SERVER_URL = import.meta.env.VITE_CHAT_SERVER_URL || 'http://localhost:4000';
+const CHAT_SERVER_URL = import.meta.env.VITE_CHAT_SERVER_URL || (import.meta.env.PROD ? '' : 'http://localhost:4000');
 
 /**
  * Makes an HTTP request to the chat server API
@@ -14,6 +15,10 @@ async function chatApiRequest<T>(
   endpoint: string,
   options: RequestInit = {}
 ): Promise<T> {
+  if (!CHAT_SERVER_URL) {
+    throw new Error('VITE_CHAT_SERVER_URL no está configurada. Por favor, configura esta variable de entorno.');
+  }
+  
   const fullUrl = `${CHAT_SERVER_URL}${endpoint}`;
   
   try {
@@ -42,8 +47,16 @@ async function chatApiRequest<T>(
     }
 
     if (!response.ok) {
-      const errorData = data as { message?: string; error?: string };
-      throw new Error(errorData.message || errorData.error || `Error ${response.status}`);
+      const errorData = data as { message?: string; error?: string; success?: boolean };
+      const errorMessage = extractErrorMessage(errorData);
+      const errorDetails = getErrorMessage({ message: errorMessage }, response.status);
+      
+      const error = new Error(errorDetails.message);
+      (error as Error & { status?: number; field?: string; action?: string }).status = response.status;
+      (error as Error & { status?: number; field?: string; action?: string }).field = errorDetails.field;
+      (error as Error & { status?: number; field?: string; action?: string }).action = errorDetails.action;
+      
+      throw error;
     }
 
     return data as T;

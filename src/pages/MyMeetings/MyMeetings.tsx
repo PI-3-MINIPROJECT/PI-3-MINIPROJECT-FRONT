@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
 import { getUserMeetings } from '../../utils/meetingService';
+import { getErrorMessage } from '../../utils/errorMessages';
 import type { Meeting } from '../../types';
 import './MyMeetings.scss';
 
@@ -42,7 +43,8 @@ export default function MyMeetings() {
         setMeetings(meetingsData);
       } catch (err) {
         console.error('❌ Error loading meetings:', err);
-        setError(err instanceof Error ? err.message : 'Error al cargar las reuniones');
+        const errorDetails = getErrorMessage(err);
+        setError(errorDetails.message);
       } finally {
         setIsLoading(false);
       }

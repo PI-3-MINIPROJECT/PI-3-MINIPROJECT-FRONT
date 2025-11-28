@@ -1,5 +1,6 @@
 import type { ApiResponse } from '../types';
 import { getSessionToken } from './cookies';
+import { extractErrorMessage } from './errorMessages';
 
 type ApiErrorWithStatus = Error & {
   status?: number;
@@ -31,7 +32,28 @@ function isJsonRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null;
 }
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
+/**
+ * Gets the API URL from environment variables with validation
+ * @returns {string} API URL
+ * @throws {Error} Throws error if VITE_API_URL is not configured in production
+ */
+const getApiUrl = (): string => {
+  const envUrl = import.meta.env.VITE_API_URL;
+  
+  if (envUrl && envUrl.trim() !== '') {
+    return envUrl.trim();
+  }
+  
+  if (import.meta.env.PROD) {
+    const errorMsg = 'VITE_API_URL is not configured in production. Please set it in Vercel environment variables.';
+    console.error('❌', errorMsg);
+    throw new Error(errorMsg);
+  }
+  
+  return 'http://localhost:3000';
+};
+
+const API_URL = getApiUrl();
 
 /**
  * Makes an HTTP request to the API endpoint with authentication headers
@@ -79,38 +101,37 @@ export async function apiRequest<T>(
     }
 
     if (!response.ok) {
-      let friendlyMessage: string | undefined;
+      let errorMessage: string | undefined;
+      
       if (isJsonRecord(data)) {
-        if (typeof data.message === 'string') {
-          friendlyMessage = data.message;
-        } else if (typeof data.error === 'string') {
-          friendlyMessage = data.error;
-        }
+        errorMessage = extractErrorMessage(data);
       }
-
-      if (!friendlyMessage) {
+      
+      if (!errorMessage) {
         if (response.status === 404) {
           const lowerEndpoint = endpoint.toLowerCase();
           if (lowerEndpoint.includes('/profile') || lowerEndpoint.includes('/users/profile')) {
-            friendlyMessage = 'OAUTH_PROVIDER_CONFLICT';
+            errorMessage = 'OAUTH_PROVIDER_CONFLICT';
           } else {
-            friendlyMessage = 'Recurso no encontrado';
+            errorMessage = 'Recurso no encontrado';
           }
         } else if (response.status === 401) {
-          friendlyMessage = 'No autenticado';
+          errorMessage = 'No autenticado';
         } else if (response.status === 409) {
-          friendlyMessage = 'Conflicto en la solicitud';
+          errorMessage = 'Conflicto en la solicitud';
         } else if (response.status === 400) {
-          friendlyMessage = 'Solicitud inválida';
+          errorMessage = 'Solicitud inválida';
         } else if (response.status >= 500) {
-          friendlyMessage = 'Error del servidor. Inténtalo más tarde';
+          errorMessage = 'Error del servidor. Inténtalo más tarde';
+        } else {
+          errorMessage = 'Ha ocurrido un error';
         }
       }
       
       return {
         success: false,
-        error: friendlyMessage || 'Ha ocurrido un error',
-        message: friendlyMessage,
+        error: errorMessage,
+        message: errorMessage,
         status: response.status,
         raw: data,
       };
