@@ -75,13 +75,23 @@ export const useVoiceCall = (
   const localStreamRef = useRef<MediaStream | null>(null);
   const connectionsRef = useRef<Map<string, MediaConnection>>(new Map());
   const audioElementsRef = useRef<Map<string, HTMLAudioElement>>(new Map());
+  const isJoiningRef = useRef<boolean>(false);
+  const hasJoinedRef = useRef<boolean>(false);
 
   /**
    * Get user media (microphone)
    * @returns {Promise<MediaStream>} Audio stream
+   * @throws {Error} If microphone access is denied or unavailable
    */
   const getUserMedia = useCallback(async (): Promise<MediaStream> => {
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+      const errorMessage = 'Tu navegador no soporta acceso al micrófono. Por favor, usa un navegador moderno.';
+      console.error('🎙️', errorMessage);
+      throw new Error(errorMessage);
+    }
+
     try {
+      console.log('🎙️ Requesting microphone permissions...');
       const stream = await navigator.mediaDevices.getUserMedia({
         audio: {
           echoCancellation: true,
@@ -90,10 +100,37 @@ export const useVoiceCall = (
         },
         video: false,
       });
+      
+      if (!stream || stream.getAudioTracks().length === 0) {
+        const errorMessage = 'No se pudo acceder al micrófono. Verifica que el dispositivo esté conectado y los permisos estén habilitados.';
+        console.error('🎙️', errorMessage);
+        throw new Error(errorMessage);
+      }
+
+      console.log('🎙️ Microphone access granted, tracks:', stream.getAudioTracks().length);
       return stream;
     } catch (error) {
       console.error('🎙️ Error getting microphone:', error);
-      throw new Error('Could not access microphone. Please check permissions.');
+      
+      let errorMessage = 'No se pudo acceder al micrófono. ';
+      
+      if (error instanceof Error) {
+        if (error.name === 'NotAllowedError' || error.name === 'PermissionDeniedError') {
+          errorMessage += 'Por favor, permite el acceso al micrófono en la configuración de tu navegador y recarga la página.';
+        } else if (error.name === 'NotFoundError' || error.name === 'DevicesNotFoundError') {
+          errorMessage += 'No se encontró ningún micrófono. Verifica que el dispositivo esté conectado.';
+        } else if (error.name === 'NotReadableError' || error.name === 'TrackStartError') {
+          errorMessage += 'El micrófono está siendo usado por otra aplicación. Cierra otras aplicaciones que lo estén usando.';
+        } else if (error.name === 'OverconstrainedError' || error.name === 'ConstraintNotSatisfiedError') {
+          errorMessage += 'El micrófono no cumple con los requisitos necesarios.';
+        } else {
+          errorMessage += `Error: ${error.message}`;
+        }
+      } else {
+        errorMessage += 'Por favor, verifica los permisos del navegador y recarga la página.';
+      }
+      
+      throw new Error(errorMessage);
     }
   }, []);
 
@@ -206,22 +243,59 @@ export const useVoiceCall = (
    * Join the voice call
    */
   const joinVoiceCall = useCallback(async () => {
+    if (isJoiningRef.current || hasJoinedRef.current) {
+      console.log('🎙️ Already joining or joined, skipping...');
+      return;
+    }
+
     if (!meetingId || !userId || !username) {
       console.error('🎙️ Missing meeting data:', { meetingId, userId, username });
       setConnectionError('Missing meeting data');
       return;
     }
 
+    isJoiningRef.current = true;
     console.log('🎙️ Starting voice call join process...');
 
     try {
       console.log('🎙️ Requesting microphone access...');
       const stream = await getUserMedia();
+      
+      if (!stream) {
+        const errorMessage = 'No se pudo obtener el stream del micrófono. Por favor, recarga la página e intenta de nuevo.';
+        console.error('🎙️', errorMessage);
+        setConnectionError(errorMessage);
+        return;
+      }
+      
       localStreamRef.current = stream;
-      console.log('🎙️ Microphone access granted');
+      console.log('🎙️ Microphone access granted, stream active:', stream.active);
 
-      stream.getAudioTracks().forEach(track => {
+      const audioTracks = stream.getAudioTracks();
+      if (audioTracks.length === 0) {
+        const errorMessage = 'No se encontraron pistas de audio en el stream. Por favor, verifica tu micrófono.';
+        console.error('🎙️', errorMessage);
+        setConnectionError(errorMessage);
+        return;
+      }
+
+      console.log('🎙️ Audio tracks found:', audioTracks.length);
+      audioTracks.forEach(track => {
+        console.log('🎙️ Track:', track.label, 'enabled:', track.enabled, 'muted:', track.muted, 'readyState:', track.readyState);
         track.enabled = false;
+        
+        track.onended = () => {
+          console.warn('🎙️ Audio track ended unexpectedly');
+          setConnectionError('El micrófono se desconectó. Por favor, recarga la página.');
+        };
+        
+        track.onmute = () => {
+          console.warn('🎙️ Audio track muted by system');
+        };
+        
+        track.onunmute = () => {
+          console.log('🎙️ Audio track unmuted by system');
+        };
       });
       setIsMuted(true);
 
@@ -240,8 +314,8 @@ export const useVoiceCall = (
 
       const waitForSocketConnect = new Promise<void>((resolve, reject) => {
         const timeout = setTimeout(() => {
-          reject(new Error('Socket connection timeout'));
-        }, 10000);
+          reject(new Error('Socket connection timeout. Please check that VITE_CALL_SERVER_URL is configured correctly in Vercel.'));
+        }, 25000);
 
         if (socket.connected) {
           clearTimeout(timeout);
@@ -254,7 +328,8 @@ export const useVoiceCall = (
           });
           socket.once('connect_error', (err) => {
             clearTimeout(timeout);
-            reject(err);
+            const errorMessage = err.message || 'Connection error';
+            reject(new Error(`Failed to connect to call server: ${errorMessage}. Please verify VITE_CALL_SERVER_URL is set in Vercel.`));
           });
         }
       });
@@ -288,6 +363,8 @@ export const useVoiceCall = (
         setIsInCall(true);
         setIsConnected(true);
         setConnectionError(null);
+        hasJoinedRef.current = true;
+        isJoiningRef.current = false;
       });
 
       peer.on('call', (call) => {
@@ -385,6 +462,8 @@ export const useVoiceCall = (
       if (error instanceof Error) {
         setConnectionError(error.message);
       }
+      isJoiningRef.current = false;
+      hasJoinedRef.current = false;
     }
   }, [meetingId, userId, username, getUserMedia, handleIncomingCall, callPeer, stopRemoteStream]);
 
@@ -393,6 +472,9 @@ export const useVoiceCall = (
    */
   const leaveVoiceCall = useCallback(() => {
     console.log('🎙️ Leaving voice call');
+
+    isJoiningRef.current = false;
+    hasJoinedRef.current = false;
 
     audioElementsRef.current.forEach((audio) => {
       audio.srcObject = null;
@@ -432,18 +514,39 @@ export const useVoiceCall = (
    * Toggle microphone mute state
    */
   const toggleMute = useCallback(() => {
-    if (!localStreamRef.current || !meetingId || !userId) return;
+    if (!localStreamRef.current) {
+      const errorMessage = 'No hay acceso al micrófono. Por favor, recarga la página y permite el acceso al micrófono.';
+      console.warn('🎙️ Cannot toggle mute: No local stream');
+      setConnectionError(errorMessage);
+      return;
+    }
+
+    if (!meetingId || !userId) {
+      console.warn('🎙️ Cannot toggle mute: Missing meeting data');
+      return;
+    }
+
+    const audioTracks = localStreamRef.current.getAudioTracks();
+    if (audioTracks.length === 0) {
+      const errorMessage = 'No se encontraron pistas de audio. Por favor, verifica tu micrófono y recarga la página.';
+      console.warn('🎙️ Cannot toggle mute: No audio tracks');
+      setConnectionError(errorMessage);
+      return;
+    }
 
     const newMutedState = !isMuted;
     
-    localStreamRef.current.getAudioTracks().forEach(track => {
+    audioTracks.forEach(track => {
       track.enabled = !newMutedState;
+      console.log('🎙️ Track', track.label, 'enabled:', !newMutedState, 'muted:', track.muted, 'readyState:', track.readyState);
     });
 
-    if (newMutedState) {
-      callService.mute({ meetingId, userId });
-    } else {
-      callService.unmute({ meetingId, userId });
+    if (socketRef.current?.connected) {
+      if (newMutedState) {
+        callService.mute({ meetingId, userId });
+      } else {
+        callService.unmute({ meetingId, userId });
+      }
     }
 
     setIsMuted(newMutedState);

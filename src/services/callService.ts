@@ -6,9 +6,25 @@
 
 import { io, Socket } from 'socket.io-client';
 
-/** Voice call server URL from environment variables */
-const CALL_SERVER_URL = import.meta.env.VITE_CALL_SERVER_URL || 
-  (import.meta.env.PROD ? '' : 'http://localhost:5000');
+/**
+ * Get voice call server URL from environment variables
+ * @returns {string} Server URL
+ * @throws {Error} If URL is not configured in production
+ */
+const getCallServerUrl = (): string => {
+  const url = import.meta.env.VITE_CALL_SERVER_URL;
+  
+  if (import.meta.env.PROD) {
+    if (!url || url.trim() === '') {
+      throw new Error('VITE_CALL_SERVER_URL is not configured in production. Please set this environment variable in Vercel.');
+    }
+    return url;
+  }
+  
+  return url || 'http://localhost:5000';
+};
+
+const CALL_SERVER_URL = getCallServerUrl();
 
 /**
  * ICE Server configuration for WebRTC
@@ -179,10 +195,11 @@ class CallService {
     this.socket = io(CALL_SERVER_URL, {
       autoConnect: true,
       transports: ['websocket', 'polling'],
-      timeout: 10000,
+      timeout: 20000,
       reconnection: true,
       reconnectionAttempts: 5,
       reconnectionDelay: 1000,
+      reconnectionDelayMax: 5000,
     });
 
     this.socket.on('connect', () => {
