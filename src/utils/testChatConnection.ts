@@ -1,10 +1,5 @@
 import type { Meeting } from '../types';
 
-/**
- * Script de prueba para validar conexión con backend de chat
- * Ejecutar en la consola del navegador cuando el frontend esté corriendo
- */
-
 console.log('🔍 Verificando configuración...');
 console.log('VITE_CHAT_SERVER_URL:', import.meta.env.VITE_CHAT_SERVER_URL || 'http://localhost:4000');
 console.log('VITE_API_URL:', import.meta.env.VITE_API_URL || 'http://localhost:3000');

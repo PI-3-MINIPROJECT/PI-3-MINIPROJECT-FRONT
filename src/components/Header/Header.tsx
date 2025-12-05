@@ -27,7 +27,6 @@ export default function Header() {
   };
 
   const handleOverlayClick = (e: React.MouseEvent<HTMLDivElement>) => {
-    // Solo cerrar el menú si el clic no fue en el header o sus elementos
     const target = e.target as HTMLElement;
     if (!target.closest('.header')) {
       closeMobileMenu();
@@ -35,7 +34,6 @@ export default function Header() {
   };
 
   const handleHeaderClick = (e: React.MouseEvent<HTMLElement>) => {
-    // Prevenir que el clic en el header cierre el menú móvil
     e.stopPropagation();
   };
 

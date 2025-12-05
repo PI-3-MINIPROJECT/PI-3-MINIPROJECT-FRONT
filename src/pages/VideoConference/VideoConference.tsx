@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo, useEffect, useCallback } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
 import { useChat } from '../../hooks/useChat';
@@ -24,10 +24,8 @@ export default function VideoConference() {
   const userId = user?.uid || 'demo-user';
   const username = meetingData?.username || user?.name || 'Usuario';
 
-  // Chat hook - siempre activo para mantener el estado
   const { onlineUsers } = useChat(meetingId, userId, username);
 
-  // Voice call hook
   const {
     isMuted,
     participants: voiceParticipants,
@@ -47,7 +45,7 @@ export default function VideoConference() {
     return () => {
       leaveVoiceCall();
     };
-  }, []);
+  }, [joinVoiceCall, leaveVoiceCall]);
 
   /**
    * Gets user initials from name
@@ -64,13 +62,13 @@ export default function VideoConference() {
 
   /**
    * Get mute status for a user from voice participants
-   * @param {string} oderId - User ID
+   * @param {string} userId - User ID
    * @returns {boolean} Whether user is muted
    */
-  const getUserMuteStatus = (oderId: string): boolean => {
-    const voiceUser = voiceParticipants.find(p => p.userId === oderId);
+  const getUserMuteStatus = useCallback((userId: string): boolean => {
+    const voiceUser = voiceParticipants.find(p => p.userId === userId);
     return voiceUser?.isMuted ?? true;
-  };
+  }, [voiceParticipants]);
 
   const participants = useMemo(() => {
     const allUsers = [...onlineUsers];
@@ -91,7 +89,7 @@ export default function VideoConference() {
       isCameraOn: false,
       isMuted: user.userId === userId ? isMuted : getUserMuteStatus(user.userId),
     }));
-  }, [onlineUsers, userId, username, isMuted, voiceParticipants]);
+  }, [onlineUsers, userId, username, isMuted, getUserMuteStatus]);
 
   /**
    * Handles ending the video call and navigating back to explore page

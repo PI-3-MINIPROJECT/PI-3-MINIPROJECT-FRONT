@@ -1,6 +1,6 @@
 # WCAG Accessibility Implementation
 
-This document describes the WCAG 2.1 guidelines implemented in the VideoConference Platform frontend for Sprint 1, including both Operable and Understandable principles.
+This document describes the WCAG 2.1 guidelines implemented in the VideoConference Platform frontend, including Operable, Understandable, and Perceptible principles.
 
 ---
 
@@ -498,4 +498,188 @@ To verify error identification:
 - [WCAG 2.1 Guidelines - Understandable](https://www.w3.org/WAI/WCAG21/quickref/?currentsidebar=%23col_customize&levels=aaa&technologies=html%2Ccss%2Cjavascript)
 - [MDN: Form Validation](https://developer.mozilla.org/en-US/docs/Learn/Forms/Form_validation)
 - [WebAIM: Form Labels](https://webaim.org/techniques/forms/)
+
+---
+
+## WCAG 1.1.1 Non-text Content (Level A)
+
+**WCAG Principle**: Perceptible  
+**Guideline**: 1.1 Text Alternatives  
+**Success Criterion**: 1.1.1 Non-text Content  
+**Level**: A (Minimum level)
+
+### Requirement
+
+"All non-text content that is presented to the user has a text alternative that serves the equivalent purpose, except for the situations listed below."
+
+### Implementation
+
+The application ensures that all images and non-text content have appropriate text alternatives that convey the same information to users who cannot see the images:
+
+#### 1. Descriptive Alt Text for Images
+
+All images throughout the application include descriptive `alt` attributes that explain the image's purpose and content:
+
+- **Logo Images**: Alt text identifies the logo and brand
+  - `alt="konned logo"` - Clear brand identification
+  - Users know which company/organization the logo represents
+  
+- **Illustration Images**: Alt text describes the visual content
+  - `alt="Monitor con videoconferencia"` - Describes the illustration
+  - `alt="Colaboración en tiempo real"` - Explains the concept shown
+  - `alt="Ilustración de videoconferencia"` - Provides context
+
+- **Feature Images**: Alt text explains what the image demonstrates
+  - `alt="Multiplataforma"` - Describes the feature shown
+  - `alt="Alta calidad HD"` - Explains the quality aspect
+  - `alt="Seguridad avanzada"` - Describes the security feature
+
+**Location**:
+- `src/pages/Home/Home.tsx` - All images have descriptive alt text
+- `src/pages/About/About.tsx` - Mission illustration has alt text
+- `src/components/Header/Header.tsx` - Logo has alt text
+- `src/components/Footer/Footer.tsx` - Logo has alt text
+- `src/pages/Login/Login.tsx` - Illustration has alt text
+
+**Code Examples**:
+```tsx
+// Logo with descriptive alt text
+<img 
+  src="/logo-menu.png" 
+  alt="konned logo" 
+  className="header__logo-img" 
+/>
+
+// Feature illustration with descriptive alt text
+<img 
+  src="/monitor.png" 
+  alt="Monitor con videoconferencia" 
+  className="home__illustration-img"
+/>
+
+// Feature image with context
+<img 
+  src="/reunion.jpg" 
+  alt="Colaboración en tiempo real" 
+  className="home__feature-img"
+/>
+```
+
+#### 2. Decorative Images Handling
+
+Images that are purely decorative and don't convey information use appropriate handling:
+
+- **Decorative Images**: If an image is decorative, it should have empty alt text (`alt=""`) or be marked as decorative
+- **Current Implementation**: All images in the application serve informational purposes and have descriptive alt text
+- **Future Consideration**: If decorative images are added, they should use `alt=""` to indicate they can be ignored by screen readers
+
+**Location**:
+- Currently all images are informational
+- Future decorative images should follow `alt=""` pattern
+
+#### 3. Functional Images
+
+Images that serve as buttons or links have alt text that describes their function:
+
+- **Logo Links**: Logo images that link to home have descriptive alt text
+  - `alt="konned logo"` combined with link context
+  - Screen readers announce both the image description and link purpose
+
+- **Icon Buttons**: Icon-only buttons use `aria-label` for function description
+  - While not images, icons follow same principle
+  - `aria-label` provides text alternative for icon functionality
+
+**Location**:
+- `src/components/Header/Header.tsx` - Logo link with alt text
+- `src/pages/VideoConference/VideoConference.tsx` - Icon buttons with aria-label
+
+#### 4. Image Context and Purpose
+
+Alt text is written to convey the same information that sighted users get from the image:
+
+- **Informative Images**: Alt text describes what the image shows
+  - "Monitor con videoconferencia" - Describes the visual scene
+  - "Colaboración en tiempo real" - Explains the concept illustrated
+  
+- **Brand Images**: Alt text identifies the brand
+  - "konned logo" - Clear brand identification
+  - Users understand which company/organization
+
+- **Feature Demonstrations**: Alt text explains what feature is shown
+  - "Multiplataforma" - Describes the cross-platform feature
+  - "Seguridad avanzada" - Explains the security aspect
+
+**Location**:
+- All image alt attributes throughout the application
+- `src/pages/Home/Home.tsx` - Feature images with descriptive alt text
+
+#### 5. Screen Reader Compatibility
+
+Alt text ensures screen reader users receive equivalent information:
+
+- **Screen Reader Announcement**: Screen readers read alt text aloud
+  - Users who cannot see images understand their content
+  - Alt text provides equivalent experience
+  
+- **Context Preservation**: Alt text maintains context when images fail to load
+  - Browser displays alt text if image doesn't load
+  - Users still understand the content's purpose
+
+**Location**:
+- All images include alt attributes
+- Screen readers can access alt text throughout the application
+
+### Testing
+
+To verify non-text content accessibility:
+
+1. **Alt Text Inspection**:
+   - View page source or use browser DevTools
+   - Verify all `<img>` elements have `alt` attributes
+   - Check that alt text is descriptive and meaningful
+
+2. **Screen Reader Test**:
+   - Use screen reader (NVDA, JAWS, VoiceOver)
+   - Navigate through pages
+   - Verify screen reader announces image descriptions
+   - Confirm alt text provides equivalent information
+
+3. **Image Loading Test**:
+   - Disable images in browser settings
+   - Verify alt text appears where images should be
+   - Confirm page remains understandable
+
+4. **Automated Testing**:
+   - Use accessibility testing tools (axe DevTools, WAVE)
+   - Check for missing alt attributes
+   - Verify alt text quality
+
+### Benefits
+
+- **Accessibility**: Screen reader users can understand image content
+- **SEO**: Search engines can index image content through alt text
+- **Reliability**: Alt text displays if images fail to load
+- **Compliance**: Meets WCAG 2.1 Level A requirements
+- **Inclusive Design**: All users receive equivalent information
+
+### Code Locations Summary
+
+| Component | Location | Alt Text Feature |
+|-----------|----------|------------------|
+| Home Page Images | `src/pages/Home/Home.tsx` | All images have descriptive alt text |
+| About Page Images | `src/pages/About/About.tsx` | Mission illustration has alt text |
+| Header Logo | `src/components/Header/Header.tsx` | Logo has alt text |
+| Footer Logo | `src/components/Footer/Footer.tsx` | Logo has alt text |
+| Login Illustration | `src/pages/Login/Login.tsx` | Illustration has descriptive alt text |
+| All Feature Images | Various pages | All include descriptive alt attributes |
+
+---
+
+## References
+
+### WCAG 1.1.1 Non-text Content (Perceptible)
+- [WCAG 2.1 Success Criterion 1.1.1 Non-text Content](https://www.w3.org/WAI/WCAG21/Understanding/non-text-content.html)
+- [WCAG 2.1 Guidelines - Perceptible](https://www.w3.org/WAI/WCAG21/quickref/?currentsidebar=%23col_customize&levels=aaa&technologies=html%2Ccss%2Cjavascript)
+- [MDN: Image Alt Text](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/img#accessibility_concerns)
+- [WebAIM: Alternative Text](https://webaim.org/techniques/images/)
 

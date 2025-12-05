@@ -200,7 +200,6 @@ class CallService {
       this.isConnecting = false;
     });
 
-    // Store ICE servers when received
     this.socket.on(CallEvents.ICE_SERVERS, (servers: IceServer[]) => {
       console.log('🎙️ ICE servers received:', servers.length);
       this.iceServers = servers;

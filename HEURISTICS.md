@@ -1,6 +1,6 @@
 # Usability Heuristics Implementation
 
-This document describes the four Nielsen's Usability Heuristics implemented in the VideoConference Platform frontend for Sprint 1.
+This document describes the seven Nielsen's Usability Heuristics implemented in the VideoConference Platform frontend.
 
 ---
 
@@ -481,13 +481,419 @@ The application reduces cognitive load by making information visible and accessi
 
 ---
 
+---
+
+## Heuristic 5: Flexibility and Efficiency of Use
+
+**Nielsen's Principle**: "Accelerators — unseen by the novice user — may often speed up the interaction for the expert user such that the system can cater to both inexperienced and experienced users. Allow users to tailor frequent actions."
+
+### Implementation
+
+The application provides multiple ways to accomplish tasks, catering to both novice and expert users:
+
+#### 1. Keyboard Navigation and Shortcuts
+
+- **Tab Navigation**: Users can navigate entire forms and interfaces using only keyboard
+  - Tab moves forward through form fields
+  - Shift+Tab moves backward
+  - Enter submits forms
+  - Escape closes modals and dialogs
+  
+- **Form Efficiency**: Forms support keyboard-only operation
+  - All form fields accessible via Tab key
+  - Submit buttons activated with Enter key
+  - Checkboxes toggled with Space key
+  - No mouse required for form completion
+
+**Location**:
+- All form pages (`Login.tsx`, `Register.tsx`, `EditProfile.tsx`, etc.)
+- `src/components/Input/Input.tsx` - Keyboard accessible inputs
+- `src/pages/Profile/Profile.tsx` - Modal with Escape key support
+
+#### 2. Multiple Input Methods
+
+- **Password Visibility Toggle**: Users can choose to see password while typing
+  - Eye icon button for visual password entry
+  - Useful for users who prefer visual confirmation
+  - Accessible via keyboard (Tab + Enter/Space)
+
+- **Remember Me Option**: Login form includes "Recuérdame" checkbox
+  - Experienced users can enable persistent sessions
+  - Reduces need to login repeatedly
+  - Optional feature for convenience
+
+**Location**:
+- `src/pages/Login/Login.tsx` - Password toggle and remember me checkbox
+- `src/pages/Register/Register.tsx` - Password visibility toggle
+
+#### 3. Quick Actions and Navigation
+
+- **Direct Navigation Links**: Multiple ways to access common features
+  - Header "Crear reunión" button always visible
+  - Footer links provide alternative navigation
+  - Inline links in forms (e.g., "¿No tiene una cuenta? Crea una")
+
+- **User Menu**: Quick access to profile and account actions
+  - Avatar dropdown provides fast access to profile
+  - No need to navigate through multiple pages
+  - Logout available from any page via header
+
+**Location**:
+- `src/components/Header/Header.tsx` - Quick action buttons and user menu
+- `src/components/Footer/Footer.tsx` - Alternative navigation links
+- All form pages include navigation links
+
+#### 4. Efficient Form Design
+
+- **Auto-focus**: First form field automatically receives focus
+  - Reduces clicks/keystrokes needed to start filling form
+  - Immediate readiness for input
+  - Faster form completion
+
+- **Smart Defaults**: Forms include helpful defaults where appropriate
+  - Placeholders guide users on expected format
+  - Age field accepts numeric input only
+  - Email field validates format automatically
+
+**Location**:
+- All form pages auto-focus first input
+- `src/pages/Register/Register.tsx` - Numeric input sanitization
+- `src/components/Input/Input.tsx` - Input type constraints
+
+### Code Examples
+
+```typescript
+// Keyboard navigation support
+<Input
+  id="email"
+  type="email"
+  autoFocus  // Auto-focus for efficiency
+  // ... other props
+/>
+
+// Password toggle for flexibility
+<button
+  type="button"
+  onClick={() => setShowPassword(!showPassword)}
+  aria-label={showPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'}
+>
+  {/* Eye icon */}
+</button>
+
+// Remember me for experienced users
+<label>
+  <input type="checkbox" checked={rememberMe} />
+  Recuérdame
+</label>
+```
+
+### Benefits
+
+- **Caters to All Users**: Novice users get guided experience, experts get shortcuts
+- **Faster Task Completion**: Multiple input methods reduce time
+- **Reduced Friction**: Keyboard navigation faster than mouse for many users
+- **Flexibility**: Users choose their preferred interaction method
+
+---
+
+## Heuristic 6: Aesthetic and Minimalist Design
+
+**Nielsen's Principle**: "Interfaces should not contain information which is irrelevant or rarely needed. Every extra unit of information in an interface competes with the relevant units of information and diminishes their relative visibility."
+
+### Implementation
+
+The application maintains a clean, focused interface that presents only essential information:
+
+#### 1. Clean Visual Hierarchy
+
+- **Focused Content**: Each page presents one primary task
+  - Login page: Only login form and essential links
+  - Register page: Only registration form with necessary fields
+  - Profile page: User information and account actions only
+  - No distracting elements or unnecessary information
+
+- **Clear Section Separation**: Visual spacing and grouping
+  - Generous whitespace between sections
+  - Clear visual boundaries between content areas
+  - Logical grouping of related information
+
+**Location**:
+- All page components maintain focused layouts
+- `src/pages/Login/Login.scss` - Clean, minimal styling
+- `src/pages/Register/Register.scss` - Focused form design
+
+#### 2. Essential Information Only
+
+- **Form Fields**: Only necessary fields are shown
+  - Registration form includes only required user data
+  - No optional fields that might confuse users
+  - Each field serves a clear purpose
+
+- **Navigation**: Only relevant navigation items
+  - Header shows essential pages only
+  - Footer provides comprehensive links without clutter
+  - No redundant or duplicate navigation
+
+**Location**:
+- `src/components/Header/Header.tsx` - Minimal navigation
+- `src/pages/Register/Register.tsx` - Essential fields only
+- `src/pages/EditProfile/EditProfile.tsx` - Focused profile editing
+
+#### 3. Progressive Disclosure
+
+- **Password Requirements**: Shown only when relevant
+  - Password requirements appear when user focuses password field
+  - Not visible until needed
+  - Reduces visual clutter
+
+- **Error Messages**: Appear only when needed
+  - Errors shown inline only when validation fails
+  - No error messages for valid fields
+  - Clean interface when everything is correct
+
+**Location**:
+- `src/pages/Register/Register.tsx` - Conditional password requirements
+- `src/components/Input/Input.tsx` - Error messages only when needed
+- All form pages use progressive disclosure
+
+#### 4. Visual Simplicity
+
+- **Consistent Color Scheme**: Limited, purposeful color palette
+  - Primary blue for main actions
+  - Red for errors only
+  - Green for success states
+  - No unnecessary color variations
+
+- **Typography**: Clear, readable fonts
+  - Single font family (Montserrat) throughout
+  - Consistent font sizes
+  - Good contrast for readability
+
+**Location**:
+- `src/styles/_variables.scss` - Limited color palette
+- `src/styles/main.scss` - Consistent typography
+- All components use design system variables
+
+#### 5. Minimal UI Elements
+
+- **No Decorative Elements**: Only functional UI components
+  - Icons serve functional purposes (password toggle, status indicators)
+  - No decorative graphics that don't add value
+  - Clean, purposeful design
+
+- **Focused CTAs**: Clear call-to-action buttons
+  - Primary actions clearly distinguished
+  - Secondary actions appropriately de-emphasized
+  - No competing buttons or actions
+
+**Location**:
+- `src/components/Button/Button.tsx` - Clear button variants
+- All pages maintain minimal, functional design
+- `src/pages/Home/Home.tsx` - Clean landing page design
+
+### Code Examples
+
+```typescript
+// Clean, focused form
+<form className="register__form">
+  {/* Only essential fields */}
+  <Input label="Nombre" required />
+  <Input label="Apellido" required />
+  <Input label="Correo electrónico" type="email" required />
+  {/* No unnecessary fields */}
+</form>
+
+// Progressive disclosure - password requirements
+{password && (
+  <div className="register__password-requirements">
+    {/* Only shown when user types password */}
+  </div>
+)}
+
+// Minimal navigation
+<nav className="header__nav">
+  <Link to="/">Inicio</Link>
+  <Link to="/about">Sobre nosotros</Link>
+  {/* Only essential links */}
+</nav>
+```
+
+### Benefits
+
+- **Reduced Cognitive Load**: Less information to process
+- **Faster Task Completion**: Users focus on essential actions
+- **Better Usability**: Important information stands out
+- **Professional Appearance**: Clean design builds trust
+- **Accessibility**: Simpler interface easier to navigate
+
+---
+
+## Heuristic 7: Help and Documentation
+
+**Nielsen's Principle**: "Even though it is better if the system can be used without documentation, it may be necessary to provide help and documentation. Any such information should be easy to search, focused on the user's task, list concrete steps to be carried out, and not be too large."
+
+### Implementation
+
+The application provides contextual help and guidance throughout the user journey:
+
+#### 1. Inline Help and Guidance
+
+- **Field Labels and Placeholders**: Clear guidance for each input
+  - Descriptive labels explain what information is needed
+  - Placeholders provide format examples ("example@gmail.com")
+  - No ambiguity about what to enter
+
+- **Password Requirements**: Visible checklist guides password creation
+  - Real-time feedback on password strength
+  - Clear list of requirements
+  - Visual indicators (checkmarks) show progress
+
+**Location**:
+- `src/components/Input/Input.tsx` - Labels and placeholders
+- `src/pages/Register/Register.tsx` - Password requirements checklist
+- `src/pages/EditProfile/EditProfile.tsx` - Password requirements
+
+#### 2. Contextual Error Messages
+
+- **Specific Error Descriptions**: Errors explain what went wrong and how to fix
+  - "Ingrese un correo electrónico válido" (not just "Invalid")
+  - "La contraseña debe cumplir con todos los requisitos"
+  - "Las contraseñas no coinciden"
+  - Actionable guidance, not just error states
+
+- **Inline Error Display**: Errors appear directly with relevant fields
+  - No need to search for what went wrong
+  - Errors clear when corrected
+  - Immediate feedback on fixes
+
+**Location**:
+- `src/pages/Register/Register.tsx` - Specific error messages
+- `src/pages/Login/Login.tsx` - Contextual error guidance
+- `src/components/Input/Input.tsx` - Inline error display
+
+#### 3. ARIA Labels and Descriptions
+
+- **Screen Reader Support**: ARIA attributes provide help for assistive technologies
+  - `aria-label` describes button functions
+  - `aria-describedby` links fields to help text
+  - `role` attributes clarify element purposes
+  - Screen readers announce helpful context
+
+- **Accessible Help**: Help information available to all users
+  - Visual users see labels and placeholders
+  - Screen reader users hear descriptive labels
+  - Keyboard users get focus indicators
+
+**Location**:
+- `src/pages/VideoConference/VideoConference.tsx` - aria-label on all buttons
+- `src/components/Header/Header.tsx` - Navigation aria-labels
+- `src/pages/Login/Login.tsx` - Password toggle aria-label
+
+#### 4. Visual Indicators and Icons
+
+- **Status Indicators**: Visual help shows system state
+  - Connection status in chat (🟢 connected, 🔴 disconnected)
+  - Active page indicator in navigation
+  - Loading states show progress
+  - Users understand current state without documentation
+
+- **Functional Icons**: Icons provide visual help
+  - Eye icon indicates password visibility toggle
+  - Navigation icons clarify menu functions
+  - Status icons communicate state
+
+**Location**:
+- `src/components/ChatRoom/ChatRoom.tsx` - Connection status indicators
+- `src/components/Header/Header.tsx` - Navigation indicators
+- `src/pages/Login/Login.tsx` - Password toggle icon
+
+#### 5. Form Instructions
+
+- **Field Descriptions**: Forms include helpful instructions
+  - "La contraseña debe incluir:" checklist
+  - Meeting creation form describes each field
+  - Clear guidance on what information is needed
+
+- **Required Field Indicators**: Visual markers show required fields
+  - Asterisk (*) indicates required fields
+  - `required` attribute provides programmatic indication
+  - Users know what's mandatory
+
+**Location**:
+- `src/pages/Register/Register.tsx` - Password requirements instructions
+- `src/pages/CreateMeeting/CreateMeeting.tsx` - Field descriptions
+- All form components mark required fields
+
+#### 6. Helpful Navigation
+
+- **Breadcrumbs and Context**: Users always know where they are
+  - Active page highlighted in navigation
+  - Page titles clearly indicate current location
+  - Footer provides site map for orientation
+
+- **Link Text**: Descriptive link text explains destinations
+  - "¿No tiene una cuenta? Crea una" (not just "Register")
+  - "¿Olvidó su contraseña?" (not just "Forgot?")
+  - Links provide context about where they lead
+
+**Location**:
+- `src/components/Header/Header.tsx` - Active page indicators
+- `src/pages/Login/Login.tsx` - Descriptive link text
+- `src/components/Footer/Footer.tsx` - Site map navigation
+
+### Code Examples
+
+```typescript
+// Inline help with password requirements
+<div className="register__password-requirements" aria-live="polite">
+  <p className="register__password-requirements-title">La contraseña debe incluir:</p>
+  <ul>
+    <li className={passwordChecks.length ? 'met' : ''}>
+      <span>{passwordChecks.length ? '✔' : '•'}</span>
+      Al menos 6 caracteres
+    </li>
+    {/* More requirements with visual feedback */}
+  </ul>
+</div>
+
+// Contextual error message
+<Input
+  id="email"
+  type="email"
+  label="Correo electrónico"
+  placeholder="example@gmail.com"  // Helpful example
+  error={errors.email}  // Specific error guidance
+/>
+
+// ARIA label provides help
+<button
+  aria-label={isMicOn ? 'Silenciar micrófono' : 'Activar micrófono'}
+  onClick={toggleMute}
+>
+  {/* Icon */}
+</button>
+```
+
+### Benefits
+
+- **Reduced Learning Curve**: Help available when needed
+- **Self-Service**: Users can solve problems without external documentation
+- **Accessibility**: Help available to all users, including screen reader users
+- **Confidence**: Clear guidance builds user confidence
+- **Efficiency**: Contextual help faster than searching documentation
+
+---
+
 ## Summary
 
-These four heuristics work together to create a user-friendly experience:
+These seven heuristics work together to create a user-friendly experience:
 - **Visibility of System Status** ensures users are always informed about what's happening
 - **Error Prevention** reduces the likelihood of errors occurring in the first place
 - **Consistency and Standards** makes the interface predictable and easy to learn
 - **Recognition rather than Recall** reduces cognitive load by making information visible
+- **Flexibility and Efficiency of Use** caters to both novice and expert users
+- **Aesthetic and Minimalist Design** focuses attention on essential information
+- **Help and Documentation** provides guidance when users need it
 
 All heuristics are implemented throughout the application, with particular emphasis on authentication flows, form submissions, user profile management, and navigation patterns.
 
