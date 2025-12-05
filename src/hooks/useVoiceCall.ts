@@ -64,14 +64,12 @@ export const useVoiceCall = (
   userId: string | undefined,
   username: string | undefined
 ): UseVoiceCallReturn => {
-  // State
   const [isConnected, setIsConnected] = useState(false);
   const [isMuted, setIsMuted] = useState(true);
   const [participants, setParticipants] = useState<VoiceParticipant[]>([]);
   const [connectionError, setConnectionError] = useState<string | null>(null);
   const [isInCall, setIsInCall] = useState(false);
 
-  // Refs
   const socketRef = useRef<Socket | null>(null);
   const peerRef = useRef<Peer | null>(null);
   const localStreamRef = useRef<MediaStream | null>(null);
@@ -105,14 +103,12 @@ export const useVoiceCall = (
    * @param {MediaStream} stream - Remote audio stream
    */
   const playRemoteStream = useCallback((remoteUserId: string, stream: MediaStream) => {
-    // Remove existing audio element if any
     const existingAudio = audioElementsRef.current.get(remoteUserId);
     if (existingAudio) {
       existingAudio.srcObject = null;
       existingAudio.remove();
     }
 
-    // Create new audio element
     const audio = new Audio();
     audio.srcObject = stream;
     audio.autoplay = true;
@@ -192,7 +188,6 @@ export const useVoiceCall = (
     call.answer(localStreamRef.current);
 
     call.on('stream', (remoteStream) => {
-      // Find user ID from peer ID
       const participant = participants.find(p => p.peerId === call.peer);
       const remoteUserId = participant?.userId || call.peer;
       console.log('🎙️ Received stream from incoming call:', remoteUserId);
@@ -220,19 +215,16 @@ export const useVoiceCall = (
     console.log('🎙️ Starting voice call join process...');
 
     try {
-      // Get microphone access
       console.log('🎙️ Requesting microphone access...');
       const stream = await getUserMedia();
       localStreamRef.current = stream;
       console.log('🎙️ Microphone access granted');
 
-      // Mute by default
       stream.getAudioTracks().forEach(track => {
         track.enabled = false;
       });
       setIsMuted(true);
 
-      // Connect to call server
       console.log('🎙️ Connecting to call server...');
       let socket: Socket;
       try {
@@ -246,7 +238,6 @@ export const useVoiceCall = (
       }
       socketRef.current = socket;
 
-      // Wait for socket to connect before creating PeerJS
       const waitForSocketConnect = new Promise<void>((resolve, reject) => {
         const timeout = setTimeout(() => {
           reject(new Error('Socket connection timeout'));
@@ -270,7 +261,6 @@ export const useVoiceCall = (
 
       await waitForSocketConnect;
 
-      // Create PeerJS instance with public PeerJS cloud server
       console.log('🎙️ Creating PeerJS instance...');
       const peer = new Peer({
         config: {
@@ -280,14 +270,13 @@ export const useVoiceCall = (
             { urls: 'stun:stun2.l.google.com:19302' },
           ]
         },
-        debug: 2, // Enable debug logs (0-3)
+        debug: 2,
       });
       peerRef.current = peer;
 
       peer.on('open', (peerId) => {
         console.log('🎙️ PeerJS connected with ID:', peerId);
         
-        // Join the call room
         console.log('🎙️ Emitting call:join with:', { meetingId, userId, peerId, username });
         callService.joinCall({
           meetingId,
@@ -308,7 +297,6 @@ export const useVoiceCall = (
 
       peer.on('error', (error) => {
         console.error('🎙️ PeerJS error:', error.type, error.message);
-        // Don't set error for peer-unavailable (normal when peer disconnects)
         if (error.type !== 'peer-unavailable') {
           setConnectionError(`PeerJS error: ${error.message}`);
         }
@@ -323,7 +311,6 @@ export const useVoiceCall = (
         console.log('🎙️ PeerJS connection closed');
       });
 
-      // Socket event handlers
       socket.on('connect', () => {
         console.log('🎙️ Call socket connected');
         setIsConnected(true);
@@ -337,7 +324,6 @@ export const useVoiceCall = (
       socket.on(CallEvents.PEERS_LIST, (data: PeersListResponse) => {
         console.log('🎙️ Peers list received:', data.count, data.participants);
         
-        // Update participants
         setParticipants(data.participants.map((p: CallParticipant) => ({
           userId: p.userId,
           peerId: p.peerId,
@@ -345,7 +331,6 @@ export const useVoiceCall = (
           isMuted: p.isMuted,
         })));
 
-        // Call each existing peer
         data.participants.forEach((p: CallParticipant) => {
           if (p.userId !== userId) {
             console.log('🎙️ Will call peer:', p.username, 'with peerId:', p.peerId);
@@ -369,7 +354,6 @@ export const useVoiceCall = (
           }];
         });
 
-        // Call the new peer (both sides try to call for reliability)
         if (peerRef.current && localStreamRef.current) {
           console.log('🎙️ Calling new peer:', data.peerId);
           setTimeout(() => callPeer(data.peerId, data.userId), 1000);
@@ -410,41 +394,34 @@ export const useVoiceCall = (
   const leaveVoiceCall = useCallback(() => {
     console.log('🎙️ Leaving voice call');
 
-    // Stop all remote streams
     audioElementsRef.current.forEach((audio) => {
       audio.srcObject = null;
       audio.remove();
     });
     audioElementsRef.current.clear();
 
-    // Close all peer connections
     connectionsRef.current.forEach((connection) => {
       connection.close();
     });
     connectionsRef.current.clear();
 
-    // Stop local stream
     if (localStreamRef.current) {
       localStreamRef.current.getTracks().forEach(track => track.stop());
       localStreamRef.current = null;
     }
 
-    // Leave call room
     if (meetingId && userId) {
       callService.leaveCall({ meetingId, userId });
     }
 
-    // Destroy PeerJS
     if (peerRef.current) {
       peerRef.current.destroy();
       peerRef.current = null;
     }
 
-    // Disconnect socket
     callService.disconnect();
     socketRef.current = null;
 
-    // Reset state
     setIsInCall(false);
     setIsConnected(false);
     setParticipants([]);
@@ -459,12 +436,10 @@ export const useVoiceCall = (
 
     const newMutedState = !isMuted;
     
-    // Toggle audio track
     localStreamRef.current.getAudioTracks().forEach(track => {
       track.enabled = !newMutedState;
     });
 
-    // Notify server
     if (newMutedState) {
       callService.mute({ meetingId, userId });
     } else {
@@ -475,12 +450,11 @@ export const useVoiceCall = (
     console.log('🎙️ Microphone', newMutedState ? 'muted' : 'unmuted');
   }, [isMuted, meetingId, userId]);
 
-  // Cleanup on unmount
   useEffect(() => {
     return () => {
       leaveVoiceCall();
     };
-  }, []);
+  }, [leaveVoiceCall]);
 
   return {
     isConnected,
