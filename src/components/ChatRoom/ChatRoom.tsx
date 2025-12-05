@@ -6,6 +6,7 @@ interface ChatRoomProps {
   meetingId: string;
   userId: string;
   username: string;
+  onClose?: () => void;
 }
 
 /**
@@ -13,7 +14,7 @@ interface ChatRoomProps {
  * @param {ChatRoomProps} props - Component props
  * @returns {JSX.Element} ChatRoom component
  */
-const ChatRoom: React.FC<ChatRoomProps> = ({ meetingId, userId, username }) => {
+const ChatRoom: React.FC<ChatRoomProps> = ({ meetingId, userId, username, onClose }) => {
   const [messageInput, setMessageInput] = useState('');
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -86,8 +87,23 @@ const ChatRoom: React.FC<ChatRoomProps> = ({ meetingId, userId, username }) => {
             {isConnected ? '🟢' : '🔴'}
           </span>
         </div>
-        <div className="participants-count">
-          👥 {participantCount} {participantCount === 1 ? 'participante' : 'participantes'}
+        <div className="chat-header-right">
+          <div className="participants-count">
+            👥 {participantCount} {participantCount === 1 ? 'participante' : 'participantes'}
+          </div>
+          {onClose && (
+            <button
+              type="button"
+              className="chat-close-button"
+              onClick={onClose}
+              aria-label="Cerrar chat"
+              title="Cerrar chat"
+            >
+              <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M18 6L6 18M6 6L18 18" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
+            </button>
+          )}
         </div>
       </div>
 
