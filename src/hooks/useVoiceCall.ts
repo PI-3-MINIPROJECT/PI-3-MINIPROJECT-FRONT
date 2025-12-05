@@ -5,9 +5,10 @@
  */
 
 import { useEffect, useState, useCallback, useRef } from 'react';
-import Peer, { MediaConnection } from 'peerjs';
-import callService, {
-  CallEvents,
+import Peer from 'peerjs';
+import type { MediaConnection } from 'peerjs';
+import callService, { CallEvents } from '../services/callService';
+import type {
   CallParticipant,
   PeersListResponse,
   PeerJoinedNotification,
@@ -115,7 +116,7 @@ export const useVoiceCall = (
     const audio = new Audio();
     audio.srcObject = stream;
     audio.autoplay = true;
-    audio.playsInline = true;
+    (audio as HTMLAudioElement & { playsInline: boolean }).playsInline = true;
     
     audio.play().catch((error) => {
       console.warn('🎙️ Audio autoplay blocked:', error);

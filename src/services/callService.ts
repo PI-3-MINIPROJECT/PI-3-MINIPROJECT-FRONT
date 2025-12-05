@@ -129,21 +129,21 @@ export interface CallError {
 
 /**
  * Socket.IO event names for voice calls
- * @enum CallEvents
+ * @constant CallEvents
  */
-export enum CallEvents {
-  JOIN = 'call:join',
-  LEAVE = 'call:leave',
-  SIGNAL = 'call:signal',
-  MUTE = 'call:mute',
-  UNMUTE = 'call:unmute',
-  PEER_JOINED = 'call:peer-joined',
-  PEER_LEFT = 'call:peer-left',
-  PEERS_LIST = 'call:peers-list',
-  MUTE_STATUS = 'call:mute-status',
-  ICE_SERVERS = 'call:ice-servers',
-  ERROR = 'call:error',
-}
+export const CallEvents = {
+  JOIN: 'call:join',
+  LEAVE: 'call:leave',
+  SIGNAL: 'call:signal',
+  MUTE: 'call:mute',
+  UNMUTE: 'call:unmute',
+  PEER_JOINED: 'call:peer-joined',
+  PEER_LEFT: 'call:peer-left',
+  PEERS_LIST: 'call:peers-list',
+  MUTE_STATUS: 'call:mute-status',
+  ICE_SERVERS: 'call:ice-servers',
+  ERROR: 'call:error',
+} as const;
 
 /**
  * Call Service class for managing voice call connections
