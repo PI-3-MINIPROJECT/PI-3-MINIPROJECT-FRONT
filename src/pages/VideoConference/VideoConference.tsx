@@ -24,7 +24,7 @@ export default function VideoConference() {
   const userId = user?.uid || 'demo-user';
   const username = meetingData?.username || user?.name || 'Usuario';
 
-  // Chat hook
+  // Chat hook - siempre activo para mantener el estado
   const { onlineUsers } = useChat(meetingId, userId, username);
 
   // Voice call hook
@@ -118,44 +118,45 @@ export default function VideoConference() {
         </div>
       )}
 
-      <div className="video-conference__main">
-        <div className="video-conference__video-area">
-          <div className="video-conference__participants">
-            {participants.length > 0 ? (
-              participants.map((participant) => (
-                <div key={participant.id} className="video-conference__participant">
+      <div className="video-conference__container">
+        <div className="video-conference__main">
+          <div className="video-conference__video-area">
+            <div className="video-conference__participants">
+              {participants.length > 0 ? (
+                participants.map((participant) => (
+                  <div key={participant.id} className="video-conference__participant">
+                    <div className="video-conference__avatar">
+                      <span className="video-conference__avatar-initials">{participant.initials}</span>
+                      {/* Mute indicator */}
+                      {participant.isMuted && (
+                        <span className="video-conference__mute-indicator" title="Silenciado">
+                          🔇
+                        </span>
+                      )}
+                    </div>
+                    <div className="video-conference__participant-name">
+                      {participant.name}
+                      {participant.id === userId && ' (tú)'}
+                    </div>
+                  </div>
+                ))
+              ) : (
+                <div className="video-conference__participant">
                   <div className="video-conference__avatar">
-                    <span className="video-conference__avatar-initials">{participant.initials}</span>
-                    {/* Mute indicator */}
-                    {participant.isMuted && (
+                    <span className="video-conference__avatar-initials">{getUserInitials(username)}</span>
+                    {isMuted && (
                       <span className="video-conference__mute-indicator" title="Silenciado">
                         🔇
                       </span>
                     )}
                   </div>
-                  <div className="video-conference__participant-name">
-                    {participant.name}
-                    {participant.id === userId && ' (tú)'}
-                  </div>
+                  <div className="video-conference__participant-name">{username} (tú)</div>
                 </div>
-              ))
-            ) : (
-              <div className="video-conference__participant">
-                <div className="video-conference__avatar">
-                  <span className="video-conference__avatar-initials">{getUserInitials(username)}</span>
-                  {isMuted && (
-                    <span className="video-conference__mute-indicator" title="Silenciado">
-                      🔇
-                    </span>
-                  )}
-                </div>
-                <div className="video-conference__participant-name">{username} (tú)</div>
-              </div>
-            )}
+              )}
+            </div>
           </div>
-        </div>
 
-        <div className="video-conference__controls">
+          <div className="video-conference__controls">
           <button
             type="button"
             className={`video-conference__control-button ${!isMuted ? 'video-conference__control-button--active' : ''}`}
@@ -239,18 +240,17 @@ export default function VideoConference() {
               <path d="M12 9C10.4 9 8.85 9.25 7.4 9.72V12.82C7.4 13.41 7.07 13.94 6.5 14.18C5.93 14.42 5.27 14.25 4.85 13.78L2.22 10.72C1.27 9.58 0 10.12 0 11.5V20.5C0 21.88 1.27 22.42 2.22 21.28L4.85 18.22C5.27 17.75 5.93 17.58 6.5 17.82C7.07 18.06 7.4 18.59 7.4 19.18V22.28C8.85 22.75 10.4 23 12 23C17.5 23 22 18.5 22 13C22 7.5 17.5 3 12 3V9Z" fill="currentColor"/>
             </svg>
           </button>
+          </div>
         </div>
-      </div>
 
-      {showChat && (
-        <div className="video-conference__chat">
+        <div className={`video-conference__chat ${!showChat ? 'video-conference__chat--hidden' : ''}`}>
           <ChatRoom
             meetingId={meetingId}
             userId={userId}
             username={username}
           />
         </div>
-      )}
+      </div>
     </div>
   );
 }
