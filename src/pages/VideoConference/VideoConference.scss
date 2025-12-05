@@ -31,6 +31,7 @@
     flex-direction: row;
     min-width: 0;
     overflow: hidden;
+    position: relative;
   }
 
   &__main {
@@ -38,6 +39,17 @@
     display: flex;
     flex-direction: column;
     min-width: 0;
+    transition: width 0.3s ease, margin-right 0.3s ease;
+    
+    .video-conference__chat:not(.video-conference__chat--hidden) ~ & {
+      @media (max-width: 767px) {
+        width: 100%;
+      }
+      
+      @include respond-to(md) {
+        margin-right: 0;
+      }
+    }
   }
 
   &__video-area {
@@ -48,33 +60,63 @@
     justify-content: stretch;
     position: relative;
     overflow: hidden;
-    padding: $spacing-md;
+    padding: $spacing-xs;
     animation: vcSlideIn 0.55s ease-out both;
+    min-height: 0;
+
+    @media (min-width: 480px) {
+      padding: $spacing-sm;
+    }
 
     @include respond-to(md) {
+      padding: $spacing-md;
+    }
+
+    @include respond-to(lg) {
       padding: $spacing-lg;
     }
   }
 
   &__participants {
     display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: $spacing-md;
+    grid-template-columns: repeat(1, 1fr);
+    gap: $spacing-sm;
     width: 100%;
     height: 100%;
     animation: vcGrid 0.55s ease-out 0.08s both;
+    padding: $spacing-xs;
+
+    @media (min-width: 480px) {
+      grid-template-columns: repeat(2, 1fr);
+      gap: $spacing-md;
+      padding: $spacing-sm;
+    }
 
     @include respond-to(md) {
       grid-template-columns: repeat(2, 1fr);
       gap: $spacing-lg;
+      padding: $spacing-md;
+      
+      .video-conference__chat:not(.video-conference__chat--hidden) ~ .video-conference__main & {
+        grid-template-columns: repeat(2, 1fr);
+      }
     }
 
     @include respond-to(lg) {
       grid-template-columns: repeat(3, 1fr);
+      gap: $spacing-lg;
+      
+      .video-conference__chat:not(.video-conference__chat--hidden) ~ .video-conference__main & {
+        grid-template-columns: repeat(2, 1fr);
+      }
     }
 
     @media (min-width: 1400px) {
       grid-template-columns: repeat(4, 1fr);
+      
+      .video-conference__chat:not(.video-conference__chat--hidden) ~ .video-conference__main & {
+        grid-template-columns: repeat(3, 1fr);
+      }
     }
   }
 
@@ -159,15 +201,33 @@
 
   &__controls {
     background-color: #333333;
-    padding: $spacing-lg $spacing-md;
+    padding: $spacing-md $spacing-sm;
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: $spacing-md;
+    gap: $spacing-sm;
     flex-wrap: wrap;
     animation: vcFadeIn 0.55s ease-out 0.12s both;
+    overflow-x: auto;
+    overflow-y: hidden;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+
+    &::-webkit-scrollbar {
+      display: none;
+    }
+
+    @media (min-width: 480px) {
+      padding: $spacing-md;
+      gap: $spacing-md;
+    }
 
     @include respond-to(md) {
+      padding: $spacing-lg $spacing-md;
+      gap: $spacing-md;
+    }
+
+    @include respond-to(lg) {
       padding: $spacing-xl $spacing-lg;
       gap: $spacing-lg;
     }
@@ -188,16 +248,36 @@
     flex-shrink: 0;
     animation: vcControlPop 0.4s ease-out both;
 
-    @include respond-to(md) {
+    @media (min-width: 480px) {
       width: 72px;
       height: 72px;
     }
 
+    @include respond-to(md) {
+      width: 80px;
+      height: 80px;
+    }
+
+    @include respond-to(lg) {
+      width: 88px;
+      height: 88px;
+    }
+
     svg {
-      width: 40px;
-      height: 40px;
+      width: 48px;
+      height: 48px;
+
+      @media (min-width: 480px) {
+        width: 52px;
+        height: 52px;
+      }
 
       @include respond-to(md) {
+        width: 40px;
+        height: 40px;
+      }
+
+      @include respond-to(lg) {
         width: 44px;
         height: 44px;
       }
@@ -252,27 +332,60 @@
   }
 
   &__chat {
-    width: 100%;
-    max-width: 400px;
     background-color: white;
     display: flex;
     flex-direction: column;
     height: 100%;
-    border-left: 1px solid $border-color;
-    transition: all 0.3s ease;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     flex-shrink: 0;
-    animation: vcChatSlide 0.55s ease-out 0.1s both;
+    box-shadow: -2px 0 8px rgba(0, 0, 0, 0.1);
 
-    @include respond-to(md) {
-      width: 400px;
+    @media (max-width: 767px) {
+      position: fixed;
+      top: 0;
+      right: 0;
+      width: 85%;
+      max-width: 380px;
+      height: 100vh;
+      max-height: 100vh;
+      transform: translateX(100%);
+      border-left: 1px solid $border-color;
+      z-index: 1001;
+      display: flex;
+      flex-direction: column;
+      
+      &--visible {
+        transform: translateX(0);
+        animation: vcChatSlideMobile 0.3s cubic-bezier(0.4, 0, 0.2, 1) both;
+      }
+      
+      &--hidden {
+        transform: translateX(100%);
+        animation: vcChatSlideMobileOut 0.3s cubic-bezier(0.4, 0, 0.2, 1) both;
+        pointer-events: none;
+      }
     }
 
-    &--hidden {
-      width: 0;
-      max-width: 0;
-      opacity: 0;
-      overflow: hidden;
-      border-left: none;
+    @include respond-to(md) {
+      position: relative;
+      width: 380px;
+      max-width: 380px;
+      border-left: 1px solid $border-color;
+      animation: vcChatSlide 0.55s ease-out 0.1s both;
+      
+      &--hidden {
+        width: 0;
+        max-width: 0;
+        opacity: 0;
+        overflow: hidden;
+        border-left: none;
+        transform: translateX(0);
+      }
+    }
+
+    @include respond-to(lg) {
+      width: 420px;
+      max-width: 420px;
     }
   }
 
@@ -450,6 +563,24 @@
   }
 }
 
+@keyframes vcChatSlideMobile {
+  from {
+    transform: translateX(100%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+
+@keyframes vcChatSlideMobileOut {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(100%);
+  }
+}
+
 @keyframes vcImageReveal {
   from {
     opacity: 0;
@@ -469,5 +600,31 @@
     transform: translateY(-12px);
   }
 }
+
+  &__chat-overlay {
+    display: none;
+    
+    @media (max-width: 767px) {
+      display: block;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0, 0, 0, 0.5);
+      z-index: 1000;
+      animation: vcOverlayFadeIn 0.3s ease-out both;
+      cursor: pointer;
+    }
+  }
+}
+
+@keyframes vcOverlayFadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
 }
 
