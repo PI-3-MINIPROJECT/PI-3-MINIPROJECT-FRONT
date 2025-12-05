@@ -45,7 +45,8 @@ export default function VideoConference() {
     return () => {
       leaveVoiceCall();
     };
-  }, [joinVoiceCall, leaveVoiceCall]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // Only run on mount/unmount
 
   /**
    * Gets user initials from name
