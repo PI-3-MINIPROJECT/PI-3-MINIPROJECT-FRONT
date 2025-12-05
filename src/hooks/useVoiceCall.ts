@@ -212,14 +212,19 @@ export const useVoiceCall = (
    */
   const joinVoiceCall = useCallback(async () => {
     if (!meetingId || !userId || !username) {
+      console.error('🎙️ Missing meeting data:', { meetingId, userId, username });
       setConnectionError('Missing meeting data');
       return;
     }
 
+    console.log('🎙️ Starting voice call join process...');
+
     try {
       // Get microphone access
+      console.log('🎙️ Requesting microphone access...');
       const stream = await getUserMedia();
       localStreamRef.current = stream;
+      console.log('🎙️ Microphone access granted');
 
       // Mute by default
       stream.getAudioTracks().forEach(track => {
@@ -228,10 +233,12 @@ export const useVoiceCall = (
       setIsMuted(true);
 
       // Connect to call server
+      console.log('🎙️ Connecting to call server...');
       let socket: Socket;
       try {
         socket = callService.connect();
       } catch (error) {
+        console.error('🎙️ Failed to connect to call server:', error);
         if (error instanceof Error) {
           setConnectionError(error.message);
         }
@@ -239,19 +246,49 @@ export const useVoiceCall = (
       }
       socketRef.current = socket;
 
-      // Wait for ICE servers and create PeerJS instance
-      const iceServers = callService.getIceServers();
-      const peerConfig = iceServers.length > 0 
-        ? { config: { iceServers } }
-        : { config: { iceServers: [{ urls: 'stun:stun.l.google.com:19302' }] } };
+      // Wait for socket to connect before creating PeerJS
+      const waitForSocketConnect = new Promise<void>((resolve, reject) => {
+        const timeout = setTimeout(() => {
+          reject(new Error('Socket connection timeout'));
+        }, 10000);
 
-      const peer = new Peer(peerConfig);
+        if (socket.connected) {
+          clearTimeout(timeout);
+          resolve();
+        } else {
+          socket.once('connect', () => {
+            clearTimeout(timeout);
+            console.log('🎙️ Socket connected, creating PeerJS...');
+            resolve();
+          });
+          socket.once('connect_error', (err) => {
+            clearTimeout(timeout);
+            reject(err);
+          });
+        }
+      });
+
+      await waitForSocketConnect;
+
+      // Create PeerJS instance with public PeerJS cloud server
+      console.log('🎙️ Creating PeerJS instance...');
+      const peer = new Peer({
+        config: {
+          iceServers: [
+            { urls: 'stun:stun.l.google.com:19302' },
+            { urls: 'stun:stun1.l.google.com:19302' },
+            { urls: 'stun:stun2.l.google.com:19302' },
+          ]
+        },
+        debug: 2, // Enable debug logs (0-3)
+      });
       peerRef.current = peer;
 
       peer.on('open', (peerId) => {
         console.log('🎙️ PeerJS connected with ID:', peerId);
         
         // Join the call room
+        console.log('🎙️ Emitting call:join with:', { meetingId, userId, peerId, username });
         callService.joinCall({
           meetingId,
           userId,
@@ -264,15 +301,26 @@ export const useVoiceCall = (
         setConnectionError(null);
       });
 
-      peer.on('call', handleIncomingCall);
+      peer.on('call', (call) => {
+        console.log('🎙️ Incoming call from peer:', call.peer);
+        handleIncomingCall(call);
+      });
 
       peer.on('error', (error) => {
-        console.error('🎙️ PeerJS error:', error);
-        setConnectionError(`PeerJS error: ${error.message}`);
+        console.error('🎙️ PeerJS error:', error.type, error.message);
+        // Don't set error for peer-unavailable (normal when peer disconnects)
+        if (error.type !== 'peer-unavailable') {
+          setConnectionError(`PeerJS error: ${error.message}`);
+        }
       });
 
       peer.on('disconnected', () => {
-        console.log('🎙️ PeerJS disconnected');
+        console.log('🎙️ PeerJS disconnected, attempting to reconnect...');
+        peer.reconnect();
+      });
+
+      peer.on('close', () => {
+        console.log('🎙️ PeerJS connection closed');
       });
 
       // Socket event handlers
@@ -281,13 +329,13 @@ export const useVoiceCall = (
         setIsConnected(true);
       });
 
-      socket.on('disconnect', () => {
-        console.log('🎙️ Call socket disconnected');
+      socket.on('disconnect', (reason) => {
+        console.log('🎙️ Call socket disconnected:', reason);
         setIsConnected(false);
       });
 
       socket.on(CallEvents.PEERS_LIST, (data: PeersListResponse) => {
-        console.log('🎙️ Peers list received:', data.count);
+        console.log('🎙️ Peers list received:', data.count, data.participants);
         
         // Update participants
         setParticipants(data.participants.map((p: CallParticipant) => ({
@@ -300,13 +348,14 @@ export const useVoiceCall = (
         // Call each existing peer
         data.participants.forEach((p: CallParticipant) => {
           if (p.userId !== userId) {
-            setTimeout(() => callPeer(p.peerId, p.userId), 500);
+            console.log('🎙️ Will call peer:', p.username, 'with peerId:', p.peerId);
+            setTimeout(() => callPeer(p.peerId, p.userId), 1000);
           }
         });
       });
 
       socket.on(CallEvents.PEER_JOINED, (data: PeerJoinedNotification) => {
-        console.log('🎙️ Peer joined:', data.username);
+        console.log('🎙️ Peer joined:', data.username, 'peerId:', data.peerId);
         
         setParticipants(prev => {
           if (prev.find(p => p.userId === data.userId)) {
@@ -320,7 +369,11 @@ export const useVoiceCall = (
           }];
         });
 
-        // The new peer will call us, we just need to answer (handled by peer.on('call'))
+        // Call the new peer (both sides try to call for reliability)
+        if (peerRef.current && localStreamRef.current) {
+          console.log('🎙️ Calling new peer:', data.peerId);
+          setTimeout(() => callPeer(data.peerId, data.userId), 1000);
+        }
       });
 
       socket.on(CallEvents.PEER_LEFT, (data: PeerLeftNotification) => {
@@ -339,7 +392,7 @@ export const useVoiceCall = (
       });
 
       socket.on(CallEvents.ERROR, (error: CallError) => {
-        console.error('🎙️ Call error:', error);
+        console.error('🎙️ Call server error:', error);
         setConnectionError(error.message);
       });
 
