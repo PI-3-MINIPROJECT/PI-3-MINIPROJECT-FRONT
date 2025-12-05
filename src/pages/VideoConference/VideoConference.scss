@@ -4,31 +4,11 @@
 
 .video-conference {
   display: flex;
-  flex-direction: column;
   height: 100vh;
   width: 100vw;
   overflow: hidden;
   background-color: #2c3e50;
   animation: vcFadeIn 0.5s ease-out both;
-
-  &__error {
-    background-color: rgba($error-color, 0.9);
-    color: white;
-    padding: $spacing-sm $spacing-md;
-    text-align: center;
-    font-size: $font-size-sm;
-    animation: vcFadeIn 0.3s ease-out both;
-    
-    span {
-      display: inline-block;
-    }
-  }
-
-  &__content {
-    display: flex;
-    flex: 1;
-    min-height: 0;
-  }
 
   &__main {
     flex: 1;
@@ -97,26 +77,6 @@
     position: relative;
     overflow: hidden;
     min-height: 0;
-  }
-
-  &__mute-indicator {
-    position: absolute;
-    bottom: $spacing-sm;
-    right: $spacing-sm;
-    font-size: 1.2rem;
-    background-color: rgba(0, 0, 0, 0.6);
-    border-radius: 50%;
-    width: 32px;
-    height: 32px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    
-    @include respond-to(md) {
-      width: 36px;
-      height: 36px;
-      font-size: 1.4rem;
-    }
   }
 
   &__avatar-initials {
@@ -235,16 +195,6 @@
     &:focus-visible {
       @include focus-visible;
       outline-color: white;
-    }
-
-    &:disabled {
-      opacity: 0.5;
-      cursor: not-allowed;
-      
-      &:hover {
-        transform: none;
-        background-color: #555555;
-      }
     }
   }
 

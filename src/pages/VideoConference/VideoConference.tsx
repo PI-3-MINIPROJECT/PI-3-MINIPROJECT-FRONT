@@ -1,21 +1,20 @@
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
 import { useChat } from '../../hooks/useChat';
-import { useVoiceCall } from '../../hooks/useVoiceCall';
 import ChatRoom from '../../components/ChatRoom/ChatRoom';
 import './VideoConference.scss';
 
 /**
  * VideoConference page component displaying the video conference interface
  * Shows participants, chat panel, and control buttons (mic, camera, etc.)
- * Integrates real-time chat and voice call functionality
  * @returns {JSX.Element} Video conference page with meeting interface
  */
 export default function VideoConference() {
   const navigate = useNavigate();
   const location = useLocation();
   const { user } = useAuth();
+  const [isMicOn, setIsMicOn] = useState(true);
   const [isCameraOn, setIsCameraOn] = useState(false);
   const [showChat, setShowChat] = useState(true);
 
@@ -24,30 +23,7 @@ export default function VideoConference() {
   const userId = user?.uid || 'demo-user';
   const username = meetingData?.username || user?.name || 'Usuario';
 
-  // Chat hook
   const { onlineUsers } = useChat(meetingId, userId, username);
-
-  // Voice call hook
-  const {
-    isMuted,
-    participants: voiceParticipants,
-    connectionError: callError,
-    isInCall,
-    toggleMute,
-    joinVoiceCall,
-    leaveVoiceCall,
-  } = useVoiceCall(meetingId, userId, username);
-
-  /**
-   * Join voice call when component mounts
-   */
-  useEffect(() => {
-    joinVoiceCall();
-    
-    return () => {
-      leaveVoiceCall();
-    };
-  }, []);
 
   /**
    * Gets user initials from name
@@ -60,16 +36,6 @@ export default function VideoConference() {
       return `${parts[0][0]}${parts[1][0]}`.toUpperCase();
     }
     return name.substring(0, 2).toUpperCase();
-  };
-
-  /**
-   * Get mute status for a user from voice participants
-   * @param {string} oderId - User ID
-   * @returns {boolean} Whether user is muted
-   */
-  const getUserMuteStatus = (oderId: string): boolean => {
-    const voiceUser = voiceParticipants.find(p => p.userId === oderId);
-    return voiceUser?.isMuted ?? true;
   };
 
   const participants = useMemo(() => {
@@ -88,36 +54,20 @@ export default function VideoConference() {
       id: user.userId,
       name: user.username,
       initials: getUserInitials(user.username),
-      isCameraOn: false,
-      isMuted: user.userId === userId ? isMuted : getUserMuteStatus(user.userId),
+      isCameraOn: false
     }));
-  }, [onlineUsers, userId, username, isMuted, voiceParticipants]);
+  }, [onlineUsers, userId, username]);
 
   /**
    * Handles ending the video call and navigating back to explore page
    * @returns {void}
    */
   const handleEndCall = () => {
-    leaveVoiceCall();
     navigate('/explore');
-  };
-
-  /**
-   * Handle microphone toggle
-   */
-  const handleMicToggle = () => {
-    toggleMute();
   };
 
   return (
     <div className="video-conference">
-      {/* Voice call connection status */}
-      {callError && (
-        <div className="video-conference__error">
-          <span>⚠️ {callError}</span>
-        </div>
-      )}
-
       <div className="video-conference__main">
         <div className="video-conference__video-area">
           <div className="video-conference__participants">
@@ -126,12 +76,6 @@ export default function VideoConference() {
                 <div key={participant.id} className="video-conference__participant">
                   <div className="video-conference__avatar">
                     <span className="video-conference__avatar-initials">{participant.initials}</span>
-                    {/* Mute indicator */}
-                    {participant.isMuted && (
-                      <span className="video-conference__mute-indicator" title="Silenciado">
-                        🔇
-                      </span>
-                    )}
                   </div>
                   <div className="video-conference__participant-name">
                     {participant.name}
@@ -143,11 +87,6 @@ export default function VideoConference() {
               <div className="video-conference__participant">
                 <div className="video-conference__avatar">
                   <span className="video-conference__avatar-initials">{getUserInitials(username)}</span>
-                  {isMuted && (
-                    <span className="video-conference__mute-indicator" title="Silenciado">
-                      🔇
-                    </span>
-                  )}
                 </div>
                 <div className="video-conference__participant-name">{username} (tú)</div>
               </div>
@@ -158,12 +97,11 @@ export default function VideoConference() {
         <div className="video-conference__controls">
           <button
             type="button"
-            className={`video-conference__control-button ${!isMuted ? 'video-conference__control-button--active' : ''}`}
-            onClick={handleMicToggle}
-            aria-label={isMuted ? 'Activar micrófono' : 'Silenciar micrófono'}
-            disabled={!isInCall}
+            className={`video-conference__control-button ${isMicOn ? 'video-conference__control-button--active' : ''}`}
+            onClick={() => setIsMicOn(!isMicOn)}
+            aria-label={isMicOn ? 'Silenciar micrófono' : 'Activar micrófono'}
           >
-            {!isMuted ? (
+            {isMicOn ? (
               <svg width="40" height="40" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <path d="M12 1C10.34 1 9 2.34 9 4V12C9 13.66 10.34 15 12 15C13.66 15 15 13.66 15 12V4C15 2.34 13.66 1 12 1Z" fill="currentColor"/>
                 <path d="M19 10V12C19 15.87 15.87 19 12 19C8.13 19 5 15.87 5 12V10H7V12C7 14.76 9.24 17 12 17C14.76 17 17 14.76 17 12V10H19Z" fill="currentColor"/>
@@ -254,3 +192,4 @@ export default function VideoConference() {
     </div>
   );
 }
+
