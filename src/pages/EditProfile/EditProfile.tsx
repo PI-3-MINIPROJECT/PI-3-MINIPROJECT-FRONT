@@ -58,6 +58,14 @@ export default function EditProfile() {
     value.replace(/[^0-9]/g, '').slice(0, 3);
 
   /**
+   * Sanitizes text input by allowing only letters, spaces, and common name characters
+   * @param {string} value - Input value to sanitize
+   * @returns {string} Sanitized text string
+   */
+  const sanitizeTextInput = (value: string) =>
+    value.replace(/[^a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\s'-]/g, '');
+
+  /**
    * Gets password validation checks
    * @param {string} pwd - Password to check
    * @returns {Object} Object with password validation checks
@@ -215,18 +223,20 @@ export default function EditProfile() {
   };
 
   const handleFirstNameChange = (value: string) => {
-    setFirstName(value);
+    const sanitized = sanitizeTextInput(value).slice(0, 50);
+    setFirstName(sanitized);
     clearGeneralError();
     if (errors.firstName) {
-      updateFieldError('firstName', validateField('firstName', value));
+      updateFieldError('firstName', validateField('firstName', sanitized));
     }
   };
 
   const handleLastNameChange = (value: string) => {
-    setLastName(value);
+    const sanitized = sanitizeTextInput(value).slice(0, 50);
+    setLastName(sanitized);
     clearGeneralError();
     if (errors.lastName) {
-      updateFieldError('lastName', validateField('lastName', value));
+      updateFieldError('lastName', validateField('lastName', sanitized));
     }
   };
 
@@ -240,10 +250,11 @@ export default function EditProfile() {
   };
 
   const handleEmailChange = (value: string) => {
-    setEmail(value);
+    const sanitized = value.slice(0, 255);
+    setEmail(sanitized);
     clearGeneralError();
     if (errors.email) {
-      updateFieldError('email', validateField('email', value));
+      updateFieldError('email', validateField('email', sanitized));
     }
   };
 
@@ -541,6 +552,7 @@ export default function EditProfile() {
               error={errors.firstName}
               disabled={isSubmitting}
               required
+              maxLength={50}
             />
           </div>
 
@@ -556,6 +568,7 @@ export default function EditProfile() {
               error={errors.lastName}
               disabled={isSubmitting}
               required
+              maxLength={50}
             />
           </div>
 
@@ -574,6 +587,7 @@ export default function EditProfile() {
               autoComplete="off"
               inputMode="numeric"
               pattern="[0-9]*"
+              maxLength={3}
             />
           </div>
 
@@ -589,6 +603,7 @@ export default function EditProfile() {
               error={errors.email}
               disabled={isSubmitting}
               required
+              maxLength={255}
             />
           </div>
 
@@ -607,6 +622,7 @@ export default function EditProfile() {
               autoComplete="new-password"
               spellCheck={false}
               autoCorrect="off"
+              maxLength={100}
               icon={
                 <button
                   type="button"
@@ -633,6 +649,7 @@ export default function EditProfile() {
               error={errors.newPassword}
               disabled={isSubmitting}
               autoComplete="new-password"
+              maxLength={100}
               icon={
                 <button
                   type="button"
@@ -659,6 +676,7 @@ export default function EditProfile() {
               error={errors.confirmPassword}
               disabled={isSubmitting}
               autoComplete="new-password"
+              maxLength={100}
               icon={
                 <button
                   type="button"

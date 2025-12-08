@@ -22,6 +22,14 @@ export default function CreateMeeting() {
   const [time, setTime] = useState('10:30');
   const [duration, setDuration] = useState('45');
   const [maxParticipants, setMaxParticipants] = useState('10');
+
+  /**
+   * Sanitizes numeric input by removing non-numeric characters
+   * @param {string} value - Input value to sanitize
+   * @returns {string} Sanitized numeric string
+   */
+  const sanitizeNumericInput = (value: string) =>
+    value.replace(/[^0-9]/g, '');
   const [errors, setErrors] = useState<{ 
     title?: string; 
     date?: string; 
@@ -160,6 +168,7 @@ export default function CreateMeeting() {
               onChange={(e) => setTitle(e.target.value)}
               error={errors.title}
               required
+              maxLength={100}
             />
           </div>
 
@@ -174,6 +183,7 @@ export default function CreateMeeting() {
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               rows={4}
+              maxLength={500}
             />
           </div>
 
@@ -211,7 +221,10 @@ export default function CreateMeeting() {
                 label="Duración estimada (minutos)"
                 placeholder="45"
                 value={duration}
-                onChange={(e) => setDuration(e.target.value)}
+                onChange={(e) => {
+                  const sanitized = sanitizeNumericInput(e.target.value);
+                  setDuration(sanitized);
+                }}
                 error={errors.duration}
                 min="5"
                 max="480"
@@ -225,7 +238,10 @@ export default function CreateMeeting() {
                 label="Máximo de participantes"
                 placeholder="10"
                 value={maxParticipants}
-                onChange={(e) => setMaxParticipants(e.target.value)}
+                onChange={(e) => {
+                  const sanitized = sanitizeNumericInput(e.target.value);
+                  setMaxParticipants(sanitized);
+                }}
                 error={errors.maxParticipants}
                 min="2"
                 max="50"

@@ -160,6 +160,7 @@ export default function ResetPassword() {
                       error={errors.newPassword}
                       required
                       minLength={6}
+                      maxLength={100}
                       autoComplete="new-password"
                       icon={
                         <button
@@ -183,6 +184,7 @@ export default function ResetPassword() {
                       error={errors.confirmPassword}
                       required
                       minLength={6}
+                      maxLength={100}
                       autoComplete="new-password"
                       icon={
                         <button
