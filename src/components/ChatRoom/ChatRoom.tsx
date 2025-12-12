@@ -16,6 +16,7 @@ interface ChatRoomProps {
  */
 const ChatRoom: React.FC<ChatRoomProps> = ({ meetingId, userId, username, onClose }) => {
   const [messageInput, setMessageInput] = useState('');
+  const [reconnecting, setReconnecting] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -34,6 +35,15 @@ const ChatRoom: React.FC<ChatRoomProps> = ({ meetingId, userId, username, onClos
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
+
+  // Monitor connection status for reconnection feedback (Heuristic 9)
+  useEffect(() => {
+    if (!isConnected && !connectionError) {
+      setReconnecting(true);
+    } else {
+      setReconnecting(false);
+    }
+  }, [isConnected, connectionError]);
 
   /**
    * Handles sending a chat message
@@ -79,17 +89,27 @@ const ChatRoom: React.FC<ChatRoomProps> = ({ meetingId, userId, username, onClos
   };
 
   return (
-    <div className="chat-room">
+    <div className="chat-room" role="region" aria-label="Sala de chat">
       <div className="chat-header">
         <div className="chat-title">
-          <h3>Chat</h3>
-          <span className={`status-indicator ${isConnected ? 'connected' : 'disconnected'}`}>
+          <h3>Conversación</h3>
+          <span 
+            className={`status-indicator ${isConnected ? 'connected' : 'disconnected'}`}
+            role="status"
+            aria-live="polite"
+            aria-label={isConnected ? 'Conectado al chat' : 'Desconectado del chat'}
+          >
             {isConnected ? '🟢' : '🔴'}
           </span>
         </div>
         <div className="chat-header-right">
-          <div className="participants-count">
-            👥 {participantCount} {participantCount === 1 ? 'participante' : 'participantes'}
+          <div 
+            className="participants-count"
+            role="status"
+            aria-live="polite"
+            aria-label={`${participantCount} ${participantCount === 1 ? 'persona conectada' : 'personas conectadas'}`}
+          >
+            👥 {participantCount} {participantCount === 1 ? 'persona' : 'personas'}
           </div>
           {onClose && (
             <button
@@ -107,9 +127,22 @@ const ChatRoom: React.FC<ChatRoomProps> = ({ meetingId, userId, username, onClos
         </div>
       </div>
 
+      {/* Reconnection notification (Heuristic 9) */}
+      {reconnecting && !connectionError && (
+        <div className="chat-reconnecting" role="status" aria-live="polite">
+          🔄 Intentando reconectar al chat...
+        </div>
+      )}
+
       {connectionError && (
-        <div className="connection-error">
-          ⚠️ Error: {connectionError}
+        <div className="connection-error" role="alert" aria-live="assertive">
+          ⚠️ No pudimos conectarte al chat. {connectionError}
+          <button 
+            className="connection-error__retry"
+            onClick={() => window.location.reload()}
+          >
+            Reintentar
+          </button>
         </div>
       )}
 
@@ -130,9 +163,9 @@ const ChatRoom: React.FC<ChatRoomProps> = ({ meetingId, userId, username, onClos
 
       <div className="messages-container">
         {messages.length === 0 ? (
-          <div className="no-messages">
-            <p>No hay mensajes aún</p>
-            <p>¡Sé el primero en escribir!</p>
+          <div className="no-messages" role="status">
+            <p>💬 Conversación vacía</p>
+            <p>¡Sé el primero en saludar!</p>
           </div>
         ) : (
           <>
@@ -175,17 +208,19 @@ const ChatRoom: React.FC<ChatRoomProps> = ({ meetingId, userId, username, onClos
           ref={inputRef}
           type="text"
           className="message-input"
-          placeholder={isConnected ? "Escribe un mensaje..." : "Conectando..."}
+          placeholder={isConnected ? "Escribe tu mensaje aquí..." : "Conectando al chat..."}
           value={messageInput}
           onChange={handleInputChange}
           disabled={!isConnected}
           maxLength={500}
+          aria-label="Escribe tu mensaje"
         />
         <button
           type="submit"
           className="send-button"
           disabled={!isConnected || !messageInput.trim()}
-          aria-label="Enviar mensaje"
+          aria-label="Enviar tu mensaje"
+          title="📤 Enviar mensaje"
         >
           ➤
         </button>

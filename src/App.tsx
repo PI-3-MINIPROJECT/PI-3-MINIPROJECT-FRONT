@@ -1,6 +1,7 @@
 import { lazy, Suspense } from 'react';
 import { Routes, Route } from 'react-router-dom';
 import { AuthProvider } from './contexts/AuthContext';
+import ErrorBoundary from './components/ErrorBoundary/ErrorBoundary';
 import Header from './components/Header/Header';
 import Footer from './components/Footer/Footer';
 import './App.scss';
@@ -74,43 +75,46 @@ function Layout({ children }: { children: React.ReactNode }) {
 
 /**
  * Main App component that sets up routing and authentication context
+ * Wrapped with ErrorBoundary for graceful error handling (Heuristic 9)
  * @returns {JSX.Element} App component with routes and authentication provider
  */
 function App() {
   return (
-    <AuthProvider>
-      <Suspense fallback={<LoadingFallback />}>
-        <Routes>
-          <Route path="/login" element={<Login />} />
-          <Route path="/register" element={<Register />} />
-          <Route path="/forgot-password" element={<ForgotPassword />} />
-          <Route path="/reset-password" element={<ResetPassword />} />
-          <Route path="/meetings/room" element={<VideoConference />} />
-          <Route
-            path="/*"
-            element={
-              <Layout>
-                <Suspense fallback={<LoadingFallback />}>
-                  <Routes>
-                    <Route path="/" element={<Home />} />
-                    <Route path="/about" element={<About />} />
-                    <Route path="/sitemap" element={<Sitemap />} />
-                    <Route path="/explore" element={<Dashboard />} />
-                    <Route path="/my-meetings" element={<MyMeetings />} />
-                    <Route path="/meetings/create" element={<CreateMeeting />} />
-                    <Route path="/meetings/join" element={<JoinMeeting />} />
-                    <Route path="/meetings/success" element={<MeetingSuccess />} />
-                    <Route path="/meetings/:meetingId" element={<MeetingDetails />} />
-                    <Route path="/account" element={<Profile />} />
-                    <Route path="/account/edit" element={<EditProfile />} />
-                  </Routes>
-                </Suspense>
-              </Layout>
-            }
-          />
-        </Routes>
-      </Suspense>
-    </AuthProvider>
+    <ErrorBoundary>
+      <AuthProvider>
+        <Suspense fallback={<LoadingFallback />}>
+          <Routes>
+            <Route path="/login" element={<Login />} />
+            <Route path="/register" element={<Register />} />
+            <Route path="/forgot-password" element={<ForgotPassword />} />
+            <Route path="/reset-password" element={<ResetPassword />} />
+            <Route path="/meetings/room" element={<VideoConference />} />
+            <Route
+              path="/*"
+              element={
+                <Layout>
+                  <Suspense fallback={<LoadingFallback />}>
+                    <Routes>
+                      <Route path="/" element={<Home />} />
+                      <Route path="/about" element={<About />} />
+                      <Route path="/sitemap" element={<Sitemap />} />
+                      <Route path="/explore" element={<Dashboard />} />
+                      <Route path="/my-meetings" element={<MyMeetings />} />
+                      <Route path="/meetings/create" element={<CreateMeeting />} />
+                      <Route path="/meetings/join" element={<JoinMeeting />} />
+                      <Route path="/meetings/success" element={<MeetingSuccess />} />
+                      <Route path="/meetings/:meetingId" element={<MeetingDetails />} />
+                      <Route path="/account" element={<Profile />} />
+                      <Route path="/account/edit" element={<EditProfile />} />
+                    </Routes>
+                  </Suspense>
+                </Layout>
+              }
+            />
+          </Routes>
+        </Suspense>
+      </AuthProvider>
+    </ErrorBoundary>
   );
 }
 

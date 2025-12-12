@@ -5,13 +5,33 @@ const SOCKET_URL = import.meta.env.VITE_CHAT_SERVER_URL || (import.meta.env.PROD
 /**
  * Socket service for managing WebSocket connections
  * Singleton pattern to ensure only one connection exists
+ * Implements automatic reconnection with user feedback (Heuristic 9)
  */
 class SocketService {
   private socket: Socket | null = null;
   private isConnecting: boolean = false;
+  private reconnectAttempts: number = 0;
+  private maxReconnectAttempts: number = 5;
+  private reconnectionCallbacks: ((status: 'attempting' | 'success' | 'failed') => void)[] = [];
 
   /**
-   * Connect to the socket server
+   * Register callback for reconnection status updates
+   * @param {Function} callback - Callback function
+   */
+  onReconnectionStatus(callback: (status: 'attempting' | 'success' | 'failed') => void): void {
+    this.reconnectionCallbacks.push(callback);
+  }
+
+  /**
+   * Notify all callbacks about reconnection status
+   * @param {string} status - Reconnection status
+   */
+  private notifyReconnectionStatus(status: 'attempting' | 'success' | 'failed'): void {
+    this.reconnectionCallbacks.forEach(callback => callback(status));
+  }
+
+  /**
+   * Connect to the socket server with automatic reconnection
    * @returns {Socket} Socket instance
    */
   connect(): Socket {
@@ -37,16 +57,48 @@ class SocketService {
     this.socket.on('connect', () => {
       console.log('✅ Socket conectado:', this.socket?.id);
       this.isConnecting = false;
+      this.reconnectAttempts = 0;
+      this.notifyReconnectionStatus('success');
     });
 
     this.socket.on('disconnect', (reason) => {
       console.log('❌ Socket desconectado:', reason);
       this.isConnecting = false;
+      
+      if (reason === 'io server disconnect') {
+        // Server desconectó, intentar reconectar manualmente
+        this.socket?.connect();
+      }
     });
 
     this.socket.on('connect_error', (error) => {
       console.error('❌ Error de conexión:', error.message);
       this.isConnecting = false;
+      this.reconnectAttempts++;
+      
+      if (this.reconnectAttempts <= this.maxReconnectAttempts) {
+        console.log(`🔄 Intento de reconexión ${this.reconnectAttempts} de ${this.maxReconnectAttempts}`);
+        this.notifyReconnectionStatus('attempting');
+      } else {
+        console.error('❌ Máximo de intentos de reconexión alcanzado');
+        this.notifyReconnectionStatus('failed');
+      }
+    });
+
+    this.socket.on('reconnect_attempt', (attemptNumber) => {
+      console.log(`🔄 Intentando reconectar... (intento ${attemptNumber})`);
+      this.notifyReconnectionStatus('attempting');
+    });
+
+    this.socket.on('reconnect', (attemptNumber) => {
+      console.log(`✅ Reconexión exitosa después de ${attemptNumber} intentos`);
+      this.reconnectAttempts = 0;
+      this.notifyReconnectionStatus('success');
+    });
+
+    this.socket.on('reconnect_failed', () => {
+      console.error('❌ Fallo al reconectar después de múltiples intentos');
+      this.notifyReconnectionStatus('failed');
     });
 
     return this.socket;
