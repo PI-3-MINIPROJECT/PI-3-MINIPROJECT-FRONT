@@ -107,17 +107,29 @@ export const useVoiceCall = (
     console.log('🧹 Releasing media stream tracks...');
     const tracks = stream.getTracks();
     
+    // Stop all tracks
     tracks.forEach(track => {
       try {
+        // Set enabled to false first
+        track.enabled = false;
+        // Then stop the track
         track.stop();
-        console.log('🧹 Stopped track:', track.kind, track.label);
+        console.log('🧹 Stopped track:', track.kind, track.label, `(${track.id})`);
       } catch (error) {
         console.warn('🧹 Error stopping track:', track.kind, error);
       }
     });
     
-    // Wait a bit to ensure tracks are fully released
-    await new Promise(resolve => setTimeout(resolve, 100));
+    // Wait longer to ensure tracks are fully released and devices are available
+    // This is critical for allowing the browser to fully release the devices
+    await new Promise(resolve => setTimeout(resolve, 500));
+    
+    // Additional check: verify tracks are actually stopped
+    const stillActive = tracks.some(track => track.readyState === 'live');
+    if (stillActive) {
+      console.warn('🧹 Some tracks are still active, waiting longer...');
+      await new Promise(resolve => setTimeout(resolve, 500));
+    }
   }, []);
 
   /**
@@ -139,6 +151,9 @@ export const useVoiceCall = (
       console.log('🧹 Releasing previous stream before requesting new one...');
       await releaseMediaStream(localStreamRef.current);
       localStreamRef.current = null;
+      // Additional wait after releasing to ensure devices are fully available
+      console.log('🧹 Waiting for devices to be fully released...');
+      await new Promise(resolve => setTimeout(resolve, 300));
     }
 
     // Also check for any active tracks in the system
@@ -147,7 +162,7 @@ export const useVoiceCall = (
       const activeTracks = devices.filter(device => device.label !== '');
       if (activeTracks.length > 0) {
         console.log('🧹 Found active tracks, waiting for release...');
-        await new Promise(resolve => setTimeout(resolve, 200));
+        await new Promise(resolve => setTimeout(resolve, 500));
       }
     } catch (error) {
       console.warn('🧹 Could not enumerate devices:', error);
@@ -156,7 +171,7 @@ export const useVoiceCall = (
     try {
       console.log('📹 Requesting microphone + camera permissions...');
       
-      // Add timeout to prevent hanging
+      // Add timeout to prevent hanging - increased to 15 seconds for slower devices
       const getUserMediaPromise = navigator.mediaDevices.getUserMedia({
         audio: {
           echoCancellation: true,
@@ -173,7 +188,7 @@ export const useVoiceCall = (
       const timeoutPromise = new Promise<never>((_, reject) => {
         setTimeout(() => {
           reject(new Error('Timeout starting video source'));
-        }, 10000); // 10 second timeout
+        }, 15000); // 15 second timeout (increased from 10)
       });
 
       const stream = await Promise.race([getUserMediaPromise, timeoutPromise]);
@@ -849,16 +864,23 @@ export const useVoiceCall = (
     });
 
     // Stop all local tracks (audio AND video) properly
+    // Do this first and wait for complete release
     if (localStreamRef.current) {
+      console.log('🧹 Releasing local stream from ref...');
       await releaseMediaStream(localStreamRef.current);
       localStreamRef.current = null;
     }
 
-    // Also clear the state stream
+    // Also clear the state stream (may be different reference)
     if (localStream) {
+      console.log('🧹 Releasing local stream from state...');
       await releaseMediaStream(localStream);
     }
     setLocalStream(null);
+    
+    // Additional wait to ensure all devices are fully released
+    console.log('🧹 Final wait to ensure devices are fully released...');
+    await new Promise(resolve => setTimeout(resolve, 500));
 
     // Notify server
     if (meetingId && userId) {
