@@ -66,7 +66,6 @@ class SocketService {
       this.isConnecting = false;
       
       if (reason === 'io server disconnect') {
-        // Server desconectó, intentar reconectar manualmente
         this.socket?.connect();
       }
     });

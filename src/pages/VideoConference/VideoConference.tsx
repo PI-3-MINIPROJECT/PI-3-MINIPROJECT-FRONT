@@ -50,16 +50,14 @@ export default function VideoConference() {
   const previousMeetingIdRef = useRef<string>(meetingId);
   
   useEffect(() => {
-    // If meetingId changed, cleanup previous meeting first
     if (previousMeetingIdRef.current !== meetingId) {
       console.log('📹 Meeting ID changed in VideoConference, cleaning up...');
       void leaveVoiceCall();
-      // Wait for cleanup before joining new meeting
       const cleanupDelay = setTimeout(() => {
         previousMeetingIdRef.current = meetingId;
         mountedRef.current = true;
         joinVoiceCall();
-      }, 1000); // Wait 1 second for cleanup to complete
+      }, 1000);
       
       return () => {
         clearTimeout(cleanupDelay);
@@ -71,7 +69,6 @@ export default function VideoConference() {
     mountedRef.current = true;
     previousMeetingIdRef.current = meetingId;
     
-    // Clear any pending cleanup from previous mount
     if (cleanupTimeoutRef.current) {
       clearTimeout(cleanupTimeoutRef.current);
       cleanupTimeoutRef.current = null;
@@ -80,26 +77,21 @@ export default function VideoConference() {
     joinVoiceCall();
     
     return () => {
-      // Mark as unmounted
       mountedRef.current = false;
       
-      // Clear any existing timeout
       if (cleanupTimeoutRef.current) {
         clearTimeout(cleanupTimeoutRef.current);
       }
       
-      // Use a delay to distinguish between StrictMode cleanup and real unmount
-      // In StrictMode, the component will remount quickly, so we check after a delay
       cleanupTimeoutRef.current = setTimeout(() => {
-        // Only cleanup if component is still unmounted (real unmount, not StrictMode)
         if (!mountedRef.current) {
           void leaveVoiceCall();
         }
         cleanupTimeoutRef.current = null;
-      }, 200); // Increased delay to better handle StrictMode
+      }, 200);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [meetingId]); // Run when meetingId changes or on mount/unmount
+  }, [meetingId]);
 
   /**
    * Update local video element when stream changes
@@ -167,14 +159,11 @@ export default function VideoConference() {
     return allUsers.map((usr) => {
       const stream = usr.userId === usrId ? localStream : getRemoteStream(usr.userId);
       
-      // For remote users, check if they have an active video track in their stream
       let hasActiveVideo = false;
       if (usr.userId === usrId) {
         hasActiveVideo = isVideoOn;
       } else {
-        // Check voice participants status
         const videoStatus = getUserVideoStatus(usr.userId);
-        // Also verify if stream has active video tracks
         const hasVideoTrack = stream?.getVideoTracks().some(track => track.enabled) ?? false;
         hasActiveVideo = videoStatus || hasVideoTrack;
       }
@@ -243,14 +232,11 @@ export default function VideoConference() {
 
     useEffect(() => {
       if (videoRef.current && stream) {
-        // Only update if stream actually changed
         if (previousStreamRef.current !== stream) {
-          // Verify stream is active before assigning
           if (stream.active && stream.getTracks().some(track => track.readyState === 'live')) {
             videoRef.current.srcObject = stream;
             previousStreamRef.current = stream;
           } else {
-            // Stream not ready yet, wait a bit
             const timeout = setTimeout(() => {
               if (videoRef.current && stream && stream.active) {
                 videoRef.current.srcObject = stream;
@@ -261,7 +247,6 @@ export default function VideoConference() {
           }
         }
       } else if (videoRef.current && !stream && previousStreamRef.current) {
-        // Only clear if we had a stream before
         videoRef.current.srcObject = null;
         previousStreamRef.current = null;
       }

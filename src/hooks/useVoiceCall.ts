@@ -107,12 +107,9 @@ export const useVoiceCall = (
     console.log('🧹 Releasing media stream tracks...');
     const tracks = stream.getTracks();
     
-    // Stop all tracks
     tracks.forEach(track => {
       try {
-        // Set enabled to false first
         track.enabled = false;
-        // Then stop the track
         track.stop();
         console.log('🧹 Stopped track:', track.kind, track.label, `(${track.id})`);
       } catch (error) {
@@ -120,11 +117,8 @@ export const useVoiceCall = (
       }
     });
     
-    // Wait longer to ensure tracks are fully released and devices are available
-    // This is critical for allowing the browser to fully release the devices
     await new Promise(resolve => setTimeout(resolve, 500));
     
-    // Additional check: verify tracks are actually stopped
     const stillActive = tracks.some(track => track.readyState === 'live');
     if (stillActive) {
       console.warn('🧹 Some tracks are still active, waiting longer...');
@@ -146,17 +140,14 @@ export const useVoiceCall = (
       throw new Error(errorMessage);
     }
 
-    // First, ensure any existing tracks are released
     if (localStreamRef.current) {
       console.log('🧹 Releasing previous stream before requesting new one...');
       await releaseMediaStream(localStreamRef.current);
       localStreamRef.current = null;
-      // Additional wait after releasing to ensure devices are fully available
       console.log('🧹 Waiting for devices to be fully released...');
       await new Promise(resolve => setTimeout(resolve, 300));
     }
 
-    // Also check for any active tracks in the system
     try {
       const devices = await navigator.mediaDevices.enumerateDevices();
       const activeTracks = devices.filter(device => device.label !== '');
@@ -171,7 +162,6 @@ export const useVoiceCall = (
     try {
       console.log('📹 Requesting microphone + camera permissions...');
       
-      // Add timeout to prevent hanging - increased to 15 seconds for slower devices
       const getUserMediaPromise = navigator.mediaDevices.getUserMedia({
         audio: {
           echoCancellation: true,
@@ -188,7 +178,7 @@ export const useVoiceCall = (
       const timeoutPromise = new Promise<never>((_, reject) => {
         setTimeout(() => {
           reject(new Error('Timeout starting video source'));
-        }, 15000); // 15 second timeout (increased from 10)
+        }, 15000);
       });
 
       const stream = await Promise.race([getUserMediaPromise, timeoutPromise]);
@@ -202,7 +192,6 @@ export const useVoiceCall = (
       
       console.log('📹 Media access granted - Audio tracks:', audioTracks.length, 'Video tracks:', videoTracks.length);
 
-      // Disable all tracks by default (muted mic, camera off)
       audioTracks.forEach(track => {
         track.enabled = false;
         console.log('🎙️ Audio track disabled:', track.label);
@@ -247,24 +236,20 @@ export const useVoiceCall = (
    * @param {MediaStream} stream - Remote audio/video stream
    */
   const playRemoteStream = useCallback((remoteUserId: string, stream: MediaStream) => {
-    // Verify stream is valid
     if (!stream || !stream.active) {
       console.warn('🎙️ Invalid or inactive stream received for:', remoteUserId);
       return;
     }
 
-    // Check if this is the same stream we already have (avoid duplicate processing)
     const existingStream = remoteStreamsRef.current.get(remoteUserId);
     if (existingStream === stream) {
       console.log('🎙️ Stream unchanged for:', remoteUserId, 'skipping update');
       return;
     }
 
-    // Handle audio - properly clean up existing audio before creating new one
     const existingAudio = audioElementsRef.current.get(remoteUserId);
     if (existingAudio) {
       try {
-        // Pause and clear before removing to avoid interruption errors
         existingAudio.pause();
         existingAudio.srcObject = null;
         existingAudio.remove();
@@ -274,17 +259,14 @@ export const useVoiceCall = (
       audioElementsRef.current.delete(remoteUserId);
     }
 
-    // Create new audio element
     const audio = new Audio();
     audio.srcObject = stream;
     audio.autoplay = true;
     (audio as HTMLAudioElement & { playsInline: boolean }).playsInline = true;
     audio.volume = 1.0;
     
-    // Store audio element first
     audioElementsRef.current.set(remoteUserId, audio);
     
-    // Try to play audio
     const playPromise = audio.play();
     if (playPromise !== undefined) {
       playPromise
@@ -292,7 +274,6 @@ export const useVoiceCall = (
           console.log('🎙️ Audio playing successfully from:', remoteUserId);
         })
         .catch((error) => {
-          // Ignore AbortError - it's usually because a new stream replaced it quickly
           if (error.name !== 'AbortError') {
             console.error('🎙️ Audio autoplay blocked for:', remoteUserId, error);
             console.warn('🎙️ User interaction may be required to play audio');
@@ -302,11 +283,10 @@ export const useVoiceCall = (
 
     console.log('🎙️ Audio element created for:', remoteUserId, 'stream active:', stream.active);
 
-    // Store full stream (including video) for video display
     setRemoteStreams(prev => {
       const newMap = new Map(prev);
       newMap.set(remoteUserId, stream);
-      remoteStreamsRef.current = newMap; // Keep ref in sync
+      remoteStreamsRef.current = newMap;
       return newMap;
     });
     console.log('📹 Stored remote stream from:', remoteUserId);
@@ -317,7 +297,6 @@ export const useVoiceCall = (
    * @param {string} remoteUserId - User ID of the remote peer
    */
   const stopRemoteStream = useCallback((remoteUserId: string) => {
-    // Stop audio
     const audio = audioElementsRef.current.get(remoteUserId);
     if (audio) {
       audio.srcObject = null;
@@ -325,11 +304,10 @@ export const useVoiceCall = (
       audioElementsRef.current.delete(remoteUserId);
     }
 
-    // Remove video stream from state
     setRemoteStreams(prev => {
       const newMap = new Map(prev);
       newMap.delete(remoteUserId);
-      remoteStreamsRef.current = newMap; // Keep ref in sync
+      remoteStreamsRef.current = newMap;
       return newMap;
     });
 
@@ -517,7 +495,6 @@ export const useVoiceCall = (
         };
       });
 
-      // Both mic and camera start disabled (getUserMedia already did this)
       setIsMuted(true);
       setIsVideoOn(false);
 
@@ -530,7 +507,6 @@ export const useVoiceCall = (
         if (error instanceof Error) {
           setConnectionError(error.message);
         }
-        // Release stream if connection fails
         if (localStreamRef.current) {
           await releaseMediaStream(localStreamRef.current);
           localStreamRef.current = null;
@@ -582,7 +558,6 @@ export const useVoiceCall = (
         return;
       }
 
-      // Check if we're still supposed to be joining (not cancelled by cleanup)
       if (!isJoiningRef.current) {
         console.log('📹 Join was cancelled after socket connect, cleaning up...');
         await releaseMediaStream(localStreamRef.current);
@@ -593,10 +568,8 @@ export const useVoiceCall = (
         return;
       }
 
-      // Wait a bit for ICE servers to be received from backend
       await new Promise(resolve => setTimeout(resolve, 500));
       
-      // Check again after waiting
       if (!isJoiningRef.current) {
         console.log('📹 Join was cancelled after waiting for ICE servers, cleaning up...');
         await releaseMediaStream(localStreamRef.current);
@@ -607,7 +580,6 @@ export const useVoiceCall = (
         return;
       }
       
-      // Get ICE servers from callService (received from backend, includes ExpressTURN)
       const iceServers = callService.getIceServers();
       iceServersRef.current = iceServers;
       console.log('🎙️ Using ICE servers:', iceServers.length > 0 ? iceServers : 'default');
@@ -625,7 +597,6 @@ export const useVoiceCall = (
       peerRef.current = peer;
 
       peer.on('open', (peerId) => {
-        // Check if we're still supposed to be joining
         if (!isJoiningRef.current) {
           console.log('📹 Join was cancelled when PeerJS opened, cleaning up...');
           peer.destroy();
@@ -635,7 +606,6 @@ export const useVoiceCall = (
 
         console.log('🎙️ PeerJS connected with ID:', peerId);
         
-        // Verify socket is still connected before joining
         if (!socket.connected) {
           console.warn('🎙️ Socket disconnected before join, waiting for reconnect...');
           const reconnectTimeout = setTimeout(() => {
@@ -643,7 +613,7 @@ export const useVoiceCall = (
             setConnectionError('No se pudo conectar al servidor. Por favor, recarga la página.');
             isJoiningRef.current = false;
             hasJoinedRef.current = false;
-          }, 10000); // 10 second timeout for reconnect
+          }, 10000);
 
           socket.once('connect', () => {
             clearTimeout(reconnectTimeout);
@@ -794,16 +764,13 @@ export const useVoiceCall = (
    * Properly releases all media tracks and connections
    */
   const leaveVoiceCall = useCallback(async () => {
-    // Prevent multiple simultaneous calls to leaveVoiceCall
     if (isLeavingRef.current) {
       console.log('🎙️ Already leaving call, skipping...');
       return;
     }
 
-    // Don't leave if we're currently joining - wait for join to complete or fail
     if (isJoiningRef.current) {
       console.log('🎙️ Cannot leave while joining, waiting for join to complete...');
-      // Wait a bit and check again
       setTimeout(() => {
         if (!isJoiningRef.current && !isLeavingRef.current) {
           void leaveVoiceCall();
@@ -812,7 +779,6 @@ export const useVoiceCall = (
       return;
     }
 
-    // If we never joined and have no resources, there's nothing to clean up
     if (!hasJoinedRef.current && !localStreamRef.current && !peerRef.current && !socketRef.current) {
       console.log('🎙️ Nothing to clean up, skipping leave...');
       return;
@@ -824,7 +790,6 @@ export const useVoiceCall = (
     isJoiningRef.current = false;
     hasJoinedRef.current = false;
 
-    // Stop all audio elements
     audioElementsRef.current.forEach((audio) => {
       try {
         audio.pause();
@@ -836,7 +801,6 @@ export const useVoiceCall = (
     });
     audioElementsRef.current.clear();
 
-    // Close all peer connections
     connectionsRef.current.forEach((connection) => {
       try {
         connection.close();
@@ -846,8 +810,6 @@ export const useVoiceCall = (
     });
     connectionsRef.current.clear();
 
-    // Stop all remote streams
-    // Use setRemoteStreams callback to access current streams
     setRemoteStreams(currentStreams => {
       currentStreams.forEach((stream) => {
         stream.getTracks().forEach(track => {
@@ -863,26 +825,21 @@ export const useVoiceCall = (
       return newMap;
     });
 
-    // Stop all local tracks (audio AND video) properly
-    // Do this first and wait for complete release
     if (localStreamRef.current) {
       console.log('🧹 Releasing local stream from ref...');
       await releaseMediaStream(localStreamRef.current);
       localStreamRef.current = null;
     }
 
-    // Also clear the state stream (may be different reference)
     if (localStream) {
       console.log('🧹 Releasing local stream from state...');
       await releaseMediaStream(localStream);
     }
     setLocalStream(null);
     
-    // Additional wait to ensure all devices are fully released
     console.log('🧹 Final wait to ensure devices are fully released...');
     await new Promise(resolve => setTimeout(resolve, 500));
 
-    // Notify server
     if (meetingId && userId) {
       try {
         callService.leaveCall({ meetingId, userId });
@@ -891,7 +848,6 @@ export const useVoiceCall = (
       }
     }
 
-    // Destroy PeerJS
     if (peerRef.current) {
       try {
         peerRef.current.destroy();
@@ -901,7 +857,6 @@ export const useVoiceCall = (
       peerRef.current = null;
     }
 
-    // Disconnect socket
     try {
       callService.disconnect();
     } catch (error) {
@@ -909,14 +864,12 @@ export const useVoiceCall = (
     }
     socketRef.current = null;
 
-    // Reset all state
     setIsInCall(false);
     setIsConnected(false);
     setParticipants([]);
     setIsMuted(true);
     setIsVideoOn(false);
     
-    // Reset leaving flag after a short delay to allow cleanup to complete
     setTimeout(() => {
       isLeavingRef.current = false;
     }, 500);
@@ -926,7 +879,6 @@ export const useVoiceCall = (
    * Toggle microphone mute state (independent of video)
    */
   const toggleMute = useCallback(() => {
-    // Check both ref and state for stream availability
     const stream = localStreamRef.current || localStream;
     
     if (!stream) {
@@ -973,7 +925,6 @@ export const useVoiceCall = (
    * Enables/disables video track AND re-calls peers to ensure they receive the change
    */
   const toggleVideo = useCallback(async () => {
-    // Check both ref and state for stream availability
     const stream = localStreamRef.current || localStream;
     
     if (!stream || !meetingId || !userId || !peerRef.current) {
@@ -996,28 +947,19 @@ export const useVoiceCall = (
 
     const newVideoState = !isVideoOn;
 
-    // Toggle the enabled state of video tracks
     videoTracks.forEach(track => {
       track.enabled = newVideoState;
       console.log('📹 Video track', track.label, 'enabled:', newVideoState);
     });
 
-    // Update local stream state to trigger UI update
-    // Force a state update by creating a new MediaStream reference
-    // This is necessary to trigger React re-render and update video elements
     const currentStream = localStreamRef.current || stream;
     if (currentStream) {
-      // Create a new MediaStream with the same tracks to trigger React update
-      // The tracks themselves are the same, we just need a new reference for React
       const tracks = currentStream.getTracks();
       const newStream = new MediaStream(tracks);
       setLocalStream(newStream);
-      // Also update the ref to keep it in sync
       localStreamRef.current = newStream;
     }
 
-    // Re-call all peers to ensure they receive the video change
-    // This is necessary because WebRTC doesn't always propagate track.enabled changes
     const currentParticipants = [...participants];
     console.log('📹 Re-calling', currentParticipants.length, 'peers after video toggle');
 
@@ -1026,10 +968,8 @@ export const useVoiceCall = (
       if (participant.userId !== userId && peerRef.current && currentStream) {
         console.log('📹 Re-calling peer:', participant.username);
 
-        // Close existing connection and clean up properly
         const existingConnection = connectionsRef.current.get(participant.userId);
         if (existingConnection) {
-          // Remove event listeners to prevent duplicate stream events
           existingConnection.removeAllListeners('stream');
           existingConnection.removeAllListeners('close');
           existingConnection.removeAllListeners('error');
@@ -1037,21 +977,17 @@ export const useVoiceCall = (
           connectionsRef.current.delete(participant.userId);
         }
 
-        // Small delay to ensure previous connection is fully closed
         setTimeout(() => {
-          // Double-check connection doesn't exist before creating new one
           if (connectionsRef.current.has(participant.userId)) {
             console.log('📹 Connection already exists for:', participant.userId, 'skipping re-call');
             return;
           }
 
-          // Verify peer is still available
           if (!peerRef.current) {
             console.error('📹 Peer not available for re-call to:', participant.userId);
             return;
           }
 
-          // Create new call with current stream
           const call = peerRef.current.call(participant.peerId, currentStream);
 
           if (!call) {
@@ -1061,7 +997,6 @@ export const useVoiceCall = (
 
           let streamReceived = false;
           call.on('stream', (remoteStream) => {
-            // Prevent duplicate stream processing
             if (streamReceived) {
               console.log('📹 Duplicate stream event ignored for:', participant.userId);
               return;
@@ -1069,18 +1004,14 @@ export const useVoiceCall = (
             streamReceived = true;
             console.log('📹 Received stream after re-call from:', participant.userId);
             
-            // Verify stream is ready before updating
             if (remoteStream.active && remoteStream.getTracks().some(track => track.readyState === 'live')) {
-              // Stream is ready, update it
               playRemoteStream(participant.userId, remoteStream);
             } else {
-              // Stream not ready yet, wait a bit and try again
               console.log('📹 Stream not ready yet, waiting...');
               setTimeout(() => {
                 if (remoteStream.active && remoteStream.getTracks().some(track => track.readyState === 'live')) {
                   playRemoteStream(participant.userId, remoteStream);
                 } else {
-                  // Update anyway to avoid black screen
                   console.warn('📹 Stream updated despite not being fully ready');
                   playRemoteStream(participant.userId, remoteStream);
                 }
@@ -1090,7 +1021,6 @@ export const useVoiceCall = (
 
           call.on('close', () => {
             console.log('📹 Call closed with:', participant.userId);
-            // Only clean up if this connection is still the current one
             if (connectionsRef.current.get(participant.userId) === call) {
               connectionsRef.current.delete(participant.userId);
             }
@@ -1101,11 +1031,10 @@ export const useVoiceCall = (
           });
 
           connectionsRef.current.set(participant.userId, call);
-        }, 100); // Small delay to ensure previous connection is closed
+        }, 100);
       }
     });
 
-    // Notify server about video status change
     if (socketRef.current?.connected) {
       if (newVideoState) {
         callService.videoOn({ meetingId, userId });
@@ -1118,20 +1047,15 @@ export const useVoiceCall = (
     console.log('📹 Camera', newVideoState ? 'on' : 'off');
   }, [isVideoOn, meetingId, userId, participants, playRemoteStream, localStream]);
 
-  // Cleanup on unmount or when meetingId changes - only if we actually joined
-  // Use a ref to store leaveVoiceCall to avoid dependency issues
   const leaveVoiceCallRef = useRef(leaveVoiceCall);
   leaveVoiceCallRef.current = leaveVoiceCall;
   const previousMeetingIdRef = useRef<string | undefined>(meetingId);
 
   useEffect(() => {
-    // If meetingId changed, cleanup previous meeting first
     if (previousMeetingIdRef.current && previousMeetingIdRef.current !== meetingId) {
       console.log('📹 Meeting ID changed, cleaning up previous meeting...');
       void leaveVoiceCallRef.current();
-      // Wait for cleanup to complete
       return () => {
-        // Additional cleanup on unmount
         if (hasJoinedRef.current || localStreamRef.current || peerRef.current || socketRef.current) {
           void leaveVoiceCallRef.current();
         }
@@ -1141,21 +1065,18 @@ export const useVoiceCall = (
     previousMeetingIdRef.current = meetingId;
     
     return () => {
-      // Only cleanup if we actually joined or have resources
       if (hasJoinedRef.current || localStreamRef.current || peerRef.current || socketRef.current) {
         void leaveVoiceCallRef.current();
       }
     };
-  }, [meetingId]); // Run when meetingId changes or on unmount
+  }, [meetingId]);
 
-  // Update localStream state when stream changes
   useEffect(() => {
     if (localStreamRef.current) {
       setLocalStream(localStreamRef.current);
     }
   }, [isInCall]);
 
-  // Keep remoteStreamsRef in sync with remoteStreams state
   useEffect(() => {
     remoteStreamsRef.current = remoteStreams;
   }, [remoteStreams]);

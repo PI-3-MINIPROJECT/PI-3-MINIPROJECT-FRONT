@@ -36,7 +36,6 @@ const ChatRoom: React.FC<ChatRoomProps> = ({ meetingId, userId, username, onClos
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
-  // Monitor connection status for reconnection feedback (Heuristic 9)
   useEffect(() => {
     if (!isConnected && !connectionError) {
       setReconnecting(true);
