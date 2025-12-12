@@ -208,7 +208,8 @@ export default function Login() {
   };
 
   const handleEmailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setEmail(e.target.value);
+    const sanitized = e.target.value.slice(0, 255);
+    setEmail(sanitized);
     if (errors.email) {
       setErrors({ ...errors, email: undefined });
     }
@@ -260,6 +261,7 @@ export default function Login() {
                 onChange={handleEmailChange}
                 error={errors.email}
                 required
+                maxLength={255}
               />
 
               <div className="login__password-wrapper">
@@ -272,6 +274,7 @@ export default function Login() {
                   onChange={handlePasswordChange}
                   error={errors.password}
                   required
+                  maxLength={100}
                   icon={
                     <button
                       type="button"

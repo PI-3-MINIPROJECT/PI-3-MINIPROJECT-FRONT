@@ -131,15 +131,27 @@ export default function Header() {
                 Sobre nosotros
               </Link>
             </li>
-            <li className="header__nav-mobile-actions">
-              <Link
-                to="/meetings/create"
-                className={`header__nav-link header__nav-link--button ${isActive('/meetings/create') ? 'header__nav-link--active' : ''}`}
-                onClick={closeMobileMenu}
-              >
-                Crear reunión
-              </Link>
-            </li>
+            {isAuthenticated ? (
+              <li className="header__nav-mobile-actions">
+                <Link
+                  to="/meetings/create"
+                  className={`header__nav-link header__nav-link--button ${isActive('/meetings/create') ? 'header__nav-link--active' : ''}`}
+                  onClick={closeMobileMenu}
+                >
+                  Crear reunión
+                </Link>
+              </li>
+            ) : (
+              <li className="header__nav-mobile-actions">
+                <Link
+                  to="/login"
+                  className="header__nav-link header__nav-link--button header__nav-link--login"
+                  onClick={closeMobileMenu}
+                >
+                  Iniciar sesión
+                </Link>
+              </li>
+            )}
           </ul>
         </nav>
 

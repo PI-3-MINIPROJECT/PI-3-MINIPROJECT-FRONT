@@ -259,6 +259,17 @@
         background-color: color.adjust($primary-color, $lightness: -10%);
         color: white;
       }
+
+      &--login {
+        background-color: $primary-color;
+        color: white;
+        margin-top: $spacing-sm;
+
+        &:hover {
+          background-color: color.adjust($primary-color, $lightness: -10%);
+          color: white;
+        }
+      }
     }
   }
 

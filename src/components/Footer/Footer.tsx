@@ -50,6 +50,15 @@ export default function Footer() {
               <li>
                 <Link to="/meetings/create">Crear Reunión</Link>
               </li>
+              <li>
+                <a
+                  href="/Manual%20de%20usuario%20konned.pdf"
+                  download="Manual de usuario konned.pdf"
+                  aria-label="Descargar manual de usuario"
+                >
+                  Manual de Usuario
+                </a>
+              </li>
             </ul>
           </nav>
         </div>

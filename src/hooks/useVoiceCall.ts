@@ -185,12 +185,22 @@ export const useVoiceCall = (
     audio.srcObject = stream;
     audio.autoplay = true;
     (audio as HTMLAudioElement & { playsInline: boolean }).playsInline = true;
+    audio.volume = 1.0;
     
-    audio.play().catch((error) => {
-      console.warn('🎙️ Audio autoplay blocked:', error);
-    });
+    const playPromise = audio.play();
+    if (playPromise !== undefined) {
+      playPromise
+        .then(() => {
+          console.log('🎙️ Audio playing successfully from:', remoteUserId);
+        })
+        .catch((error) => {
+          console.error('🎙️ Audio autoplay blocked for:', remoteUserId, error);
+          console.warn('🎙️ User interaction may be required to play audio');
+        });
+    }
 
     audioElementsRef.current.set(remoteUserId, audio);
+    console.log('🎙️ Audio element created for:', remoteUserId, 'stream active:', stream.active);
     console.log('🎙️ Playing audio from:', remoteUserId);
 
     // Store full stream (including video) for video display
@@ -240,25 +250,53 @@ export const useVoiceCall = (
       return;
     }
 
-    console.log('🎙️ Calling peer:', peerId);
+    if (connectionsRef.current.has(remoteUserId)) {
+      console.log('🎙️ Already connected to peer:', remoteUserId);
+      return;
+    }
+
+    const audioTracks = localStreamRef.current.getAudioTracks();
+    if (audioTracks.length === 0) {
+      console.warn('🎙️ Cannot call peer: No audio tracks in local stream');
+      return;
+    }
+
+    console.log('🎙️ Calling peer:', peerId, 'userId:', remoteUserId, 'with', audioTracks.length, 'audio tracks');
     
-    const call = peerRef.current.call(peerId, localStreamRef.current);
-    
-    call.on('stream', (remoteStream) => {
-      console.log('🎙️ Received stream from:', remoteUserId);
-      playRemoteStream(remoteUserId, remoteStream);
-    });
+    try {
+      const call = peerRef.current.call(peerId, localStreamRef.current);
+      
+      if (!call) {
+        console.error('🎙️ Failed to create call to peer:', peerId);
+        return;
+      }
+      
+      call.on('stream', (remoteStream) => {
+        console.log('🎙️ Received stream from:', remoteUserId);
+        console.log('🎙️ Remote stream active:', remoteStream.active, 'audio tracks:', remoteStream.getAudioTracks().length);
+        
+        if (remoteStream.getAudioTracks().length === 0) {
+          console.warn('🎙️ Remote stream has no audio tracks from:', remoteUserId);
+          return;
+        }
+        
+        playRemoteStream(remoteUserId, remoteStream);
+      });
 
-    call.on('close', () => {
-      console.log('🎙️ Call closed with:', remoteUserId);
-      stopRemoteStream(remoteUserId);
-    });
+      call.on('close', () => {
+        console.log('🎙️ Call closed with:', remoteUserId);
+        stopRemoteStream(remoteUserId);
+      });
 
-    call.on('error', (error) => {
-      console.error('🎙️ Call error with:', remoteUserId, error);
-    });
+      call.on('error', (error) => {
+        console.error('🎙️ Call error with:', remoteUserId, error);
+        stopRemoteStream(remoteUserId);
+      });
 
-    connectionsRef.current.set(remoteUserId, call);
+      connectionsRef.current.set(remoteUserId, call);
+    } catch (error) {
+      console.error('🎙️ Error calling peer:', peerId, error);
+    }
   }, [playRemoteStream, stopRemoteStream]);
 
   /**
@@ -266,28 +304,56 @@ export const useVoiceCall = (
    * @param {MediaConnection} call - Incoming call
    */
   const handleIncomingCall = useCallback((call: MediaConnection) => {
-    console.log('🎙️ Incoming call from:', call.peer);
+    console.log('🎙️ Incoming call from peer:', call.peer);
     
     if (!localStreamRef.current) {
       console.warn('🎙️ Cannot answer: No local stream');
+      call.close();
       return;
     }
 
+    const audioTracks = localStreamRef.current.getAudioTracks();
+    if (audioTracks.length === 0) {
+      console.warn('🎙️ Cannot answer: No audio tracks in local stream');
+      call.close();
+      return;
+    }
+
+    console.log('🎙️ Answering call with local stream, tracks:', audioTracks.length);
     call.answer(localStreamRef.current);
 
     call.on('stream', (remoteStream) => {
+      console.log('🎙️ Received stream from incoming call, peer:', call.peer);
+      console.log('🎙️ Remote stream active:', remoteStream.active, 'audio tracks:', remoteStream.getAudioTracks().length);
+      
       const participant = participants.find(p => p.peerId === call.peer);
       const remoteUserId = participant?.userId || call.peer;
-      console.log('🎙️ Received stream from incoming call:', remoteUserId);
+      
+      if (remoteStream.getAudioTracks().length === 0) {
+        console.warn('🎙️ Remote stream has no audio tracks');
+        return;
+      }
+      
       playRemoteStream(remoteUserId, remoteStream);
     });
 
+    call.on('error', (error) => {
+      console.error('🎙️ Call error:', error);
+    });
+
     call.on('close', () => {
+      console.log('🎙️ Incoming call closed');
       const participant = participants.find(p => p.peerId === call.peer);
       if (participant) {
         stopRemoteStream(participant.userId);
       }
     });
+
+    const participant = participants.find(p => p.peerId === call.peer);
+    const remoteUserId = participant?.userId || call.peer;
+    if (remoteUserId) {
+      connectionsRef.current.set(remoteUserId, call);
+    }
   }, [participants, playRemoteStream, stopRemoteStream]);
 
   /**

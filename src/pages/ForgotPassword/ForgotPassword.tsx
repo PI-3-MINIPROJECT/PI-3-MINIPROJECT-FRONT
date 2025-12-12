@@ -59,7 +59,8 @@ export default function ForgotPassword() {
   };
 
   const handleEmailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setEmail(e.target.value);
+    const sanitized = e.target.value.slice(0, 255);
+    setEmail(sanitized);
     if (errors.email) {
       setErrors({ ...errors, email: undefined });
     }
@@ -99,6 +100,7 @@ export default function ForgotPassword() {
                       onChange={handleEmailChange}
                       error={errors.email}
                       required
+                      maxLength={255}
                     />
 
                     <Button 
