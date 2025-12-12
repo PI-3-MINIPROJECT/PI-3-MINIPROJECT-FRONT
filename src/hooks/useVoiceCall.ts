@@ -1068,7 +1068,24 @@ export const useVoiceCall = (
             }
             streamReceived = true;
             console.log('📹 Received stream after re-call from:', participant.userId);
-            playRemoteStream(participant.userId, remoteStream);
+            
+            // Verify stream is ready before updating
+            if (remoteStream.active && remoteStream.getTracks().some(track => track.readyState === 'live')) {
+              // Stream is ready, update it
+              playRemoteStream(participant.userId, remoteStream);
+            } else {
+              // Stream not ready yet, wait a bit and try again
+              console.log('📹 Stream not ready yet, waiting...');
+              setTimeout(() => {
+                if (remoteStream.active && remoteStream.getTracks().some(track => track.readyState === 'live')) {
+                  playRemoteStream(participant.userId, remoteStream);
+                } else {
+                  // Update anyway to avoid black screen
+                  console.warn('📹 Stream updated despite not being fully ready');
+                  playRemoteStream(participant.userId, remoteStream);
+                }
+              }, 300);
+            }
           });
 
           call.on('close', () => {
@@ -1101,19 +1118,35 @@ export const useVoiceCall = (
     console.log('📹 Camera', newVideoState ? 'on' : 'off');
   }, [isVideoOn, meetingId, userId, participants, playRemoteStream, localStream]);
 
-  // Cleanup on unmount - only if we actually joined
+  // Cleanup on unmount or when meetingId changes - only if we actually joined
   // Use a ref to store leaveVoiceCall to avoid dependency issues
   const leaveVoiceCallRef = useRef(leaveVoiceCall);
   leaveVoiceCallRef.current = leaveVoiceCall;
+  const previousMeetingIdRef = useRef<string | undefined>(meetingId);
 
   useEffect(() => {
+    // If meetingId changed, cleanup previous meeting first
+    if (previousMeetingIdRef.current && previousMeetingIdRef.current !== meetingId) {
+      console.log('📹 Meeting ID changed, cleaning up previous meeting...');
+      void leaveVoiceCallRef.current();
+      // Wait for cleanup to complete
+      return () => {
+        // Additional cleanup on unmount
+        if (hasJoinedRef.current || localStreamRef.current || peerRef.current || socketRef.current) {
+          void leaveVoiceCallRef.current();
+        }
+      };
+    }
+    
+    previousMeetingIdRef.current = meetingId;
+    
     return () => {
       // Only cleanup if we actually joined or have resources
       if (hasJoinedRef.current || localStreamRef.current || peerRef.current || socketRef.current) {
         void leaveVoiceCallRef.current();
       }
     };
-  }, []); // Empty deps - only run on unmount
+  }, [meetingId]); // Run when meetingId changes or on unmount
 
   // Update localStream state when stream changes
   useEffect(() => {

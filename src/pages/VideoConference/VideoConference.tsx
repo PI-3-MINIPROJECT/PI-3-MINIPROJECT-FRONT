@@ -43,13 +43,33 @@ export default function VideoConference() {
   } = useVoiceCall(meetingId, usrId, usrName);
 
   /**
-   * Join call when component mounts
+   * Join call when component mounts or meetingId changes
    */
   const mountedRef = useRef(true);
   const cleanupTimeoutRef = useRef<number | null>(null);
+  const previousMeetingIdRef = useRef<string>(meetingId);
   
   useEffect(() => {
+    // If meetingId changed, cleanup previous meeting first
+    if (previousMeetingIdRef.current !== meetingId) {
+      console.log('📹 Meeting ID changed in VideoConference, cleaning up...');
+      void leaveVoiceCall();
+      // Wait for cleanup before joining new meeting
+      const cleanupDelay = setTimeout(() => {
+        previousMeetingIdRef.current = meetingId;
+        mountedRef.current = true;
+        joinVoiceCall();
+      }, 1000); // Wait 1 second for cleanup to complete
+      
+      return () => {
+        clearTimeout(cleanupDelay);
+        mountedRef.current = false;
+        void leaveVoiceCall();
+      };
+    }
+    
     mountedRef.current = true;
+    previousMeetingIdRef.current = meetingId;
     
     // Clear any pending cleanup from previous mount
     if (cleanupTimeoutRef.current) {
@@ -79,7 +99,7 @@ export default function VideoConference() {
       }, 200); // Increased delay to better handle StrictMode
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []); // Only run on mount/unmount
+  }, [meetingId]); // Run when meetingId changes or on mount/unmount
 
   /**
    * Update local video element when stream changes
@@ -219,10 +239,31 @@ export default function VideoConference() {
    */
   const ParticipantVideo = ({ stream, muted = false }: { stream: MediaStream | null | undefined; muted?: boolean }) => {
     const videoRef = useRef<HTMLVideoElement>(null);
+    const previousStreamRef = useRef<MediaStream | null>(null);
 
     useEffect(() => {
       if (videoRef.current && stream) {
-        videoRef.current.srcObject = stream;
+        // Only update if stream actually changed
+        if (previousStreamRef.current !== stream) {
+          // Verify stream is active before assigning
+          if (stream.active && stream.getTracks().some(track => track.readyState === 'live')) {
+            videoRef.current.srcObject = stream;
+            previousStreamRef.current = stream;
+          } else {
+            // Stream not ready yet, wait a bit
+            const timeout = setTimeout(() => {
+              if (videoRef.current && stream && stream.active) {
+                videoRef.current.srcObject = stream;
+                previousStreamRef.current = stream;
+              }
+            }, 200);
+            return () => clearTimeout(timeout);
+          }
+        }
+      } else if (videoRef.current && !stream && previousStreamRef.current) {
+        // Only clear if we had a stream before
+        videoRef.current.srcObject = null;
+        previousStreamRef.current = null;
       }
     }, [stream]);
 
