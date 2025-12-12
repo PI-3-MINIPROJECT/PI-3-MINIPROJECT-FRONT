@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect, useCallback } from 'react';
+import { useState, useMemo, useEffect, useCallback, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
 import { useChat } from '../../hooks/useChat';
@@ -16,28 +16,32 @@ export default function VideoConference() {
   const navigate = useNavigate();
   const location = useLocation();
   const { user } = useAuth();
-  const [isCameraOn, setIsCameraOn] = useState(false);
   const [showChat, setShowChat] = useState(false);
+  const localVideoRef = useRef<HTMLVideoElement>(null);
 
   const meetingData = location.state as { meetingId?: string; username?: string } | null;
   const meetingId = meetingData?.meetingId || 'demo-meeting';
-  const userId = user?.uid || 'demo-user';
-  const username = meetingData?.username || user?.name || 'Usuario';
+  const usrId = user?.uid || 'demo-user';
+  const usrName = meetingData?.username || user?.name || 'Usuario';
 
-  const { onlineUsers } = useChat(meetingId, userId, username);
+  const { onlineUsers } = useChat(meetingId, usrId, usrName);
 
   const {
     isMuted,
+    isVideoOn,
     participants: voiceParticipants,
     connectionError: callError,
     isInCall,
+    localStream,
+    remoteStreams,
     toggleMute,
+    toggleVideo,
     joinVoiceCall,
     leaveVoiceCall,
-  } = useVoiceCall(meetingId, userId, username);
+  } = useVoiceCall(meetingId, usrId, usrName);
 
   /**
-   * Join voice call when component mounts
+   * Join call when component mounts
    */
   useEffect(() => {
     joinVoiceCall();
@@ -47,6 +51,15 @@ export default function VideoConference() {
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []); // Only run on mount/unmount
+
+  /**
+   * Update local video element when stream changes
+   */
+  useEffect(() => {
+    if (localVideoRef.current && localStream) {
+      localVideoRef.current.srcObject = localStream;
+    }
+  }, [localStream]);
 
   /**
    * Gets user initials from name
@@ -63,37 +76,57 @@ export default function VideoConference() {
 
   /**
    * Get mute status for a user from voice participants
-   * @param {string} userId - User ID
+   * @param {string} oderId - User ID
    * @returns {boolean} Whether user is muted
    */
-  const getUserMuteStatus = useCallback((userId: string): boolean => {
-    const voiceUser = voiceParticipants.find(p => p.userId === userId);
+  const getUserMuteStatus = useCallback((oderId: string): boolean => {
+    const voiceUser = voiceParticipants.find(p => p.userId === oderId);
     return voiceUser?.isMuted ?? true;
   }, [voiceParticipants]);
+
+  /**
+   * Get video status for a user from voice participants
+   * @param {string} oderId - User ID
+   * @returns {boolean} Whether user has video on
+   */
+  const getUserVideoStatus = useCallback((oderId: string): boolean => {
+    const voiceUser = voiceParticipants.find(p => p.userId === oderId);
+    return voiceUser?.isVideoOn ?? false;
+  }, [voiceParticipants]);
+
+  /**
+   * Get remote stream for a user
+   * @param {string} oderId - User ID
+   * @returns {MediaStream | undefined} Remote stream
+   */
+  const getRemoteStream = useCallback((oderId: string): MediaStream | undefined => {
+    return remoteStreams.get(oderId);
+  }, [remoteStreams]);
 
   const participants = useMemo(() => {
     const allUsers = [...onlineUsers];
     
-    const currentUserInList = allUsers.find(u => u.userId === userId);
+    const currentUserInList = allUsers.find(u => u.userId === usrId);
     if (!currentUserInList) {
       allUsers.push({
-        userId: userId,
-        username: username,
+        userId: usrId,
+        username: usrName,
         joinedAt: new Date().toISOString()
       });
     }
 
-    return allUsers.map((user) => ({
-      id: user.userId,
-      name: user.username,
-      initials: getUserInitials(user.username),
-      isCameraOn: false,
-      isMuted: user.userId === userId ? isMuted : getUserMuteStatus(user.userId),
+    return allUsers.map((usr) => ({
+      id: usr.userId,
+      name: usr.username,
+      initials: getUserInitials(usr.username),
+      isCameraOn: usr.userId === usrId ? isVideoOn : getUserVideoStatus(usr.userId),
+      isMuted: usr.userId === usrId ? isMuted : getUserMuteStatus(usr.userId),
+      stream: usr.userId === usrId ? localStream : getRemoteStream(usr.userId),
     }));
-  }, [onlineUsers, userId, username, isMuted, getUserMuteStatus]);
+  }, [onlineUsers, usrId, usrName, isMuted, isVideoOn, localStream, getUserMuteStatus, getUserVideoStatus, getRemoteStream]);
 
   /**
-   * Handles ending the video call and navigating back to explore page
+   * Handles ending the call and navigating back to explore page
    * @returns {void}
    */
   const handleEndCall = () => {
@@ -106,6 +139,38 @@ export default function VideoConference() {
    */
   const handleMicToggle = () => {
     toggleMute();
+  };
+
+  /**
+   * Handle camera toggle
+   */
+  const handleCameraToggle = () => {
+    toggleVideo();
+  };
+
+  /**
+   * Video element component for participant
+   */
+  const ParticipantVideo = ({ stream, muted = false }: { stream: MediaStream | null | undefined; muted?: boolean }) => {
+    const videoRef = useRef<HTMLVideoElement>(null);
+
+    useEffect(() => {
+      if (videoRef.current && stream) {
+        videoRef.current.srcObject = stream;
+      }
+    }, [stream]);
+
+    if (!stream) return null;
+
+    return (
+      <video
+        ref={videoRef}
+        autoPlay
+        playsInline
+        muted={muted}
+        className="video-conference__video-element"
+      />
+    );
   };
 
   return (
@@ -123,33 +188,51 @@ export default function VideoConference() {
             <div className="video-conference__participants">
               {participants.length > 0 ? (
                 participants.map((participant) => (
-                  <div key={participant.id} className="video-conference__participant">
-                    <div className="video-conference__avatar">
-                      <span className="video-conference__avatar-initials">{participant.initials}</span>
-                      {/* Mute indicator */}
-                      {participant.isMuted && (
-                        <span className="video-conference__mute-indicator" title="Silenciado">
-                          🔇
-                        </span>
-                      )}
-                    </div>
-                    <div className="video-conference__participant-name">
-                      {participant.name}
-                      {participant.id === userId && ' (tú)'}
-                    </div>
+                  <div key={participant.id} className={`video-conference__participant ${participant.isCameraOn ? 'video-conference__participant--with-video' : ''}`}>
+                    {participant.isCameraOn && participant.stream ? (
+                      <div className="video-conference__video-container">
+                        <ParticipantVideo stream={participant.stream} muted={participant.id === usrId} />
+                        <div className="video-conference__video-overlay">
+                          <span className="video-conference__participant-name-overlay">
+                            {participant.name}
+                            {participant.id === usrId && ' (tú)'}
+                          </span>
+                          {participant.isMuted && (
+                            <span className="video-conference__mute-indicator-video" title="Silenciado">
+                              🔇
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    ) : (
+                      <>
+                        <div className="video-conference__avatar">
+                          <span className="video-conference__avatar-initials">{participant.initials}</span>
+                          {participant.isMuted && (
+                            <span className="video-conference__mute-indicator" title="Silenciado">
+                              🔇
+                            </span>
+                          )}
+                        </div>
+                        <div className="video-conference__participant-name">
+                          {participant.name}
+                          {participant.id === usrId && ' (tú)'}
+                        </div>
+                      </>
+                    )}
                   </div>
                 ))
               ) : (
                 <div className="video-conference__participant">
                   <div className="video-conference__avatar">
-                    <span className="video-conference__avatar-initials">{getUserInitials(username)}</span>
+                    <span className="video-conference__avatar-initials">{getUserInitials(usrName)}</span>
                     {isMuted && (
                       <span className="video-conference__mute-indicator" title="Silenciado">
                         🔇
                       </span>
                     )}
                   </div>
-                  <div className="video-conference__participant-name">{username} (tú)</div>
+                  <div className="video-conference__participant-name">{usrName} (tú)</div>
                 </div>
               )}
             </div>
@@ -181,11 +264,12 @@ export default function VideoConference() {
 
           <button
             type="button"
-            className={`video-conference__control-button video-conference__control-button--camera ${isCameraOn ? 'video-conference__control-button--active' : ''}`}
-            onClick={() => setIsCameraOn(!isCameraOn)}
-            aria-label={isCameraOn ? 'Apagar cámara' : 'Encender cámara'}
+            className={`video-conference__control-button video-conference__control-button--camera ${isVideoOn ? 'video-conference__control-button--active' : ''}`}
+            onClick={handleCameraToggle}
+            aria-label={isVideoOn ? 'Apagar cámara' : 'Encender cámara'}
+            disabled={!isInCall}
           >
-            {isCameraOn ? (
+            {isVideoOn ? (
               <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <path d="M17 10.5V7C17 6.45 16.55 6 16 6H4C3.45 6 3 6.45 3 7V17C3 17.55 3.45 18 4 18H16C16.55 18 17 17.55 17 17V13.5L21 17.5V6.5L17 10.5Z" fill="currentColor"/>
               </svg>
@@ -260,8 +344,8 @@ export default function VideoConference() {
         <div className={`video-conference__chat ${showChat ? 'video-conference__chat--visible' : 'video-conference__chat--hidden'}`}>
           <ChatRoom
             meetingId={meetingId}
-            userId={userId}
-            username={username}
+            userId={usrId}
+            username={usrName}
             onClose={() => setShowChat(false)}
           />
         </div>

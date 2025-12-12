@@ -45,6 +45,7 @@ export interface CallParticipant {
   peerId: string;
   username: string;
   isMuted: boolean;
+  isVideoOn: boolean;
   joinedAt: string;
 }
 
@@ -73,6 +74,15 @@ export interface LeaveCallPayload {
  * @interface MutePayload
  */
 export interface MutePayload {
+  meetingId: string;
+  userId: string;
+}
+
+/**
+ * Payload for video on/off actions
+ * @interface VideoPayload
+ */
+export interface VideoPayload {
   meetingId: string;
   userId: string;
 }
@@ -135,6 +145,17 @@ export interface MuteStatusNotification {
 }
 
 /**
+ * Video status notification
+ * @interface VideoStatusNotification
+ */
+export interface VideoStatusNotification {
+  userId: string;
+  username: string;
+  isVideoOn: boolean;
+  timestamp: string;
+}
+
+/**
  * Call error response
  * @interface CallError
  */
@@ -144,7 +165,7 @@ export interface CallError {
 }
 
 /**
- * Socket.IO event names for voice calls
+ * Socket.IO event names for media calls (audio + video)
  * @constant CallEvents
  */
 export const CallEvents = {
@@ -153,10 +174,13 @@ export const CallEvents = {
   SIGNAL: 'call:signal',
   MUTE: 'call:mute',
   UNMUTE: 'call:unmute',
+  VIDEO_ON: 'call:video-on',
+  VIDEO_OFF: 'call:video-off',
   PEER_JOINED: 'call:peer-joined',
   PEER_LEFT: 'call:peer-left',
   PEERS_LIST: 'call:peers-list',
   MUTE_STATUS: 'call:mute-status',
+  VIDEO_STATUS: 'call:video-status',
   ICE_SERVERS: 'call:ice-servers',
   ERROR: 'call:error',
 } as const;
@@ -319,6 +343,30 @@ class CallService {
     if (this.socket?.connected) {
       console.log('🎙️ Unmuting microphone');
       this.socket.emit(CallEvents.UNMUTE, payload);
+    }
+  }
+
+  /**
+   * Notify server that user turned on their camera
+   * @param {VideoPayload} payload - Video on payload
+   * @returns {void}
+   */
+  videoOn(payload: MutePayload): void {
+    if (this.socket?.connected) {
+      console.log('📹 Turning on camera');
+      this.socket.emit(CallEvents.VIDEO_ON, payload);
+    }
+  }
+
+  /**
+   * Notify server that user turned off their camera
+   * @param {VideoPayload} payload - Video off payload
+   * @returns {void}
+   */
+  videoOff(payload: MutePayload): void {
+    if (this.socket?.connected) {
+      console.log('📹 Turning off camera');
+      this.socket.emit(CallEvents.VIDEO_OFF, payload);
     }
   }
 }

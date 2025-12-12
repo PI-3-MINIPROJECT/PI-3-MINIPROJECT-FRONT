@@ -1,7 +1,8 @@
 /**
- * Voice Call Hook for managing real-time voice communication
+ * Voice/Video Call Hook for managing real-time audio and video communication
  * @module hooks/useVoiceCall
- * @description Custom hook that manages PeerJS connections and voice call state
+ * @description Custom hook that manages PeerJS connections for audio and video call state.
+ * Audio and video are independent - you can toggle each separately.
  */
 
 import { useEffect, useState, useCallback, useRef } from 'react';
@@ -14,12 +15,14 @@ import type {
   PeerJoinedNotification,
   PeerLeftNotification,
   MuteStatusNotification,
+  VideoStatusNotification,
   CallError,
+  IceServer,
 } from '../services/callService';
 import type { Socket } from 'socket.io-client';
 
 /**
- * Participant with mute status for UI
+ * Participant with mute and video status for UI
  * @interface VoiceParticipant
  */
 export interface VoiceParticipant {
@@ -27,6 +30,7 @@ export interface VoiceParticipant {
   peerId: string;
   username: string;
   isMuted: boolean;
+  isVideoOn: boolean;
 }
 
 /**
@@ -38,17 +42,25 @@ interface UseVoiceCallReturn {
   isConnected: boolean;
   /** Whether local microphone is muted */
   isMuted: boolean;
+  /** Whether local camera is on */
+  isVideoOn: boolean;
   /** List of participants in the call */
   participants: VoiceParticipant[];
   /** Connection error message if any */
   connectionError: string | null;
-  /** Whether voice call is active */
+  /** Whether call is active */
   isInCall: boolean;
+  /** Local media stream (audio + video when enabled) */
+  localStream: MediaStream | null;
+  /** Remote video streams by peerId */
+  remoteStreams: Map<string, MediaStream>;
   /** Toggle microphone mute state */
   toggleMute: () => void;
-  /** Join the voice call */
+  /** Toggle camera on/off state */
+  toggleVideo: () => Promise<void>;
+  /** Join the call */
   joinVoiceCall: () => Promise<void>;
-  /** Leave the voice call */
+  /** Leave the call */
   leaveVoiceCall: () => void;
 }
 
@@ -66,9 +78,12 @@ export const useVoiceCall = (
 ): UseVoiceCallReturn => {
   const [isConnected, setIsConnected] = useState(false);
   const [isMuted, setIsMuted] = useState(true);
+  const [isVideoOn, setIsVideoOn] = useState(false);
   const [participants, setParticipants] = useState<VoiceParticipant[]>([]);
   const [connectionError, setConnectionError] = useState<string | null>(null);
   const [isInCall, setIsInCall] = useState(false);
+  const [localStream, setLocalStream] = useState<MediaStream | null>(null);
+  const [remoteStreams, setRemoteStreams] = useState<Map<string, MediaStream>>(new Map());
 
   const socketRef = useRef<Socket | null>(null);
   const peerRef = useRef<Peer | null>(null);
@@ -77,6 +92,7 @@ export const useVoiceCall = (
   const audioElementsRef = useRef<Map<string, HTMLAudioElement>>(new Map());
   const isJoiningRef = useRef<boolean>(false);
   const hasJoinedRef = useRef<boolean>(false);
+  const iceServersRef = useRef<IceServer[]>([]);
 
   /**
    * Get user media (microphone)
@@ -135,11 +151,12 @@ export const useVoiceCall = (
   }, []);
 
   /**
-   * Play remote audio stream
+   * Play remote audio stream and store video stream
    * @param {string} remoteUserId - User ID of the remote peer
-   * @param {MediaStream} stream - Remote audio stream
+   * @param {MediaStream} stream - Remote audio/video stream
    */
   const playRemoteStream = useCallback((remoteUserId: string, stream: MediaStream) => {
+    // Handle audio - create audio element for playback
     const existingAudio = audioElementsRef.current.get(remoteUserId);
     if (existingAudio) {
       existingAudio.srcObject = null;
@@ -157,19 +174,35 @@ export const useVoiceCall = (
 
     audioElementsRef.current.set(remoteUserId, audio);
     console.log('🎙️ Playing audio from:', remoteUserId);
+
+    // Store full stream (including video) for video display
+    setRemoteStreams(prev => {
+      const newMap = new Map(prev);
+      newMap.set(remoteUserId, stream);
+      return newMap;
+    });
+    console.log('📹 Stored remote stream from:', remoteUserId);
   }, []);
 
   /**
-   * Stop remote audio stream
+   * Stop remote audio/video stream
    * @param {string} remoteUserId - User ID of the remote peer
    */
   const stopRemoteStream = useCallback((remoteUserId: string) => {
+    // Stop audio
     const audio = audioElementsRef.current.get(remoteUserId);
     if (audio) {
       audio.srcObject = null;
       audio.remove();
       audioElementsRef.current.delete(remoteUserId);
     }
+
+    // Remove video stream from state
+    setRemoteStreams(prev => {
+      const newMap = new Map(prev);
+      newMap.delete(remoteUserId);
+      return newMap;
+    });
 
     const connection = connectionsRef.current.get(remoteUserId);
     if (connection) {
@@ -336,13 +369,20 @@ export const useVoiceCall = (
 
       await waitForSocketConnect;
 
+      // Wait a bit for ICE servers to be received from backend
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
+      // Get ICE servers from callService (received from backend, includes ExpressTURN)
+      const iceServers = callService.getIceServers();
+      iceServersRef.current = iceServers;
+      console.log('🎙️ Using ICE servers:', iceServers.length > 0 ? iceServers : 'default');
+
       console.log('🎙️ Creating PeerJS instance...');
       const peer = new Peer({
         config: {
-          iceServers: [
+          iceServers: iceServers.length > 0 ? iceServers : [
             { urls: 'stun:stun.l.google.com:19302' },
             { urls: 'stun:stun1.l.google.com:19302' },
-            { urls: 'stun:stun2.l.google.com:19302' },
           ]
         },
         debug: 2,
@@ -406,6 +446,7 @@ export const useVoiceCall = (
           peerId: p.peerId,
           username: p.username,
           isMuted: p.isMuted,
+          isVideoOn: p.isVideoOn,
         })));
 
         data.participants.forEach((p: CallParticipant) => {
@@ -428,6 +469,7 @@ export const useVoiceCall = (
             peerId: data.peerId,
             username: data.username,
             isMuted: true,
+            isVideoOn: false,
           }];
         });
 
@@ -452,6 +494,14 @@ export const useVoiceCall = (
         ));
       });
 
+      socket.on(CallEvents.VIDEO_STATUS, (data: VideoStatusNotification) => {
+        console.log('📹 Video status changed:', data.username, data.isVideoOn);
+        
+        setParticipants(prev => prev.map(p => 
+          p.userId === data.userId ? { ...p, isVideoOn: data.isVideoOn } : p
+        ));
+      });
+
       socket.on(CallEvents.ERROR, (error: CallError) => {
         console.error('🎙️ Call server error:', error);
         setConnectionError(error.message);
@@ -468,50 +518,60 @@ export const useVoiceCall = (
   }, [meetingId, userId, username, getUserMedia, handleIncomingCall, callPeer, stopRemoteStream]);
 
   /**
-   * Leave the voice call
+   * Leave the call
    */
   const leaveVoiceCall = useCallback(() => {
-    console.log('🎙️ Leaving voice call');
+    console.log('🎙️ Leaving call');
 
     isJoiningRef.current = false;
     hasJoinedRef.current = false;
 
+    // Stop all audio elements
     audioElementsRef.current.forEach((audio) => {
       audio.srcObject = null;
       audio.remove();
     });
     audioElementsRef.current.clear();
 
+    // Close all peer connections
     connectionsRef.current.forEach((connection) => {
       connection.close();
     });
     connectionsRef.current.clear();
 
+    // Stop all local tracks (audio AND video)
     if (localStreamRef.current) {
       localStreamRef.current.getTracks().forEach(track => track.stop());
       localStreamRef.current = null;
     }
 
+    // Notify server
     if (meetingId && userId) {
       callService.leaveCall({ meetingId, userId });
     }
 
+    // Destroy PeerJS
     if (peerRef.current) {
       peerRef.current.destroy();
       peerRef.current = null;
     }
 
+    // Disconnect socket
     callService.disconnect();
     socketRef.current = null;
 
+    // Reset all state
     setIsInCall(false);
     setIsConnected(false);
     setParticipants([]);
     setIsMuted(true);
+    setIsVideoOn(false);
+    setLocalStream(null);
+    setRemoteStreams(new Map());
   }, [meetingId, userId]);
 
   /**
-   * Toggle microphone mute state
+   * Toggle microphone mute state (independent of video)
    */
   const toggleMute = useCallback(() => {
     if (!localStreamRef.current) {
@@ -553,19 +613,112 @@ export const useVoiceCall = (
     console.log('🎙️ Microphone', newMutedState ? 'muted' : 'unmuted');
   }, [isMuted, meetingId, userId]);
 
+  /**
+   * Toggle camera on/off state (independent of audio)
+   */
+  const toggleVideo = useCallback(async () => {
+    if (!localStreamRef.current || !meetingId || !userId) {
+      console.warn('📹 Cannot toggle video: Missing requirements');
+      return;
+    }
+
+    const newVideoState = !isVideoOn;
+
+    try {
+      if (newVideoState) {
+        // Turn ON camera - get video stream and add to existing stream
+        console.log('📹 Requesting camera access...');
+        const videoStream = await navigator.mediaDevices.getUserMedia({
+          video: {
+            width: { ideal: 640 },
+            height: { ideal: 480 },
+            facingMode: 'user',
+          },
+        });
+
+        const videoTrack = videoStream.getVideoTracks()[0];
+        if (videoTrack) {
+          // Add video track to local stream
+          localStreamRef.current.addTrack(videoTrack);
+          setLocalStream(new MediaStream(localStreamRef.current.getTracks()));
+          console.log('📹 Video track added to stream');
+
+          // Replace track in existing peer connections
+          connectionsRef.current.forEach((connection) => {
+            const peerConnection = connection.peerConnection as RTCPeerConnection | undefined;
+            if (peerConnection) {
+              const senders = peerConnection.getSenders();
+              const videoSender = senders.find(s => s.track?.kind === 'video');
+              
+              if (videoSender) {
+                videoSender.replaceTrack(videoTrack);
+              } else {
+                peerConnection.addTrack(videoTrack, localStreamRef.current!);
+              }
+            }
+          });
+        }
+      } else {
+        // Turn OFF camera - remove video tracks
+        console.log('📹 Turning off camera...');
+        const videoTracks = localStreamRef.current.getVideoTracks();
+        videoTracks.forEach(track => {
+          track.stop();
+          localStreamRef.current?.removeTrack(track);
+        });
+        setLocalStream(new MediaStream(localStreamRef.current.getTracks()));
+        console.log('📹 Video track removed from stream');
+      }
+
+      // Notify server about video status change
+      if (socketRef.current?.connected) {
+        if (newVideoState) {
+          callService.videoOn({ meetingId, userId });
+        } else {
+          callService.videoOff({ meetingId, userId });
+        }
+      }
+
+      setIsVideoOn(newVideoState);
+      console.log('📹 Camera', newVideoState ? 'on' : 'off');
+    } catch (error) {
+      console.error('📹 Error toggling video:', error);
+      if (error instanceof Error) {
+        if (error.name === 'NotAllowedError') {
+          setConnectionError('Permiso de cámara denegado. Por favor, permite el acceso a la cámara.');
+        } else if (error.name === 'NotFoundError') {
+          setConnectionError('No se encontró ninguna cámara. Verifica que esté conectada.');
+        } else {
+          setConnectionError(`Error de cámara: ${error.message}`);
+        }
+      }
+    }
+  }, [isVideoOn, meetingId, userId]);
+
   useEffect(() => {
     return () => {
       leaveVoiceCall();
     };
   }, [leaveVoiceCall]);
 
+  // Update localStream state when stream changes
+  useEffect(() => {
+    if (localStreamRef.current) {
+      setLocalStream(localStreamRef.current);
+    }
+  }, [isInCall]);
+
   return {
     isConnected,
     isMuted,
+    isVideoOn,
     participants,
     connectionError,
     isInCall,
+    localStream,
+    remoteStreams,
     toggleMute,
+    toggleVideo,
     joinVoiceCall,
     leaveVoiceCall,
   };
