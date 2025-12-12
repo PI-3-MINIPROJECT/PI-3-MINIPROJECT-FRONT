@@ -629,10 +629,10 @@ export const useVoiceCall = (
 
   /**
    * Toggle camera on/off state (independent of audio)
-   * Simply enables/disables the video track - no need to re-call peers
+   * Enables/disables video track AND re-calls peers to ensure they receive the change
    */
   const toggleVideo = useCallback(async () => {
-    if (!localStreamRef.current || !meetingId || !userId) {
+    if (!localStreamRef.current || !meetingId || !userId || !peerRef.current) {
       console.warn('📹 Cannot toggle video: Missing requirements');
       return;
     }
@@ -646,10 +646,49 @@ export const useVoiceCall = (
 
     const newVideoState = !isVideoOn;
 
-    // Simply toggle the enabled state of video tracks
+    // Toggle the enabled state of video tracks
     videoTracks.forEach(track => {
       track.enabled = newVideoState;
       console.log('📹 Video track', track.label, 'enabled:', newVideoState);
+    });
+
+    // Update local stream state to trigger UI update
+    setLocalStream(new MediaStream(localStreamRef.current.getTracks()));
+
+    // Re-call all peers to ensure they receive the video change
+    // This is necessary because WebRTC doesn't always propagate track.enabled changes
+    const currentParticipants = [...participants];
+    console.log('📹 Re-calling', currentParticipants.length, 'peers after video toggle');
+
+    currentParticipants.forEach((participant) => {
+      if (participant.userId !== userId && peerRef.current && localStreamRef.current) {
+        console.log('📹 Re-calling peer:', participant.username);
+
+        // Close existing connection
+        const existingConnection = connectionsRef.current.get(participant.userId);
+        if (existingConnection) {
+          existingConnection.close();
+          connectionsRef.current.delete(participant.userId);
+        }
+
+        // Create new call with current stream
+        const call = peerRef.current.call(participant.peerId, localStreamRef.current);
+
+        call.on('stream', (remoteStream) => {
+          console.log('📹 Received stream after re-call from:', participant.userId);
+          playRemoteStream(participant.userId, remoteStream);
+        });
+
+        call.on('close', () => {
+          console.log('📹 Call closed with:', participant.userId);
+        });
+
+        call.on('error', (error) => {
+          console.error('📹 Call error with:', participant.userId, error);
+        });
+
+        connectionsRef.current.set(participant.userId, call);
+      }
     });
 
     // Notify server about video status change
@@ -663,7 +702,7 @@ export const useVoiceCall = (
 
     setIsVideoOn(newVideoState);
     console.log('📹 Camera', newVideoState ? 'on' : 'off');
-  }, [isVideoOn, meetingId, userId]);
+  }, [isVideoOn, meetingId, userId, participants, playRemoteStream]);
 
   useEffect(() => {
     return () => {
