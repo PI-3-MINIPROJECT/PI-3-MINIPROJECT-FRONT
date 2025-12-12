@@ -95,50 +95,68 @@ export const useVoiceCall = (
   const iceServersRef = useRef<IceServer[]>([]);
 
   /**
-   * Get user media (microphone)
-   * @returns {Promise<MediaStream>} Audio stream
-   * @throws {Error} If microphone access is denied or unavailable
+   * Get user media (microphone + camera from the start)
+   * Both tracks are created but disabled by default
+   * @returns {Promise<MediaStream>} Audio + Video stream
+   * @throws {Error} If media access is denied or unavailable
    */
   const getUserMedia = useCallback(async (): Promise<MediaStream> => {
     if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-      const errorMessage = 'Tu navegador no soporta acceso al micrófono. Por favor, usa un navegador moderno.';
-      console.error('🎙️', errorMessage);
+      const errorMessage = 'Tu navegador no soporta acceso a multimedia. Por favor, usa un navegador moderno.';
+      console.error('📹', errorMessage);
       throw new Error(errorMessage);
     }
 
     try {
-      console.log('🎙️ Requesting microphone permissions...');
+      console.log('📹 Requesting microphone + camera permissions...');
       const stream = await navigator.mediaDevices.getUserMedia({
         audio: {
           echoCancellation: true,
           noiseSuppression: true,
           autoGainControl: true,
         },
-        video: false,
+        video: {
+          width: { ideal: 640 },
+          height: { ideal: 480 },
+          facingMode: 'user',
+        },
       });
       
-      if (!stream || stream.getAudioTracks().length === 0) {
-        const errorMessage = 'No se pudo acceder al micrófono. Verifica que el dispositivo esté conectado y los permisos estén habilitados.';
-        console.error('🎙️', errorMessage);
-        throw new Error(errorMessage);
+      if (!stream) {
+        throw new Error('No se pudo obtener el stream multimedia.');
       }
 
-      console.log('🎙️ Microphone access granted, tracks:', stream.getAudioTracks().length);
+      const audioTracks = stream.getAudioTracks();
+      const videoTracks = stream.getVideoTracks();
+      
+      console.log('📹 Media access granted - Audio tracks:', audioTracks.length, 'Video tracks:', videoTracks.length);
+
+      // Disable all tracks by default (muted mic, camera off)
+      audioTracks.forEach(track => {
+        track.enabled = false;
+        console.log('🎙️ Audio track disabled:', track.label);
+      });
+      
+      videoTracks.forEach(track => {
+        track.enabled = false;
+        console.log('📹 Video track disabled:', track.label);
+      });
+
       return stream;
     } catch (error) {
-      console.error('🎙️ Error getting microphone:', error);
+      console.error('📹 Error getting media:', error);
       
-      let errorMessage = 'No se pudo acceder al micrófono. ';
+      let errorMessage = 'No se pudo acceder a la cámara y micrófono. ';
       
       if (error instanceof Error) {
         if (error.name === 'NotAllowedError' || error.name === 'PermissionDeniedError') {
-          errorMessage += 'Por favor, permite el acceso al micrófono en la configuración de tu navegador y recarga la página.';
+          errorMessage += 'Por favor, permite el acceso a la cámara y micrófono en la configuración de tu navegador y recarga la página.';
         } else if (error.name === 'NotFoundError' || error.name === 'DevicesNotFoundError') {
-          errorMessage += 'No se encontró ningún micrófono. Verifica que el dispositivo esté conectado.';
+          errorMessage += 'No se encontró cámara o micrófono. Verifica que los dispositivos estén conectados.';
         } else if (error.name === 'NotReadableError' || error.name === 'TrackStartError') {
-          errorMessage += 'El micrófono está siendo usado por otra aplicación. Cierra otras aplicaciones que lo estén usando.';
+          errorMessage += 'Los dispositivos están siendo usados por otra aplicación.';
         } else if (error.name === 'OverconstrainedError' || error.name === 'ConstraintNotSatisfiedError') {
-          errorMessage += 'El micrófono no cumple con los requisitos necesarios.';
+          errorMessage += 'Los dispositivos no cumplen con los requisitos necesarios.';
         } else {
           errorMessage += `Error: ${error.message}`;
         }
@@ -288,49 +306,45 @@ export const useVoiceCall = (
     }
 
     isJoiningRef.current = true;
-    console.log('🎙️ Starting voice call join process...');
+    console.log('📹 Starting call join process...');
 
     try {
-      console.log('🎙️ Requesting microphone access...');
+      console.log('📹 Requesting camera + microphone access...');
       const stream = await getUserMedia();
       
       if (!stream) {
-        const errorMessage = 'No se pudo obtener el stream del micrófono. Por favor, recarga la página e intenta de nuevo.';
-        console.error('🎙️', errorMessage);
+        const errorMessage = 'No se pudo obtener el stream multimedia. Por favor, recarga la página e intenta de nuevo.';
+        console.error('📹', errorMessage);
         setConnectionError(errorMessage);
         return;
       }
       
       localStreamRef.current = stream;
-      console.log('🎙️ Microphone access granted, stream active:', stream.active);
+      setLocalStream(stream);
+      console.log('📹 Media access granted, stream active:', stream.active);
 
       const audioTracks = stream.getAudioTracks();
-      if (audioTracks.length === 0) {
-        const errorMessage = 'No se encontraron pistas de audio en el stream. Por favor, verifica tu micrófono.';
-        console.error('🎙️', errorMessage);
-        setConnectionError(errorMessage);
-        return;
-      }
-
-      console.log('🎙️ Audio tracks found:', audioTracks.length);
+      const videoTracks = stream.getVideoTracks();
+      
+      console.log('📹 Tracks - Audio:', audioTracks.length, 'Video:', videoTracks.length);
+      
+      // Set up track event listeners
       audioTracks.forEach(track => {
-        console.log('🎙️ Track:', track.label, 'enabled:', track.enabled, 'muted:', track.muted, 'readyState:', track.readyState);
-        track.enabled = false;
-        
         track.onended = () => {
           console.warn('🎙️ Audio track ended unexpectedly');
           setConnectionError('El micrófono se desconectó. Por favor, recarga la página.');
         };
-        
-        track.onmute = () => {
-          console.warn('🎙️ Audio track muted by system');
-        };
-        
-        track.onunmute = () => {
-          console.log('🎙️ Audio track unmuted by system');
+      });
+      
+      videoTracks.forEach(track => {
+        track.onended = () => {
+          console.warn('📹 Video track ended unexpectedly');
         };
       });
+
+      // Both mic and camera start disabled (getUserMedia already did this)
       setIsMuted(true);
+      setIsVideoOn(false);
 
       console.log('🎙️ Connecting to call server...');
       let socket: Socket;
@@ -615,6 +629,7 @@ export const useVoiceCall = (
 
   /**
    * Toggle camera on/off state (independent of audio)
+   * Simply enables/disables the video track - no need to re-call peers
    */
   const toggleVideo = useCallback(async () => {
     if (!localStreamRef.current || !meetingId || !userId) {
@@ -622,77 +637,32 @@ export const useVoiceCall = (
       return;
     }
 
+    const videoTracks = localStreamRef.current.getVideoTracks();
+    if (videoTracks.length === 0) {
+      console.warn('📹 No video tracks available');
+      setConnectionError('No se encontró ninguna cámara disponible.');
+      return;
+    }
+
     const newVideoState = !isVideoOn;
 
-    try {
+    // Simply toggle the enabled state of video tracks
+    videoTracks.forEach(track => {
+      track.enabled = newVideoState;
+      console.log('📹 Video track', track.label, 'enabled:', newVideoState);
+    });
+
+    // Notify server about video status change
+    if (socketRef.current?.connected) {
       if (newVideoState) {
-        // Turn ON camera - get video stream and add to existing stream
-        console.log('📹 Requesting camera access...');
-        const videoStream = await navigator.mediaDevices.getUserMedia({
-          video: {
-            width: { ideal: 640 },
-            height: { ideal: 480 },
-            facingMode: 'user',
-          },
-        });
-
-        const videoTrack = videoStream.getVideoTracks()[0];
-        if (videoTrack) {
-          // Add video track to local stream
-          localStreamRef.current.addTrack(videoTrack);
-          setLocalStream(new MediaStream(localStreamRef.current.getTracks()));
-          console.log('📹 Video track added to stream');
-
-          // Replace track in existing peer connections
-          connectionsRef.current.forEach((connection) => {
-            const peerConnection = connection.peerConnection as RTCPeerConnection | undefined;
-            if (peerConnection) {
-              const senders = peerConnection.getSenders();
-              const videoSender = senders.find(s => s.track?.kind === 'video');
-              
-              if (videoSender) {
-                videoSender.replaceTrack(videoTrack);
-              } else {
-                peerConnection.addTrack(videoTrack, localStreamRef.current!);
-              }
-            }
-          });
-        }
+        callService.videoOn({ meetingId, userId });
       } else {
-        // Turn OFF camera - remove video tracks
-        console.log('📹 Turning off camera...');
-        const videoTracks = localStreamRef.current.getVideoTracks();
-        videoTracks.forEach(track => {
-          track.stop();
-          localStreamRef.current?.removeTrack(track);
-        });
-        setLocalStream(new MediaStream(localStreamRef.current.getTracks()));
-        console.log('📹 Video track removed from stream');
-      }
-
-      // Notify server about video status change
-      if (socketRef.current?.connected) {
-        if (newVideoState) {
-          callService.videoOn({ meetingId, userId });
-        } else {
-          callService.videoOff({ meetingId, userId });
-        }
-      }
-
-      setIsVideoOn(newVideoState);
-      console.log('📹 Camera', newVideoState ? 'on' : 'off');
-    } catch (error) {
-      console.error('📹 Error toggling video:', error);
-      if (error instanceof Error) {
-        if (error.name === 'NotAllowedError') {
-          setConnectionError('Permiso de cámara denegado. Por favor, permite el acceso a la cámara.');
-        } else if (error.name === 'NotFoundError') {
-          setConnectionError('No se encontró ninguna cámara. Verifica que esté conectada.');
-        } else {
-          setConnectionError(`Error de cámara: ${error.message}`);
-        }
+        callService.videoOff({ meetingId, userId });
       }
     }
+
+    setIsVideoOn(newVideoState);
+    console.log('📹 Camera', newVideoState ? 'on' : 'off');
   }, [isVideoOn, meetingId, userId]);
 
   useEffect(() => {
