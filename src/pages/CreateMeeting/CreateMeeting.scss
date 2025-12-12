@@ -22,6 +22,41 @@
     }
   }
 
+  &__breadcrumbs {
+    display: flex;
+    align-items: center;
+    gap: $spacing-xs;
+    margin-bottom: $spacing-xl;
+    font-size: $font-size-sm;
+    color: $text-secondary;
+    animation: createMeetingFade 0.5s ease-out both;
+  }
+
+  &__breadcrumb-link {
+    color: $primary-color;
+    text-decoration: none;
+    transition: color 0.2s ease;
+
+    &:hover {
+      color: #2c5cc5;
+      text-decoration: underline;
+    }
+
+    &:focus-visible {
+      @include focus-visible;
+    }
+  }
+
+  &__breadcrumb-separator {
+    color: #bdc3c7;
+    user-select: none;
+  }
+
+  &__breadcrumb-current {
+    color: $text-primary;
+    font-weight: $font-weight-medium;
+  }
+
   &__header {
     text-align: center;
     margin-bottom: $spacing-2xl;
@@ -164,11 +199,28 @@
     margin-top: $spacing-2xl;
     align-items: stretch;
     animation: createMeetingFade 0.5s ease-out 0.08s both;
+
+    @include respond-to(sm) {
+      flex-direction: row;
+      justify-content: flex-end;
+    }
+  }
+
+  &__back-button {
+    @include respond-to(sm) {
+      width: auto;
+      min-width: 140px;
+    }
   }
 
   &__submit-button {
     width: 100%;
     animation: createMeetingButton 0.55s ease-out 0.1s both;
+
+    @include respond-to(sm) {
+      width: auto;
+      min-width: 180px;
+    }
 
     &:hover {
       transform: translateY(-1px);

@@ -98,6 +98,43 @@
     font-size: 0.9rem;
     border-bottom: 1px solid #fcc;
     flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+
+    &__retry {
+      background-color: #c33;
+      color: white;
+      border: none;
+      padding: 0.25rem 0.75rem;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 0.85rem;
+      font-weight: 500;
+      transition: background-color 0.2s ease;
+
+      &:hover {
+        background-color: #a22;
+      }
+
+      &:focus-visible {
+        outline: 2px solid #c33;
+        outline-offset: 2px;
+      }
+    }
+  }
+
+  .chat-reconnecting {
+    background-color: #fff3cd;
+    color: #856404;
+    padding: 0.75rem;
+    text-align: center;
+    font-size: 0.9rem;
+    border-bottom: 1px solid #ffeaa7;
+    flex-shrink: 0;
+    animation: chatReconnectPulse 1.5s ease-in-out infinite;
   }
 
   .online-users {
@@ -377,7 +414,16 @@
     opacity: 1;
   }
   50% {
-    opacity: 0.5;
+    opacity: 0.7;
+  }
+}
+
+@keyframes chatReconnectPulse {
+  0%, 100% {
+    background-color: #fff3cd;
+  }
+  50% {
+    background-color: #ffeaa7;
   }
 }
 
@@ -390,7 +436,7 @@
   }
 }
 
-@media (max-width: $breakpoint-md - 1px) {
+@media (max-width: 768px) {
   .chat-room {
     height: 100%;
     max-height: none;

@@ -1,7 +1,8 @@
 /**
- * Voice Call Hook for managing real-time voice communication
+ * Voice/Video Call Hook for managing real-time audio and video communication
  * @module hooks/useVoiceCall
- * @description Custom hook that manages PeerJS connections and voice call state
+ * @description Custom hook that manages PeerJS connections for audio and video call state.
+ * Audio and video are independent - you can toggle each separately.
  */
 
 import { useEffect, useState, useCallback, useRef } from 'react';
@@ -14,12 +15,14 @@ import type {
   PeerJoinedNotification,
   PeerLeftNotification,
   MuteStatusNotification,
+  VideoStatusNotification,
   CallError,
+  IceServer,
 } from '../services/callService';
 import type { Socket } from 'socket.io-client';
 
 /**
- * Participant with mute status for UI
+ * Participant with mute and video status for UI
  * @interface VoiceParticipant
  */
 export interface VoiceParticipant {
@@ -27,6 +30,7 @@ export interface VoiceParticipant {
   peerId: string;
   username: string;
   isMuted: boolean;
+  isVideoOn: boolean;
 }
 
 /**
@@ -38,17 +42,25 @@ interface UseVoiceCallReturn {
   isConnected: boolean;
   /** Whether local microphone is muted */
   isMuted: boolean;
+  /** Whether local camera is on */
+  isVideoOn: boolean;
   /** List of participants in the call */
   participants: VoiceParticipant[];
   /** Connection error message if any */
   connectionError: string | null;
-  /** Whether voice call is active */
+  /** Whether call is active */
   isInCall: boolean;
+  /** Local media stream (audio + video when enabled) */
+  localStream: MediaStream | null;
+  /** Remote video streams by peerId */
+  remoteStreams: Map<string, MediaStream>;
   /** Toggle microphone mute state */
   toggleMute: () => void;
-  /** Join the voice call */
+  /** Toggle camera on/off state */
+  toggleVideo: () => Promise<void>;
+  /** Join the call */
   joinVoiceCall: () => Promise<void>;
-  /** Leave the voice call */
+  /** Leave the call */
   leaveVoiceCall: () => void;
 }
 
@@ -66,9 +78,12 @@ export const useVoiceCall = (
 ): UseVoiceCallReturn => {
   const [isConnected, setIsConnected] = useState(false);
   const [isMuted, setIsMuted] = useState(true);
+  const [isVideoOn, setIsVideoOn] = useState(false);
   const [participants, setParticipants] = useState<VoiceParticipant[]>([]);
   const [connectionError, setConnectionError] = useState<string | null>(null);
   const [isInCall, setIsInCall] = useState(false);
+  const [localStream, setLocalStream] = useState<MediaStream | null>(null);
+  const [remoteStreams, setRemoteStreams] = useState<Map<string, MediaStream>>(new Map());
 
   const socketRef = useRef<Socket | null>(null);
   const peerRef = useRef<Peer | null>(null);
@@ -77,52 +92,71 @@ export const useVoiceCall = (
   const audioElementsRef = useRef<Map<string, HTMLAudioElement>>(new Map());
   const isJoiningRef = useRef<boolean>(false);
   const hasJoinedRef = useRef<boolean>(false);
+  const iceServersRef = useRef<IceServer[]>([]);
 
   /**
-   * Get user media (microphone)
-   * @returns {Promise<MediaStream>} Audio stream
-   * @throws {Error} If microphone access is denied or unavailable
+   * Get user media (microphone + camera from the start)
+   * Both tracks are created but disabled by default
+   * @returns {Promise<MediaStream>} Audio + Video stream
+   * @throws {Error} If media access is denied or unavailable
    */
   const getUserMedia = useCallback(async (): Promise<MediaStream> => {
     if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-      const errorMessage = 'Tu navegador no soporta acceso al micrófono. Por favor, usa un navegador moderno.';
-      console.error('🎙️', errorMessage);
+      const errorMessage = 'Tu navegador no soporta acceso a multimedia. Por favor, usa un navegador moderno.';
+      console.error('📹', errorMessage);
       throw new Error(errorMessage);
     }
 
     try {
-      console.log('🎙️ Requesting microphone permissions...');
+      console.log('📹 Requesting microphone + camera permissions...');
       const stream = await navigator.mediaDevices.getUserMedia({
         audio: {
           echoCancellation: true,
           noiseSuppression: true,
           autoGainControl: true,
         },
-        video: false,
+        video: {
+          width: { ideal: 640 },
+          height: { ideal: 480 },
+          facingMode: 'user',
+        },
       });
       
-      if (!stream || stream.getAudioTracks().length === 0) {
-        const errorMessage = 'No se pudo acceder al micrófono. Verifica que el dispositivo esté conectado y los permisos estén habilitados.';
-        console.error('🎙️', errorMessage);
-        throw new Error(errorMessage);
+      if (!stream) {
+        throw new Error('No se pudo obtener el stream multimedia.');
       }
 
-      console.log('🎙️ Microphone access granted, tracks:', stream.getAudioTracks().length);
+      const audioTracks = stream.getAudioTracks();
+      const videoTracks = stream.getVideoTracks();
+      
+      console.log('📹 Media access granted - Audio tracks:', audioTracks.length, 'Video tracks:', videoTracks.length);
+
+      // Disable all tracks by default (muted mic, camera off)
+      audioTracks.forEach(track => {
+        track.enabled = false;
+        console.log('🎙️ Audio track disabled:', track.label);
+      });
+      
+      videoTracks.forEach(track => {
+        track.enabled = false;
+        console.log('📹 Video track disabled:', track.label);
+      });
+
       return stream;
     } catch (error) {
-      console.error('🎙️ Error getting microphone:', error);
+      console.error('📹 Error getting media:', error);
       
-      let errorMessage = 'No se pudo acceder al micrófono. ';
+      let errorMessage = 'No se pudo acceder a la cámara y micrófono. ';
       
       if (error instanceof Error) {
         if (error.name === 'NotAllowedError' || error.name === 'PermissionDeniedError') {
-          errorMessage += 'Por favor, permite el acceso al micrófono en la configuración de tu navegador y recarga la página.';
+          errorMessage += 'Por favor, permite el acceso a la cámara y micrófono en la configuración de tu navegador y recarga la página.';
         } else if (error.name === 'NotFoundError' || error.name === 'DevicesNotFoundError') {
-          errorMessage += 'No se encontró ningún micrófono. Verifica que el dispositivo esté conectado.';
+          errorMessage += 'No se encontró cámara o micrófono. Verifica que los dispositivos estén conectados.';
         } else if (error.name === 'NotReadableError' || error.name === 'TrackStartError') {
-          errorMessage += 'El micrófono está siendo usado por otra aplicación. Cierra otras aplicaciones que lo estén usando.';
+          errorMessage += 'Los dispositivos están siendo usados por otra aplicación.';
         } else if (error.name === 'OverconstrainedError' || error.name === 'ConstraintNotSatisfiedError') {
-          errorMessage += 'El micrófono no cumple con los requisitos necesarios.';
+          errorMessage += 'Los dispositivos no cumplen con los requisitos necesarios.';
         } else {
           errorMessage += `Error: ${error.message}`;
         }
@@ -135,11 +169,12 @@ export const useVoiceCall = (
   }, []);
 
   /**
-   * Play remote audio stream
+   * Play remote audio stream and store video stream
    * @param {string} remoteUserId - User ID of the remote peer
-   * @param {MediaStream} stream - Remote audio stream
+   * @param {MediaStream} stream - Remote audio/video stream
    */
   const playRemoteStream = useCallback((remoteUserId: string, stream: MediaStream) => {
+    // Handle audio - create audio element for playback
     const existingAudio = audioElementsRef.current.get(remoteUserId);
     if (existingAudio) {
       existingAudio.srcObject = null;
@@ -166,19 +201,36 @@ export const useVoiceCall = (
 
     audioElementsRef.current.set(remoteUserId, audio);
     console.log('🎙️ Audio element created for:', remoteUserId, 'stream active:', stream.active);
+    console.log('🎙️ Playing audio from:', remoteUserId);
+
+    // Store full stream (including video) for video display
+    setRemoteStreams(prev => {
+      const newMap = new Map(prev);
+      newMap.set(remoteUserId, stream);
+      return newMap;
+    });
+    console.log('📹 Stored remote stream from:', remoteUserId);
   }, []);
 
   /**
-   * Stop remote audio stream
+   * Stop remote audio/video stream
    * @param {string} remoteUserId - User ID of the remote peer
    */
   const stopRemoteStream = useCallback((remoteUserId: string) => {
+    // Stop audio
     const audio = audioElementsRef.current.get(remoteUserId);
     if (audio) {
       audio.srcObject = null;
       audio.remove();
       audioElementsRef.current.delete(remoteUserId);
     }
+
+    // Remove video stream from state
+    setRemoteStreams(prev => {
+      const newMap = new Map(prev);
+      newMap.delete(remoteUserId);
+      return newMap;
+    });
 
     const connection = connectionsRef.current.get(remoteUserId);
     if (connection) {
@@ -320,49 +372,45 @@ export const useVoiceCall = (
     }
 
     isJoiningRef.current = true;
-    console.log('🎙️ Starting voice call join process...');
+    console.log('📹 Starting call join process...');
 
     try {
-      console.log('🎙️ Requesting microphone access...');
+      console.log('📹 Requesting camera + microphone access...');
       const stream = await getUserMedia();
       
       if (!stream) {
-        const errorMessage = 'No se pudo obtener el stream del micrófono. Por favor, recarga la página e intenta de nuevo.';
-        console.error('🎙️', errorMessage);
+        const errorMessage = 'No se pudo obtener el stream multimedia. Por favor, recarga la página e intenta de nuevo.';
+        console.error('📹', errorMessage);
         setConnectionError(errorMessage);
         return;
       }
       
       localStreamRef.current = stream;
-      console.log('🎙️ Microphone access granted, stream active:', stream.active);
+      setLocalStream(stream);
+      console.log('📹 Media access granted, stream active:', stream.active);
 
       const audioTracks = stream.getAudioTracks();
-      if (audioTracks.length === 0) {
-        const errorMessage = 'No se encontraron pistas de audio en el stream. Por favor, verifica tu micrófono.';
-        console.error('🎙️', errorMessage);
-        setConnectionError(errorMessage);
-        return;
-      }
-
-      console.log('🎙️ Audio tracks found:', audioTracks.length);
+      const videoTracks = stream.getVideoTracks();
+      
+      console.log('📹 Tracks - Audio:', audioTracks.length, 'Video:', videoTracks.length);
+      
+      // Set up track event listeners
       audioTracks.forEach(track => {
-        console.log('🎙️ Track:', track.label, 'enabled:', track.enabled, 'muted:', track.muted, 'readyState:', track.readyState);
-        track.enabled = false;
-        
         track.onended = () => {
           console.warn('🎙️ Audio track ended unexpectedly');
           setConnectionError('El micrófono se desconectó. Por favor, recarga la página.');
         };
-        
-        track.onmute = () => {
-          console.warn('🎙️ Audio track muted by system');
-        };
-        
-        track.onunmute = () => {
-          console.log('🎙️ Audio track unmuted by system');
+      });
+      
+      videoTracks.forEach(track => {
+        track.onended = () => {
+          console.warn('📹 Video track ended unexpectedly');
         };
       });
+
+      // Both mic and camera start disabled (getUserMedia already did this)
       setIsMuted(true);
+      setIsVideoOn(false);
 
       console.log('🎙️ Connecting to call server...');
       let socket: Socket;
@@ -401,13 +449,20 @@ export const useVoiceCall = (
 
       await waitForSocketConnect;
 
+      // Wait a bit for ICE servers to be received from backend
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
+      // Get ICE servers from callService (received from backend, includes ExpressTURN)
+      const iceServers = callService.getIceServers();
+      iceServersRef.current = iceServers;
+      console.log('🎙️ Using ICE servers:', iceServers.length > 0 ? iceServers : 'default');
+
       console.log('🎙️ Creating PeerJS instance...');
       const peer = new Peer({
         config: {
-          iceServers: [
+          iceServers: iceServers.length > 0 ? iceServers : [
             { urls: 'stun:stun.l.google.com:19302' },
             { urls: 'stun:stun1.l.google.com:19302' },
-            { urls: 'stun:stun2.l.google.com:19302' },
           ]
         },
         debug: 2,
@@ -471,6 +526,7 @@ export const useVoiceCall = (
           peerId: p.peerId,
           username: p.username,
           isMuted: p.isMuted,
+          isVideoOn: p.isVideoOn,
         })));
 
         data.participants.forEach((p: CallParticipant) => {
@@ -493,6 +549,7 @@ export const useVoiceCall = (
             peerId: data.peerId,
             username: data.username,
             isMuted: true,
+            isVideoOn: false,
           }];
         });
 
@@ -517,6 +574,14 @@ export const useVoiceCall = (
         ));
       });
 
+      socket.on(CallEvents.VIDEO_STATUS, (data: VideoStatusNotification) => {
+        console.log('📹 Video status changed:', data.username, data.isVideoOn);
+        
+        setParticipants(prev => prev.map(p => 
+          p.userId === data.userId ? { ...p, isVideoOn: data.isVideoOn } : p
+        ));
+      });
+
       socket.on(CallEvents.ERROR, (error: CallError) => {
         console.error('🎙️ Call server error:', error);
         setConnectionError(error.message);
@@ -533,50 +598,60 @@ export const useVoiceCall = (
   }, [meetingId, userId, username, getUserMedia, handleIncomingCall, callPeer, stopRemoteStream]);
 
   /**
-   * Leave the voice call
+   * Leave the call
    */
   const leaveVoiceCall = useCallback(() => {
-    console.log('🎙️ Leaving voice call');
+    console.log('🎙️ Leaving call');
 
     isJoiningRef.current = false;
     hasJoinedRef.current = false;
 
+    // Stop all audio elements
     audioElementsRef.current.forEach((audio) => {
       audio.srcObject = null;
       audio.remove();
     });
     audioElementsRef.current.clear();
 
+    // Close all peer connections
     connectionsRef.current.forEach((connection) => {
       connection.close();
     });
     connectionsRef.current.clear();
 
+    // Stop all local tracks (audio AND video)
     if (localStreamRef.current) {
       localStreamRef.current.getTracks().forEach(track => track.stop());
       localStreamRef.current = null;
     }
 
+    // Notify server
     if (meetingId && userId) {
       callService.leaveCall({ meetingId, userId });
     }
 
+    // Destroy PeerJS
     if (peerRef.current) {
       peerRef.current.destroy();
       peerRef.current = null;
     }
 
+    // Disconnect socket
     callService.disconnect();
     socketRef.current = null;
 
+    // Reset all state
     setIsInCall(false);
     setIsConnected(false);
     setParticipants([]);
     setIsMuted(true);
+    setIsVideoOn(false);
+    setLocalStream(null);
+    setRemoteStreams(new Map());
   }, [meetingId, userId]);
 
   /**
-   * Toggle microphone mute state
+   * Toggle microphone mute state (independent of video)
    */
   const toggleMute = useCallback(() => {
     if (!localStreamRef.current) {
@@ -618,19 +693,107 @@ export const useVoiceCall = (
     console.log('🎙️ Microphone', newMutedState ? 'muted' : 'unmuted');
   }, [isMuted, meetingId, userId]);
 
+  /**
+   * Toggle camera on/off state (independent of audio)
+   * Enables/disables video track AND re-calls peers to ensure they receive the change
+   */
+  const toggleVideo = useCallback(async () => {
+    if (!localStreamRef.current || !meetingId || !userId || !peerRef.current) {
+      console.warn('📹 Cannot toggle video: Missing requirements');
+      return;
+    }
+
+    const videoTracks = localStreamRef.current.getVideoTracks();
+    if (videoTracks.length === 0) {
+      console.warn('📹 No video tracks available');
+      setConnectionError('No se encontró ninguna cámara disponible.');
+      return;
+    }
+
+    const newVideoState = !isVideoOn;
+
+    // Toggle the enabled state of video tracks
+    videoTracks.forEach(track => {
+      track.enabled = newVideoState;
+      console.log('📹 Video track', track.label, 'enabled:', newVideoState);
+    });
+
+    // Update local stream state to trigger UI update
+    setLocalStream(new MediaStream(localStreamRef.current.getTracks()));
+
+    // Re-call all peers to ensure they receive the video change
+    // This is necessary because WebRTC doesn't always propagate track.enabled changes
+    const currentParticipants = [...participants];
+    console.log('📹 Re-calling', currentParticipants.length, 'peers after video toggle');
+
+    currentParticipants.forEach((participant) => {
+      if (participant.userId !== userId && peerRef.current && localStreamRef.current) {
+        console.log('📹 Re-calling peer:', participant.username);
+
+        // Close existing connection
+        const existingConnection = connectionsRef.current.get(participant.userId);
+        if (existingConnection) {
+          existingConnection.close();
+          connectionsRef.current.delete(participant.userId);
+        }
+
+        // Create new call with current stream
+        const call = peerRef.current.call(participant.peerId, localStreamRef.current);
+
+        call.on('stream', (remoteStream) => {
+          console.log('📹 Received stream after re-call from:', participant.userId);
+          playRemoteStream(participant.userId, remoteStream);
+        });
+
+        call.on('close', () => {
+          console.log('📹 Call closed with:', participant.userId);
+        });
+
+        call.on('error', (error) => {
+          console.error('📹 Call error with:', participant.userId, error);
+        });
+
+        connectionsRef.current.set(participant.userId, call);
+      }
+    });
+
+    // Notify server about video status change
+    if (socketRef.current?.connected) {
+      if (newVideoState) {
+        callService.videoOn({ meetingId, userId });
+      } else {
+        callService.videoOff({ meetingId, userId });
+      }
+    }
+
+    setIsVideoOn(newVideoState);
+    console.log('📹 Camera', newVideoState ? 'on' : 'off');
+  }, [isVideoOn, meetingId, userId, participants, playRemoteStream]);
+
   useEffect(() => {
     return () => {
       leaveVoiceCall();
     };
   }, [leaveVoiceCall]);
 
+  // Update localStream state when stream changes
+  useEffect(() => {
+    if (localStreamRef.current) {
+      setLocalStream(localStreamRef.current);
+    }
+  }, [isInCall]);
+
   return {
     isConnected,
     isMuted,
+    isVideoOn,
     participants,
     connectionError,
     isInCall,
+    localStream,
+    remoteStreams,
     toggleMute,
+    toggleVideo,
     joinVoiceCall,
     leaveVoiceCall,
   };

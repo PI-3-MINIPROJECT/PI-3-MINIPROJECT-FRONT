@@ -1,0 +1,201 @@
+@use '../../styles/variables' as *;
+@use '../../styles/mixins' as *;
+
+.error-boundary {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  padding: $spacing-lg;
+
+  &__container {
+    background: white;
+    border-radius: $border-radius-xl;
+    padding: $spacing-3xl;
+    max-width: 600px;
+    width: 100%;
+    box-shadow: $shadow-xl;
+    animation: errorBoundarySlideUp 0.4s ease-out both;
+    text-align: center;
+
+    @include respond-to(sm) {
+      padding: $spacing-2xl;
+    }
+  }
+
+  &__icon {
+    font-size: 4rem;
+    margin-bottom: $spacing-lg;
+    animation: errorBoundaryPulse 2s ease-in-out infinite;
+  }
+
+  &__title {
+    font-size: $font-size-3xl;
+    font-weight: $font-weight-bold;
+    color: $text-primary;
+    margin: 0 0 $spacing-md 0;
+
+    @include respond-to(sm) {
+      font-size: $font-size-2xl;
+    }
+  }
+
+  &__message {
+    font-size: $font-size-lg;
+    color: $text-secondary;
+    margin: 0 0 $spacing-2xl 0;
+    line-height: $line-height-relaxed;
+  }
+
+  &__suggestions {
+    background-color: #f8f9fa;
+    border-radius: $border-radius-lg;
+    padding: $spacing-xl;
+    margin-bottom: $spacing-2xl;
+    text-align: left;
+  }
+
+  &__suggestions-title {
+    font-size: $font-size-lg;
+    font-weight: $font-weight-semibold;
+    color: $text-primary;
+    margin: 0 0 $spacing-md 0;
+  }
+
+  &__suggestions-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+
+    li {
+      padding: $spacing-sm 0;
+      color: $text-secondary;
+      line-height: $line-height-relaxed;
+      position: relative;
+      padding-left: $spacing-lg;
+
+      &::before {
+        content: '✓';
+        position: absolute;
+        left: 0;
+        color: $success-color;
+        font-weight: $font-weight-bold;
+      }
+
+      strong {
+        color: $text-primary;
+        font-weight: $font-weight-semibold;
+      }
+    }
+  }
+
+  &__actions {
+    display: flex;
+    gap: $spacing-md;
+    flex-direction: column;
+    margin-bottom: $spacing-xl;
+
+    @include respond-to(sm) {
+      flex-direction: row;
+      justify-content: center;
+    }
+  }
+
+  &__button {
+    padding: $spacing-md $spacing-xl;
+    border: none;
+    border-radius: $border-radius-md;
+    font-size: $font-size-base;
+    font-weight: $font-weight-semibold;
+    cursor: pointer;
+    transition: all $transition-fast;
+    flex: 1;
+
+    @include respond-to(sm) {
+      flex: 0 1 auto;
+      min-width: 160px;
+    }
+
+    &:focus-visible {
+      @include focus-visible;
+    }
+
+    &--primary {
+      background-color: $primary-color;
+      color: white;
+
+      &:hover {
+        background-color: #2c5cc5;
+        transform: translateY(-1px);
+        box-shadow: $shadow-md;
+      }
+
+      &:active {
+        transform: translateY(0);
+      }
+    }
+
+    &--secondary {
+      background-color: #e5e7eb;
+      color: $text-primary;
+
+      &:hover {
+        background-color: #d1d5db;
+      }
+    }
+  }
+
+  &__details {
+    background-color: #fef2f2;
+    border: 1px solid #fecaca;
+    border-radius: $border-radius-md;
+    padding: $spacing-md;
+    text-align: left;
+    margin-top: $spacing-xl;
+  }
+
+  &__details-summary {
+    color: #991b1b;
+    font-weight: $font-weight-medium;
+    cursor: pointer;
+    user-select: none;
+
+    &:hover {
+      color: #7f1d1d;
+    }
+  }
+
+  &__details-content {
+    margin-top: $spacing-md;
+    padding: $spacing-md;
+    background-color: white;
+    border-radius: $border-radius-sm;
+    font-size: $font-size-xs;
+    font-family: $font-family-mono;
+    color: #991b1b;
+    overflow-x: auto;
+    max-height: 200px;
+    overflow-y: auto;
+  }
+}
+
+@keyframes errorBoundarySlideUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes errorBoundaryPulse {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.05);
+  }
+}
