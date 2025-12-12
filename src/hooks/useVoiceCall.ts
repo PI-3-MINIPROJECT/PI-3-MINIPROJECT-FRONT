@@ -61,7 +61,7 @@ interface UseVoiceCallReturn {
   /** Join the call */
   joinVoiceCall: () => Promise<void>;
   /** Leave the call */
-  leaveVoiceCall: () => void;
+  leaveVoiceCall: () => Promise<void>;
 }
 
 /**
@@ -92,11 +92,37 @@ export const useVoiceCall = (
   const audioElementsRef = useRef<Map<string, HTMLAudioElement>>(new Map());
   const isJoiningRef = useRef<boolean>(false);
   const hasJoinedRef = useRef<boolean>(false);
+  const isLeavingRef = useRef<boolean>(false);
   const iceServersRef = useRef<IceServer[]>([]);
+
+  /**
+   * Stops and releases all tracks from a media stream
+   * @param {MediaStream | null} stream - Stream to release
+   * @returns {Promise<void>} Promise that resolves when all tracks are stopped
+   */
+  const releaseMediaStream = useCallback(async (stream: MediaStream | null): Promise<void> => {
+    if (!stream) return;
+    
+    console.log('🧹 Releasing media stream tracks...');
+    const tracks = stream.getTracks();
+    
+    tracks.forEach(track => {
+      try {
+        track.stop();
+        console.log('🧹 Stopped track:', track.kind, track.label);
+      } catch (error) {
+        console.warn('🧹 Error stopping track:', track.kind, error);
+      }
+    });
+    
+    // Wait a bit to ensure tracks are fully released
+    await new Promise(resolve => setTimeout(resolve, 100));
+  }, []);
 
   /**
    * Get user media (microphone + camera from the start)
    * Both tracks are created but disabled by default
+   * Ensures previous tracks are released before requesting new ones
    * @returns {Promise<MediaStream>} Audio + Video stream
    * @throws {Error} If media access is denied or unavailable
    */
@@ -107,9 +133,30 @@ export const useVoiceCall = (
       throw new Error(errorMessage);
     }
 
+    // First, ensure any existing tracks are released
+    if (localStreamRef.current) {
+      console.log('🧹 Releasing previous stream before requesting new one...');
+      await releaseMediaStream(localStreamRef.current);
+      localStreamRef.current = null;
+    }
+
+    // Also check for any active tracks in the system
+    try {
+      const devices = await navigator.mediaDevices.enumerateDevices();
+      const activeTracks = devices.filter(device => device.label !== '');
+      if (activeTracks.length > 0) {
+        console.log('🧹 Found active tracks, waiting for release...');
+        await new Promise(resolve => setTimeout(resolve, 200));
+      }
+    } catch (error) {
+      console.warn('🧹 Could not enumerate devices:', error);
+    }
+
     try {
       console.log('📹 Requesting microphone + camera permissions...');
-      const stream = await navigator.mediaDevices.getUserMedia({
+      
+      // Add timeout to prevent hanging
+      const getUserMediaPromise = navigator.mediaDevices.getUserMedia({
         audio: {
           echoCancellation: true,
           noiseSuppression: true,
@@ -121,6 +168,14 @@ export const useVoiceCall = (
           facingMode: 'user',
         },
       });
+
+      const timeoutPromise = new Promise<never>((_, reject) => {
+        setTimeout(() => {
+          reject(new Error('Timeout starting video source'));
+        }, 10000); // 10 second timeout
+      });
+
+      const stream = await Promise.race([getUserMediaPromise, timeoutPromise]);
       
       if (!stream) {
         throw new Error('No se pudo obtener el stream multimedia.');
@@ -154,9 +209,11 @@ export const useVoiceCall = (
         } else if (error.name === 'NotFoundError' || error.name === 'DevicesNotFoundError') {
           errorMessage += 'No se encontró cámara o micrófono. Verifica que los dispositivos estén conectados.';
         } else if (error.name === 'NotReadableError' || error.name === 'TrackStartError') {
-          errorMessage += 'Los dispositivos están siendo usados por otra aplicación.';
+          errorMessage += 'Los dispositivos están siendo usados por otra aplicación. Por favor, cierra otras aplicaciones que usen la cámara o micrófono y recarga la página.';
         } else if (error.name === 'OverconstrainedError' || error.name === 'ConstraintNotSatisfiedError') {
           errorMessage += 'Los dispositivos no cumplen con los requisitos necesarios.';
+        } else if (error.message.includes('Timeout') || error.name === 'AbortError') {
+          errorMessage += 'Timeout al acceder a los dispositivos. Esto puede ocurrir si los dispositivos están siendo usados por otra aplicación. Por favor, cierra otras aplicaciones que usen la cámara o micrófono, espera unos segundos y recarga la página.';
         } else {
           errorMessage += `Error: ${error.message}`;
         }
@@ -166,7 +223,7 @@ export const useVoiceCall = (
       
       throw new Error(errorMessage);
     }
-  }, []);
+  }, [releaseMediaStream]);
 
   /**
    * Play remote audio stream and store video stream
@@ -382,6 +439,14 @@ export const useVoiceCall = (
         const errorMessage = 'No se pudo obtener el stream multimedia. Por favor, recarga la página e intenta de nuevo.';
         console.error('📹', errorMessage);
         setConnectionError(errorMessage);
+        isJoiningRef.current = false;
+        return;
+      }
+
+      // Check if we're still supposed to be joining (not cancelled by cleanup)
+      if (!isJoiningRef.current) {
+        console.log('📹 Join was cancelled, releasing stream...');
+        await releaseMediaStream(stream);
         return;
       }
       
@@ -421,6 +486,13 @@ export const useVoiceCall = (
         if (error instanceof Error) {
           setConnectionError(error.message);
         }
+        // Release stream if connection fails
+        if (localStreamRef.current) {
+          await releaseMediaStream(localStreamRef.current);
+          localStreamRef.current = null;
+          setLocalStream(null);
+        }
+        isJoiningRef.current = false;
         return;
       }
       socketRef.current = socket;
@@ -447,10 +519,49 @@ export const useVoiceCall = (
         }
       });
 
-      await waitForSocketConnect;
+      try {
+        await waitForSocketConnect;
+      } catch (error) {
+        console.error('🎙️ Socket connection failed:', error);
+        if (error instanceof Error) {
+          setConnectionError(error.message);
+        }
+        // Release stream if socket connection fails
+        if (localStreamRef.current) {
+          await releaseMediaStream(localStreamRef.current);
+          localStreamRef.current = null;
+          setLocalStream(null);
+        }
+        callService.disconnect();
+        socketRef.current = null;
+        isJoiningRef.current = false;
+        return;
+      }
+
+      // Check if we're still supposed to be joining (not cancelled by cleanup)
+      if (!isJoiningRef.current) {
+        console.log('📹 Join was cancelled after socket connect, cleaning up...');
+        await releaseMediaStream(localStreamRef.current);
+        localStreamRef.current = null;
+        setLocalStream(null);
+        callService.disconnect();
+        socketRef.current = null;
+        return;
+      }
 
       // Wait a bit for ICE servers to be received from backend
       await new Promise(resolve => setTimeout(resolve, 500));
+      
+      // Check again after waiting
+      if (!isJoiningRef.current) {
+        console.log('📹 Join was cancelled after waiting for ICE servers, cleaning up...');
+        await releaseMediaStream(localStreamRef.current);
+        localStreamRef.current = null;
+        setLocalStream(null);
+        callService.disconnect();
+        socketRef.current = null;
+        return;
+      }
       
       // Get ICE servers from callService (received from backend, includes ExpressTURN)
       const iceServers = callService.getIceServers();
@@ -470,21 +581,58 @@ export const useVoiceCall = (
       peerRef.current = peer;
 
       peer.on('open', (peerId) => {
+        // Check if we're still supposed to be joining
+        if (!isJoiningRef.current) {
+          console.log('📹 Join was cancelled when PeerJS opened, cleaning up...');
+          peer.destroy();
+          peerRef.current = null;
+          return;
+        }
+
         console.log('🎙️ PeerJS connected with ID:', peerId);
         
-        console.log('🎙️ Emitting call:join with:', { meetingId, userId, peerId, username });
-        callService.joinCall({
-          meetingId,
-          userId,
-          peerId,
-          username,
-        });
+        // Verify socket is still connected before joining
+        if (!socket.connected) {
+          console.warn('🎙️ Socket disconnected before join, waiting for reconnect...');
+          const reconnectTimeout = setTimeout(() => {
+            console.error('🎙️ Socket reconnect timeout, cannot join call');
+            setConnectionError('No se pudo conectar al servidor. Por favor, recarga la página.');
+            isJoiningRef.current = false;
+            hasJoinedRef.current = false;
+          }, 10000); // 10 second timeout for reconnect
 
-        setIsInCall(true);
-        setIsConnected(true);
-        setConnectionError(null);
-        hasJoinedRef.current = true;
-        isJoiningRef.current = false;
+          socket.once('connect', () => {
+            clearTimeout(reconnectTimeout);
+            console.log('🎙️ Socket reconnected, joining call...');
+            if (isJoiningRef.current) {
+              callService.joinCall({
+                meetingId,
+                userId,
+                peerId,
+                username,
+              });
+              setIsInCall(true);
+              setIsConnected(true);
+              setConnectionError(null);
+              hasJoinedRef.current = true;
+              isJoiningRef.current = false;
+            }
+          });
+        } else {
+          console.log('🎙️ Emitting call:join with:', { meetingId, userId, peerId, username });
+          callService.joinCall({
+            meetingId,
+            userId,
+            peerId,
+            username,
+          });
+
+          setIsInCall(true);
+          setIsConnected(true);
+          setConnectionError(null);
+          hasJoinedRef.current = true;
+          isJoiningRef.current = false;
+        }
       });
 
       peer.on('call', (call) => {
@@ -595,12 +743,38 @@ export const useVoiceCall = (
       isJoiningRef.current = false;
       hasJoinedRef.current = false;
     }
-  }, [meetingId, userId, username, getUserMedia, handleIncomingCall, callPeer, stopRemoteStream]);
+  }, [meetingId, userId, username, getUserMedia, handleIncomingCall, callPeer, stopRemoteStream, releaseMediaStream]);
 
   /**
    * Leave the call
+   * Properly releases all media tracks and connections
    */
-  const leaveVoiceCall = useCallback(() => {
+  const leaveVoiceCall = useCallback(async () => {
+    // Prevent multiple simultaneous calls to leaveVoiceCall
+    if (isLeavingRef.current) {
+      console.log('🎙️ Already leaving call, skipping...');
+      return;
+    }
+
+    // Don't leave if we're currently joining - wait for join to complete or fail
+    if (isJoiningRef.current) {
+      console.log('🎙️ Cannot leave while joining, waiting for join to complete...');
+      // Wait a bit and check again
+      setTimeout(() => {
+        if (!isJoiningRef.current && !isLeavingRef.current) {
+          void leaveVoiceCall();
+        }
+      }, 1000);
+      return;
+    }
+
+    // If we never joined and have no resources, there's nothing to clean up
+    if (!hasJoinedRef.current && !localStreamRef.current && !peerRef.current && !socketRef.current) {
+      console.log('🎙️ Nothing to clean up, skipping leave...');
+      return;
+    }
+
+    isLeavingRef.current = true;
     console.log('🎙️ Leaving call');
 
     isJoiningRef.current = false;
@@ -608,36 +782,78 @@ export const useVoiceCall = (
 
     // Stop all audio elements
     audioElementsRef.current.forEach((audio) => {
-      audio.srcObject = null;
-      audio.remove();
+      try {
+        audio.pause();
+        audio.srcObject = null;
+        audio.remove();
+      } catch (error) {
+        console.warn('🧹 Error removing audio element:', error);
+      }
     });
     audioElementsRef.current.clear();
 
     // Close all peer connections
     connectionsRef.current.forEach((connection) => {
-      connection.close();
+      try {
+        connection.close();
+      } catch (error) {
+        console.warn('🧹 Error closing connection:', error);
+      }
     });
     connectionsRef.current.clear();
 
-    // Stop all local tracks (audio AND video)
+    // Stop all remote streams
+    // Use setRemoteStreams callback to access current streams
+    setRemoteStreams(currentStreams => {
+      currentStreams.forEach((stream) => {
+        stream.getTracks().forEach(track => {
+          try {
+            track.stop();
+          } catch (error) {
+            console.warn('🧹 Error stopping remote track:', error);
+          }
+        });
+      });
+      return new Map();
+    });
+
+    // Stop all local tracks (audio AND video) properly
     if (localStreamRef.current) {
-      localStreamRef.current.getTracks().forEach(track => track.stop());
+      await releaseMediaStream(localStreamRef.current);
       localStreamRef.current = null;
     }
 
+    // Also clear the state stream
+    if (localStream) {
+      await releaseMediaStream(localStream);
+    }
+    setLocalStream(null);
+
     // Notify server
     if (meetingId && userId) {
-      callService.leaveCall({ meetingId, userId });
+      try {
+        callService.leaveCall({ meetingId, userId });
+      } catch (error) {
+        console.warn('🧹 Error notifying server:', error);
+      }
     }
 
     // Destroy PeerJS
     if (peerRef.current) {
-      peerRef.current.destroy();
+      try {
+        peerRef.current.destroy();
+      } catch (error) {
+        console.warn('🧹 Error destroying peer:', error);
+      }
       peerRef.current = null;
     }
 
     // Disconnect socket
-    callService.disconnect();
+    try {
+      callService.disconnect();
+    } catch (error) {
+      console.warn('🧹 Error disconnecting call service:', error);
+    }
     socketRef.current = null;
 
     // Reset all state
@@ -646,17 +862,23 @@ export const useVoiceCall = (
     setParticipants([]);
     setIsMuted(true);
     setIsVideoOn(false);
-    setLocalStream(null);
-    setRemoteStreams(new Map());
-  }, [meetingId, userId]);
+    
+    // Reset leaving flag after a short delay to allow cleanup to complete
+    setTimeout(() => {
+      isLeavingRef.current = false;
+    }, 500);
+  }, [meetingId, userId, localStream, releaseMediaStream, setRemoteStreams]);
 
   /**
    * Toggle microphone mute state (independent of video)
    */
   const toggleMute = useCallback(() => {
-    if (!localStreamRef.current) {
-      const errorMessage = 'No hay acceso al micrófono. Por favor, recarga la página y permite el acceso al micrófono.';
-      console.warn('🎙️ Cannot toggle mute: No local stream');
+    // Check both ref and state for stream availability
+    const stream = localStreamRef.current || localStream;
+    
+    if (!stream) {
+      const errorMessage = 'No hay acceso al micrófono. Por favor, espera a que se complete la conexión o recarga la página.';
+      console.warn('🎙️ Cannot toggle mute: No local stream available');
       setConnectionError(errorMessage);
       return;
     }
@@ -666,7 +888,7 @@ export const useVoiceCall = (
       return;
     }
 
-    const audioTracks = localStreamRef.current.getAudioTracks();
+    const audioTracks = stream.getAudioTracks();
     if (audioTracks.length === 0) {
       const errorMessage = 'No se encontraron pistas de audio. Por favor, verifica tu micrófono y recarga la página.';
       console.warn('🎙️ Cannot toggle mute: No audio tracks');
@@ -691,19 +913,28 @@ export const useVoiceCall = (
 
     setIsMuted(newMutedState);
     console.log('🎙️ Microphone', newMutedState ? 'muted' : 'unmuted');
-  }, [isMuted, meetingId, userId]);
+  }, [isMuted, meetingId, userId, localStream]);
 
   /**
    * Toggle camera on/off state (independent of audio)
    * Enables/disables video track AND re-calls peers to ensure they receive the change
    */
   const toggleVideo = useCallback(async () => {
-    if (!localStreamRef.current || !meetingId || !userId || !peerRef.current) {
-      console.warn('📹 Cannot toggle video: Missing requirements');
+    // Check both ref and state for stream availability
+    const stream = localStreamRef.current || localStream;
+    
+    if (!stream || !meetingId || !userId || !peerRef.current) {
+      console.warn('📹 Cannot toggle video: Missing requirements', {
+        hasStream: !!stream,
+        hasMeetingId: !!meetingId,
+        hasUserId: !!userId,
+        hasPeer: !!peerRef.current
+      });
+      setConnectionError('No se puede cambiar el estado de la cámara. Por favor, espera a que se complete la conexión.');
       return;
     }
 
-    const videoTracks = localStreamRef.current.getVideoTracks();
+    const videoTracks = stream.getVideoTracks();
     if (videoTracks.length === 0) {
       console.warn('📹 No video tracks available');
       setConnectionError('No se encontró ninguna cámara disponible.');
@@ -719,7 +950,18 @@ export const useVoiceCall = (
     });
 
     // Update local stream state to trigger UI update
-    setLocalStream(new MediaStream(localStreamRef.current.getTracks()));
+    // Force a state update by creating a new MediaStream reference
+    // This is necessary to trigger React re-render and update video elements
+    const currentStream = localStreamRef.current || stream;
+    if (currentStream) {
+      // Create a new MediaStream with the same tracks to trigger React update
+      // The tracks themselves are the same, we just need a new reference for React
+      const tracks = currentStream.getTracks();
+      const newStream = new MediaStream(tracks);
+      setLocalStream(newStream);
+      // Also update the ref to keep it in sync
+      localStreamRef.current = newStream;
+    }
 
     // Re-call all peers to ensure they receive the video change
     // This is necessary because WebRTC doesn't always propagate track.enabled changes
@@ -727,7 +969,8 @@ export const useVoiceCall = (
     console.log('📹 Re-calling', currentParticipants.length, 'peers after video toggle');
 
     currentParticipants.forEach((participant) => {
-      if (participant.userId !== userId && peerRef.current && localStreamRef.current) {
+      const currentStream = localStreamRef.current || stream;
+      if (participant.userId !== userId && peerRef.current && currentStream) {
         console.log('📹 Re-calling peer:', participant.username);
 
         // Close existing connection
@@ -738,7 +981,7 @@ export const useVoiceCall = (
         }
 
         // Create new call with current stream
-        const call = peerRef.current.call(participant.peerId, localStreamRef.current);
+        const call = peerRef.current.call(participant.peerId, currentStream);
 
         call.on('stream', (remoteStream) => {
           console.log('📹 Received stream after re-call from:', participant.userId);
@@ -768,13 +1011,21 @@ export const useVoiceCall = (
 
     setIsVideoOn(newVideoState);
     console.log('📹 Camera', newVideoState ? 'on' : 'off');
-  }, [isVideoOn, meetingId, userId, participants, playRemoteStream]);
+  }, [isVideoOn, meetingId, userId, participants, playRemoteStream, localStream]);
+
+  // Cleanup on unmount - only if we actually joined
+  // Use a ref to store leaveVoiceCall to avoid dependency issues
+  const leaveVoiceCallRef = useRef(leaveVoiceCall);
+  leaveVoiceCallRef.current = leaveVoiceCall;
 
   useEffect(() => {
     return () => {
-      leaveVoiceCall();
+      // Only cleanup if we actually joined or have resources
+      if (hasJoinedRef.current || localStreamRef.current || peerRef.current || socketRef.current) {
+        void leaveVoiceCallRef.current();
+      }
     };
-  }, [leaveVoiceCall]);
+  }, []); // Empty deps - only run on unmount
 
   // Update localStream state when stream changes
   useEffect(() => {
