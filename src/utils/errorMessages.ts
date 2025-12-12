@@ -18,7 +18,6 @@ interface ErrorMapping {
  * Error mappings organized by category
  */
 const ERROR_MAPPINGS: ErrorMapping[] = [
-  // 400 - Validation Errors - Registration
   {
     pattern: /la edad debe ser un número válido entre 1 y 120/i,
     message: 'La edad debe ser un número válido entre 1 y 120',
@@ -158,7 +157,6 @@ const ERROR_MAPPINGS: ErrorMapping[] = [
     action: 'retry'
   },
   
-  // 401 - Authentication Errors
   {
     pattern: /usuario no encontrado/i,
     message: 'Credenciales incorrectas'
@@ -207,7 +205,6 @@ const ERROR_MAPPINGS: ErrorMapping[] = [
     action: 'clear'
   },
   
-  // 403 - Authorization Errors
   {
     pattern: /meeting is full/i,
     message: 'La reunión está llena (máximo 10 participantes)'
@@ -221,7 +218,6 @@ const ERROR_MAPPINGS: ErrorMapping[] = [
     message: 'Solo el anfitrión puede eliminar la reunión'
   },
   
-  // 404 - Not Found Errors
   {
     pattern: /user not found/i,
     message: 'Usuario no encontrado',
@@ -237,7 +233,6 @@ const ERROR_MAPPINGS: ErrorMapping[] = [
     message: 'Página no encontrada'
   },
   
-  // 409 - Conflict Errors
   {
     pattern: /el correo ya está registrado/i,
     message: 'El correo ya está registrado. ¿Ya tienes cuenta? Inicia sesión o recupera tu contraseña.',
@@ -249,7 +244,6 @@ const ERROR_MAPPINGS: ErrorMapping[] = [
     field: 'email'
   },
   
-  // 500 - Server Errors
   {
     pattern: /error al registrar usuario/i,
     message: 'Error al registrar usuario. Por favor, intenta nuevamente.',
@@ -397,7 +391,6 @@ const ERROR_MAPPINGS: ErrorMapping[] = [
     action: 'retry'
   },
   
-  // Chat Backend - 400 Bad Request
   {
     pattern: /user id is required/i,
     message: 'Debes estar autenticado para realizar esta acción',
@@ -429,7 +422,6 @@ const ERROR_MAPPINGS: ErrorMapping[] = [
     action: 'retry'
   },
   
-  // Chat Backend - 403 Forbidden
   {
     pattern: /only the host can update the meeting/i,
     message: 'Solo el anfitrión puede editar esta reunión',
@@ -441,7 +433,6 @@ const ERROR_MAPPINGS: ErrorMapping[] = [
     action: 'clear'
   },
   
-  // Chat Backend - 404 Not Found
   {
     pattern: /meeting not found/i,
     message: 'Esta reunión no existe o ha sido eliminada',
@@ -453,7 +444,6 @@ const ERROR_MAPPINGS: ErrorMapping[] = [
     action: 'redirect'
   },
   
-  // Chat Backend - 500 Internal Server Error
   {
     pattern: /error creating meeting/i,
     message: 'Error al crear la reunión. Por favor, intenta nuevamente.',
@@ -505,7 +495,6 @@ const ERROR_MAPPINGS: ErrorMapping[] = [
     action: 'retry'
   },
   
-  // Socket.io Errors
   {
     pattern: /meeting id and user id are required/i,
     message: 'Error al conectarse. Por favor recarga la página.',
