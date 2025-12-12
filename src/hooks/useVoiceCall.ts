@@ -94,6 +94,7 @@ export const useVoiceCall = (
   const hasJoinedRef = useRef<boolean>(false);
   const isLeavingRef = useRef<boolean>(false);
   const iceServersRef = useRef<IceServer[]>([]);
+  const remoteStreamsRef = useRef<Map<string, MediaStream>>(new Map());
 
   /**
    * Stops and releases all tracks from a media stream
@@ -106,17 +107,29 @@ export const useVoiceCall = (
     console.log('🧹 Releasing media stream tracks...');
     const tracks = stream.getTracks();
     
+    // Stop all tracks
     tracks.forEach(track => {
       try {
+        // Set enabled to false first
+        track.enabled = false;
+        // Then stop the track
         track.stop();
-        console.log('🧹 Stopped track:', track.kind, track.label);
+        console.log('🧹 Stopped track:', track.kind, track.label, `(${track.id})`);
       } catch (error) {
         console.warn('🧹 Error stopping track:', track.kind, error);
       }
     });
     
-    // Wait a bit to ensure tracks are fully released
-    await new Promise(resolve => setTimeout(resolve, 100));
+    // Wait longer to ensure tracks are fully released and devices are available
+    // This is critical for allowing the browser to fully release the devices
+    await new Promise(resolve => setTimeout(resolve, 500));
+    
+    // Additional check: verify tracks are actually stopped
+    const stillActive = tracks.some(track => track.readyState === 'live');
+    if (stillActive) {
+      console.warn('🧹 Some tracks are still active, waiting longer...');
+      await new Promise(resolve => setTimeout(resolve, 500));
+    }
   }, []);
 
   /**
@@ -138,6 +151,9 @@ export const useVoiceCall = (
       console.log('🧹 Releasing previous stream before requesting new one...');
       await releaseMediaStream(localStreamRef.current);
       localStreamRef.current = null;
+      // Additional wait after releasing to ensure devices are fully available
+      console.log('🧹 Waiting for devices to be fully released...');
+      await new Promise(resolve => setTimeout(resolve, 300));
     }
 
     // Also check for any active tracks in the system
@@ -146,7 +162,7 @@ export const useVoiceCall = (
       const activeTracks = devices.filter(device => device.label !== '');
       if (activeTracks.length > 0) {
         console.log('🧹 Found active tracks, waiting for release...');
-        await new Promise(resolve => setTimeout(resolve, 200));
+        await new Promise(resolve => setTimeout(resolve, 500));
       }
     } catch (error) {
       console.warn('🧹 Could not enumerate devices:', error);
@@ -155,7 +171,7 @@ export const useVoiceCall = (
     try {
       console.log('📹 Requesting microphone + camera permissions...');
       
-      // Add timeout to prevent hanging
+      // Add timeout to prevent hanging - increased to 15 seconds for slower devices
       const getUserMediaPromise = navigator.mediaDevices.getUserMedia({
         audio: {
           echoCancellation: true,
@@ -172,7 +188,7 @@ export const useVoiceCall = (
       const timeoutPromise = new Promise<never>((_, reject) => {
         setTimeout(() => {
           reject(new Error('Timeout starting video source'));
-        }, 10000); // 10 second timeout
+        }, 15000); // 15 second timeout (increased from 10)
       });
 
       const stream = await Promise.race([getUserMediaPromise, timeoutPromise]);
@@ -231,19 +247,44 @@ export const useVoiceCall = (
    * @param {MediaStream} stream - Remote audio/video stream
    */
   const playRemoteStream = useCallback((remoteUserId: string, stream: MediaStream) => {
-    // Handle audio - create audio element for playback
-    const existingAudio = audioElementsRef.current.get(remoteUserId);
-    if (existingAudio) {
-      existingAudio.srcObject = null;
-      existingAudio.remove();
+    // Verify stream is valid
+    if (!stream || !stream.active) {
+      console.warn('🎙️ Invalid or inactive stream received for:', remoteUserId);
+      return;
     }
 
+    // Check if this is the same stream we already have (avoid duplicate processing)
+    const existingStream = remoteStreamsRef.current.get(remoteUserId);
+    if (existingStream === stream) {
+      console.log('🎙️ Stream unchanged for:', remoteUserId, 'skipping update');
+      return;
+    }
+
+    // Handle audio - properly clean up existing audio before creating new one
+    const existingAudio = audioElementsRef.current.get(remoteUserId);
+    if (existingAudio) {
+      try {
+        // Pause and clear before removing to avoid interruption errors
+        existingAudio.pause();
+        existingAudio.srcObject = null;
+        existingAudio.remove();
+      } catch (error) {
+        console.warn('🎙️ Error cleaning up existing audio:', error);
+      }
+      audioElementsRef.current.delete(remoteUserId);
+    }
+
+    // Create new audio element
     const audio = new Audio();
     audio.srcObject = stream;
     audio.autoplay = true;
     (audio as HTMLAudioElement & { playsInline: boolean }).playsInline = true;
     audio.volume = 1.0;
     
+    // Store audio element first
+    audioElementsRef.current.set(remoteUserId, audio);
+    
+    // Try to play audio
     const playPromise = audio.play();
     if (playPromise !== undefined) {
       playPromise
@@ -251,19 +292,21 @@ export const useVoiceCall = (
           console.log('🎙️ Audio playing successfully from:', remoteUserId);
         })
         .catch((error) => {
-          console.error('🎙️ Audio autoplay blocked for:', remoteUserId, error);
-          console.warn('🎙️ User interaction may be required to play audio');
+          // Ignore AbortError - it's usually because a new stream replaced it quickly
+          if (error.name !== 'AbortError') {
+            console.error('🎙️ Audio autoplay blocked for:', remoteUserId, error);
+            console.warn('🎙️ User interaction may be required to play audio');
+          }
         });
     }
 
-    audioElementsRef.current.set(remoteUserId, audio);
     console.log('🎙️ Audio element created for:', remoteUserId, 'stream active:', stream.active);
-    console.log('🎙️ Playing audio from:', remoteUserId);
 
     // Store full stream (including video) for video display
     setRemoteStreams(prev => {
       const newMap = new Map(prev);
       newMap.set(remoteUserId, stream);
+      remoteStreamsRef.current = newMap; // Keep ref in sync
       return newMap;
     });
     console.log('📹 Stored remote stream from:', remoteUserId);
@@ -286,6 +329,7 @@ export const useVoiceCall = (
     setRemoteStreams(prev => {
       const newMap = new Map(prev);
       newMap.delete(remoteUserId);
+      remoteStreamsRef.current = newMap; // Keep ref in sync
       return newMap;
     });
 
@@ -814,20 +858,29 @@ export const useVoiceCall = (
           }
         });
       });
-      return new Map();
+      const newMap = new Map();
+      remoteStreamsRef.current = newMap; // Keep ref in sync
+      return newMap;
     });
 
     // Stop all local tracks (audio AND video) properly
+    // Do this first and wait for complete release
     if (localStreamRef.current) {
+      console.log('🧹 Releasing local stream from ref...');
       await releaseMediaStream(localStreamRef.current);
       localStreamRef.current = null;
     }
 
-    // Also clear the state stream
+    // Also clear the state stream (may be different reference)
     if (localStream) {
+      console.log('🧹 Releasing local stream from state...');
       await releaseMediaStream(localStream);
     }
     setLocalStream(null);
+    
+    // Additional wait to ensure all devices are fully released
+    console.log('🧹 Final wait to ensure devices are fully released...');
+    await new Promise(resolve => setTimeout(resolve, 500));
 
     // Notify server
     if (meetingId && userId) {
@@ -973,30 +1026,65 @@ export const useVoiceCall = (
       if (participant.userId !== userId && peerRef.current && currentStream) {
         console.log('📹 Re-calling peer:', participant.username);
 
-        // Close existing connection
+        // Close existing connection and clean up properly
         const existingConnection = connectionsRef.current.get(participant.userId);
         if (existingConnection) {
+          // Remove event listeners to prevent duplicate stream events
+          existingConnection.removeAllListeners('stream');
+          existingConnection.removeAllListeners('close');
+          existingConnection.removeAllListeners('error');
           existingConnection.close();
           connectionsRef.current.delete(participant.userId);
         }
 
-        // Create new call with current stream
-        const call = peerRef.current.call(participant.peerId, currentStream);
+        // Small delay to ensure previous connection is fully closed
+        setTimeout(() => {
+          // Double-check connection doesn't exist before creating new one
+          if (connectionsRef.current.has(participant.userId)) {
+            console.log('📹 Connection already exists for:', participant.userId, 'skipping re-call');
+            return;
+          }
 
-        call.on('stream', (remoteStream) => {
-          console.log('📹 Received stream after re-call from:', participant.userId);
-          playRemoteStream(participant.userId, remoteStream);
-        });
+          // Verify peer is still available
+          if (!peerRef.current) {
+            console.error('📹 Peer not available for re-call to:', participant.userId);
+            return;
+          }
 
-        call.on('close', () => {
-          console.log('📹 Call closed with:', participant.userId);
-        });
+          // Create new call with current stream
+          const call = peerRef.current.call(participant.peerId, currentStream);
 
-        call.on('error', (error) => {
-          console.error('📹 Call error with:', participant.userId, error);
-        });
+          if (!call) {
+            console.error('📹 Failed to create call to:', participant.userId);
+            return;
+          }
 
-        connectionsRef.current.set(participant.userId, call);
+          let streamReceived = false;
+          call.on('stream', (remoteStream) => {
+            // Prevent duplicate stream processing
+            if (streamReceived) {
+              console.log('📹 Duplicate stream event ignored for:', participant.userId);
+              return;
+            }
+            streamReceived = true;
+            console.log('📹 Received stream after re-call from:', participant.userId);
+            playRemoteStream(participant.userId, remoteStream);
+          });
+
+          call.on('close', () => {
+            console.log('📹 Call closed with:', participant.userId);
+            // Only clean up if this connection is still the current one
+            if (connectionsRef.current.get(participant.userId) === call) {
+              connectionsRef.current.delete(participant.userId);
+            }
+          });
+
+          call.on('error', (error) => {
+            console.error('📹 Call error with:', participant.userId, error);
+          });
+
+          connectionsRef.current.set(participant.userId, call);
+        }, 100); // Small delay to ensure previous connection is closed
       }
     });
 
@@ -1033,6 +1121,11 @@ export const useVoiceCall = (
       setLocalStream(localStreamRef.current);
     }
   }, [isInCall]);
+
+  // Keep remoteStreamsRef in sync with remoteStreams state
+  useEffect(() => {
+    remoteStreamsRef.current = remoteStreams;
+  }, [remoteStreams]);
 
   return {
     isConnected,
