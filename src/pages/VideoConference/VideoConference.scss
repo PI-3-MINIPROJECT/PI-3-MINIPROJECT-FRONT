@@ -747,3 +747,316 @@
     transform: rotate(360deg);
   }
 }
+
+// Breadcrumbs Navigation
+.video-conference__breadcrumbs {
+  background-color: rgba(44, 62, 80, 0.95);
+  padding: $spacing-sm $spacing-lg;
+  display: flex;
+  align-items: center;
+  gap: $spacing-xs;
+  font-size: $font-size-sm;
+  color: rgba(255, 255, 255, 0.8);
+  flex-shrink: 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.video-conference__breadcrumb-link {
+  color: rgba(255, 255, 255, 0.9);
+  text-decoration: none;
+  transition: color 0.2s ease;
+
+  &:hover {
+    color: #ffffff;
+    text-decoration: underline;
+  }
+
+  &:focus-visible {
+    outline: 2px solid #ffffff;
+    outline-offset: 2px;
+    border-radius: 4px;
+  }
+}
+
+.video-conference__breadcrumb-separator {
+  color: rgba(255, 255, 255, 0.4);
+  user-select: none;
+}
+
+.video-conference__breadcrumb-current {
+  color: #ffffff;
+  font-weight: 500;
+}
+
+// Exit Confirmation Modal
+.video-conference__modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.7);
+  z-index: 2000;
+  animation: vcOverlayFadeIn 0.3s ease-out both;
+}
+
+.video-conference__modal {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: white;
+  border-radius: $border-radius-lg;
+  padding: $spacing-xl;
+  max-width: 440px;
+  width: 90%;
+  z-index: 2001;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+  animation: vcModalSlideIn 0.3s ease-out both;
+}
+
+.video-conference__modal-title {
+  font-size: $font-size-xl;
+  font-weight: 600;
+  color: $text-primary;
+  margin: 0 0 $spacing-md 0;
+  text-align: center;
+}
+
+.video-conference__modal-description {
+  font-size: $font-size-base;
+  color: $text-secondary;
+  margin: 0 0 $spacing-xl 0;
+  text-align: center;
+  line-height: 1.5;
+}
+
+.video-conference__modal-actions {
+  display: flex;
+  gap: $spacing-md;
+  flex-direction: column;
+
+  @media (min-width: 480px) {
+    flex-direction: row;
+  }
+}
+
+.video-conference__modal-button {
+  flex: 1;
+  padding: $spacing-md $spacing-lg;
+  border: none;
+  border-radius: $border-radius-md;
+  font-size: $font-size-base;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+
+  &--cancel {
+    background-color: #e5e7eb;
+    color: $text-primary;
+
+    &:hover {
+      background-color: #d1d5db;
+    }
+
+    &:focus-visible {
+      outline: 2px solid $primary-color;
+      outline-offset: 2px;
+    }
+  }
+
+  &--confirm {
+    background-color: #dc2626;
+    color: white;
+
+    &:hover {
+      background-color: #b91c1c;
+    }
+
+    &:focus-visible {
+      outline: 2px solid #dc2626;
+      outline-offset: 2px;
+    }
+  }
+}
+
+@keyframes vcModalSlideIn {
+  from {
+    opacity: 0;
+    transform: translate(-50%, -48%);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, -50%);
+  }
+}
+
+// Participants Panel Styles
+.video-conference__participants-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  z-index: 1999;
+  animation: vcOverlayFadeIn 0.3s ease-out both;
+  cursor: pointer;
+}
+
+.video-conference__participants-panel {
+  position: fixed;
+  top: 0;
+  right: 0;
+  width: 100%;
+  max-width: 360px;
+  height: 100vh;
+  background: white;
+  box-shadow: -4px 0 20px rgba(0, 0, 0, 0.3);
+  z-index: 2000;
+  display: flex;
+  flex-direction: column;
+  animation: vcSlideInRight 0.3s ease-out both;
+
+  @media (max-width: 480px) {
+    max-width: 100%;
+  }
+}
+
+.video-conference__participants-header {
+  background: linear-gradient(135deg, $primary-color, color.adjust($primary-color, $lightness: -10%));
+  color: white;
+  padding: $spacing-lg;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-shrink: 0;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+
+  h3 {
+    margin: 0;
+    font-size: $font-size-lg;
+    font-weight: 600;
+  }
+}
+
+.video-conference__participants-close {
+  background: rgba(255, 255, 255, 0.2);
+  border: none;
+  color: white;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  font-size: 1.2rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  &:hover {
+    background: rgba(255, 255, 255, 0.3);
+    transform: scale(1.05);
+  }
+
+  &:active {
+    transform: scale(0.95);
+  }
+
+  &:focus-visible {
+    outline: 2px solid white;
+    outline-offset: 2px;
+  }
+}
+
+.video-conference__participants-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  flex: 1;
+  overflow-y: auto;
+}
+
+.video-conference__participant-item {
+  display: flex;
+  align-items: center;
+  gap: $spacing-md;
+  padding: $spacing-md $spacing-lg;
+  border-bottom: 1px solid #e5e7eb;
+  transition: background-color 0.2s ease;
+  animation: vcFadeIn 0.3s ease-out both;
+
+  &:hover {
+    background-color: #f9fafb;
+  }
+}
+
+.video-conference__participant-avatar {
+  width: 48px;
+  height: 48px;
+  background: linear-gradient(135deg, $primary-color, color.adjust($primary-color, $lightness: -10%));
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  box-shadow: 0 2px 8px rgba($primary-color, 0.2);
+}
+
+.video-conference__participant-initials {
+  color: white;
+  font-weight: 600;
+  font-size: $font-size-base;
+  text-transform: uppercase;
+}
+
+.video-conference__participant-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.video-conference__participant-name-text {
+  display: block;
+  font-weight: 600;
+  color: $text-primary;
+  font-size: $font-size-base;
+  margin-bottom: $spacing-xs;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.video-conference__participant-status {
+  display: flex;
+  gap: $spacing-xs;
+  flex-wrap: wrap;
+}
+
+.video-conference__participant-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.25rem 0.5rem;
+  background-color: #f3f4f6;
+  color: #6b7280;
+  border-radius: $border-radius-sm;
+  font-size: 0.75rem;
+  font-weight: 500;
+  transition: all 0.2s ease;
+
+  &--active {
+    background-color: rgba($primary-color, 0.1);
+    color: $primary-color;
+  }
+}
+
+@keyframes vcSlideInRight {
+  from {
+    opacity: 0;
+    transform: translateX(100%);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}

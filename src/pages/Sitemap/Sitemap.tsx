@@ -56,15 +56,41 @@ export default function Sitemap() {
           <ul className="sitemap__list">
             <li>
               <Link to="/dashboard">Dashboard</Link>
-              <span className="sitemap__description">Perfil de usuario y configuraciones</span>
+              <span className="sitemap__description">Panel principal del usuario con acceso rápido</span>
+            </li>
+            <li>
+              <Link to="/profile">Perfil</Link>
+              <span className="sitemap__description">Ver y gestionar información del perfil</span>
+            </li>
+            <li>
+              <Link to="/profile/edit">Editar Perfil</Link>
+              <span className="sitemap__description">Modificar datos personales y preferencias</span>
             </li>
             <li>
               <Link to="/meetings">Mis Reuniones</Link>
-              <span className="sitemap__description">Lista de reuniones del usuario</span>
+              <span className="sitemap__description">Lista de reuniones creadas y programadas</span>
             </li>
             <li>
               <Link to="/meetings/create">Crear Reunión</Link>
               <span className="sitemap__description">Crear una nueva sala de reunión</span>
+            </li>
+            <li>
+              <Link to="/meetings/join">Unirse a Reunión</Link>
+              <span className="sitemap__description">Unirse a una reunión existente con código</span>
+            </li>
+          </ul>
+        </section>
+
+        <section className="sitemap__section">
+          <h2>Videoconferencia</h2>
+          <ul className="sitemap__list">
+            <li>
+              <Link to="/explore">Explorar</Link>
+              <span className="sitemap__description">Buscar y acceder a reuniones disponibles</span>
+            </li>
+            <li>
+              <span className="sitemap__disabled">Sala de Reunión</span>
+              <span className="sitemap__description">Interfaz de videoconferencia con chat, audio y video (acceso mediante unión a reunión)</span>
             </li>
           </ul>
         </section>
@@ -76,30 +102,24 @@ export default function Sitemap() {
               <li>
                 <strong>/</strong> (Inicio)
                 <ul>
-                  <li>
-                    <strong>/about</strong> (Sobre Nosotros)
-                  </li>
-                  <li>
-                    <strong>/sitemap</strong> (Mapa del Sitio)
-                  </li>
-                  <li>
-                    <strong>/login</strong> (Iniciar sesión)
-                  </li>
-                  <li>
-                    <strong>/register</strong> (Registro)
-                  </li>
-                  <li>
-                    <strong>/forgot-password</strong> (Recuperar contraseña)
-                  </li>
+                  <li><strong>/about</strong> (Sobre Nosotros)</li>
+                  <li><strong>/sitemap</strong> (Mapa del Sitio)</li>
+                  <li><strong>/login</strong> (Iniciar sesión)</li>
+                  <li><strong>/register</strong> (Registro)</li>
+                  <li><strong>/forgot-password</strong> (Recuperar contraseña)</li>
+                  <li><strong>/reset-password</strong> (Restablecer contraseña)</li>
                   <li>
                     <strong>/dashboard</strong> (Panel de Usuario)
                     <ul>
-                      <li>
-                        <strong>/meetings</strong> (Mis Reuniones)
-                      </li>
-                      <li>
-                        <strong>/meetings/create</strong> (Crear Reunión)
-                      </li>
+                      <li><strong>/profile</strong> (Ver Perfil)</li>
+                      <li><strong>/profile/edit</strong> (Editar Perfil)</li>
+                      <li><strong>/explore</strong> (Explorar Reuniones)</li>
+                      <li><strong>/meetings</strong> (Mis Reuniones)</li>
+                      <li><strong>/meetings/create</strong> (Crear Reunión)</li>
+                      <li><strong>/meetings/join</strong> (Unirse a Reunión)</li>
+                      <li><strong>/meetings/:id</strong> (Detalles de Reunión)</li>
+                      <li><strong>/meetings/:id/success</strong> (Reunión Creada)</li>
+                      <li><strong>/meeting/:meetingId</strong> (Sala de Videoconferencia)</li>
                     </ul>
                   </li>
                 </ul>

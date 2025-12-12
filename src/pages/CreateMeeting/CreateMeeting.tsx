@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import Input from '../../components/Input/Input';
 import Button from '../../components/Button/Button';
 import { useAuth } from '../../hooks/useAuth';
@@ -134,6 +134,17 @@ export default function CreateMeeting() {
   return (
     <main className="create-meeting" role="main">
       <div className="create-meeting__container">
+        {/* Breadcrumbs Navigation */}
+        <nav className="create-meeting__breadcrumbs" aria-label="Navegación de ruta">
+          <Link to="/explore" className="create-meeting__breadcrumb-link">
+            Inicio
+          </Link>
+          <span className="create-meeting__breadcrumb-separator">/</span>
+          <span className="create-meeting__breadcrumb-current" aria-current="page">
+            Nueva Reunión
+          </span>
+        </nav>
+
         <div className="create-meeting__header">
           <h1 className="create-meeting__title">
             Crear <span className="create-meeting__title-highlight">reunión</span>
@@ -234,6 +245,14 @@ export default function CreateMeeting() {
           </div>
 
           <div className="create-meeting__actions">
+            <Button
+              type="button"
+              variant="secondary"
+              onClick={() => navigate('/explore')}
+              className="create-meeting__back-button"
+            >
+              Cancelar
+            </Button>
             <Button
               type="submit"
               variant="primary"

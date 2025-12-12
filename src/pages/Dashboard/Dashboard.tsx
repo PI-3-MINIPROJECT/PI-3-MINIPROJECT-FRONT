@@ -71,7 +71,7 @@ export default function Dashboard() {
     <main className="dashboard" role="main">
       <div className="dashboard__container">
         {welcomeMessage && (
-          <div className="dashboard__welcome-message" role="alert">
+          <div className="dashboard__welcome-message" role="status" aria-live="polite">
             {welcomeMessage}
           </div>
         )}
@@ -125,29 +125,36 @@ export default function Dashboard() {
           </Link>
         </div>
 
-        <section className="dashboard__meetings">
-          <h2 className="dashboard__meetings-title">Próximas reuniones</h2>
+        <section className="dashboard__meetings" aria-labelledby="meetings-title">
+          <h2 className="dashboard__meetings-title" id="meetings-title">Próximas reuniones</h2>
           {isLoadingMeetings ? (
-            <div className="dashboard__meetings-loading">
-              <div className="dashboard__meetings-spinner"></div>
+            <div className="dashboard__meetings-loading" role="status" aria-live="polite">
+              <div className="dashboard__meetings-spinner" aria-hidden="true"></div>
               <p>Cargando reuniones...</p>
             </div>
           ) : todayMeetings.length === 0 ? (
-            <div className="dashboard__meetings-empty">
+            <div className="dashboard__meetings-empty" role="status">
               <p>No tienes reuniones programadas para hoy</p>
               <Link to="/meetings/create" className="dashboard__meetings-create-link">
                 Crear una reunión
               </Link>
             </div>
           ) : (
-            <div className="dashboard__meetings-list">
+            <div className="dashboard__meetings-list" role="list">
               {todayMeetings.map(meeting => (
                 <div 
                   key={meeting.meetingId}
                   className="dashboard__meeting-item"
                   onClick={() => handleMeetingClick(meeting)}
-                  role="button"
+                  role="listitem"
                   tabIndex={0}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      e.preventDefault();
+                      handleMeetingClick(meeting);
+                    }
+                  }}
+                  aria-label={`Reunión: ${meeting.title} a las ${formatTime(meeting.time)}`}
                 >
                   <div className="dashboard__meeting-time">{formatTime(meeting.time)}</div>
                   <div className="dashboard__meeting-info">
