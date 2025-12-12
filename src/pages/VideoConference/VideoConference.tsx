@@ -326,11 +326,9 @@ export default function VideoConference() {
             className="video-conference__control-button video-conference__control-button--end"
             onClick={handleEndCall}
             aria-label="Finalizar llamada"
-            title="Salir de la llamada"
           >
             <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M12 9c-1.6 0-3.15.25-4.6.72v3.1c0 .39-.23.74-.56.9-.98.49-1.87.12-2.42-.41L2.2 10.72C1.26 9.58.8 10.53.8 11.5v1c0 5.52 4.48 10 10 10h.4c5.52 0 10-4.48 10-10v-1c0-.97-.46-1.92-1.4-.78l-2.22 2.59c-.55.53-1.44.9-2.42.41a.994.994 0 0 1-.56-.9v-3.1A14.93 14.93 0 0 0 12 9z" fill="currentColor"/>
-              <path d="M19 3.5L5 17.5M5 3.5l14 14" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"/>
+              <path d="M12 9C10.4 9 8.85 9.25 7.4 9.72V12.82C7.4 13.41 7.07 13.94 6.5 14.18C5.93 14.42 5.27 14.25 4.85 13.78L2.22 10.72C1.27 9.58 0 10.12 0 11.5V20.5C0 21.88 1.27 22.42 2.22 21.28L4.85 18.22C5.27 17.75 5.93 17.58 6.5 17.82C7.07 18.06 7.4 18.59 7.4 19.18V22.28C8.85 22.75 10.4 23 12 23C17.5 23 22 18.5 22 13C22 7.5 17.5 3 12 3V9Z" fill="currentColor"/>
             </svg>
           </button>
           </div>
