@@ -45,11 +45,38 @@ export default function VideoConference() {
   /**
    * Join call when component mounts
    */
+  const mountedRef = useRef(true);
+  const cleanupTimeoutRef = useRef<number | null>(null);
+  
   useEffect(() => {
+    mountedRef.current = true;
+    
+    // Clear any pending cleanup from previous mount
+    if (cleanupTimeoutRef.current) {
+      clearTimeout(cleanupTimeoutRef.current);
+      cleanupTimeoutRef.current = null;
+    }
+    
     joinVoiceCall();
     
     return () => {
-      leaveVoiceCall();
+      // Mark as unmounted
+      mountedRef.current = false;
+      
+      // Clear any existing timeout
+      if (cleanupTimeoutRef.current) {
+        clearTimeout(cleanupTimeoutRef.current);
+      }
+      
+      // Use a delay to distinguish between StrictMode cleanup and real unmount
+      // In StrictMode, the component will remount quickly, so we check after a delay
+      cleanupTimeoutRef.current = setTimeout(() => {
+        // Only cleanup if component is still unmounted (real unmount, not StrictMode)
+        if (!mountedRef.current) {
+          void leaveVoiceCall();
+        }
+        cleanupTimeoutRef.current = null;
+      }, 200); // Increased delay to better handle StrictMode
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []); // Only run on mount/unmount
@@ -158,10 +185,10 @@ export default function VideoConference() {
 
   /**
    * Confirms ending the call and navigates back
-   * @returns {void}
+   * @returns {Promise<void>}
    */
-  const confirmEndCall = () => {
-    leaveVoiceCall();
+  const confirmEndCall = async () => {
+    await leaveVoiceCall();
     navigate('/explore');
   };
 
